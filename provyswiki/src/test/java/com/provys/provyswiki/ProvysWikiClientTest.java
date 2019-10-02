@@ -13,10 +13,8 @@ class ProvysWikiClientTest {
             "http://provys-wiki.dcit.cz/lib/exe/xmlrpc.php", "stehlik", "stehlik");
 
     @Test
-    void syncSidebarTest() {
-        if (!provysWikiClient.getPage("playground:java:sidebar:sidebar").isEmpty()) {
-            provysWikiClient.deletePage("playground:java:sidebar:sidebar");
-        }
+    void sidebarTest() {
+        provysWikiClient.deleteSidebarIfExists("playground:java:sidebar");
         provysWikiClient.syncSidebar("playground:java:sidebar");
         assertThat(provysWikiClient.getPage("playground:java:sidebar:sidebar")).isEqualTo(
                 "{{page>..:..:..:sidebar}}\n" +
@@ -26,6 +24,10 @@ class ProvysWikiClientTest {
                 "  * [[..:..:]]\n" +
                 "    * [[..:]]\n" +
                 "      * [[.:]]{{page>content}}");
+        provysWikiClient.deleteSidebarIfExists("playground:java:sidebar");
+        assertThat(provysWikiClient.getPage("playground:java:sidebar:sidebar")).isEmpty();
+        provysWikiClient.deleteSidebarIfExists("playground:java:sidebar");
+        assertThat(provysWikiClient.getPage("playground:java:sidebar:sidebar")).isEmpty();
         provysWikiClient.syncSidebar("playground:java:sidebar:sub1");
         assertThat(provysWikiClient.getPage("playground:java:sidebar:sub1:sidebar")).isEqualTo(
                 "{{page>..:..:..:..:sidebar}}\n" +
@@ -39,7 +41,7 @@ class ProvysWikiClientTest {
     }
 
     @Test
-    void syncContentTest() {
+    void contentTest() {
         provysWikiClient.syncContent("playground:java:content",
                 List.of("topic1", ".dir1:", "", ".dir2:", "\\\\", "topic2"));
         assertThat(provysWikiClient.getPage("playground:java:content:content")).isEqualTo(
@@ -49,6 +51,9 @@ class ProvysWikiClientTest {
                 "  * [[.dir2:]]\n" +
                 "\\\\\n" +
                 "  * [[topic2]]\n");
+        provysWikiClient.deleteContentIfExists("playground:java:content");
+        assertThat(provysWikiClient.getPage("playground:java:content:content")).isEmpty();
+        provysWikiClient.deleteContentIfExists("playground:java:content");
     }
 
     @Test

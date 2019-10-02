@@ -4,12 +4,13 @@ import com.provys.catalogue.api.Attr;
 import com.provys.catalogue.api.AttrGrp;
 import com.provys.catalogue.api.CatalogueRepository;
 import com.provys.catalogue.api.Entity;
-import com.provys.wikiloader.impl.LinkResolver;
+import com.provys.wikiloader.impl.ElementHandlerFactory;
+import com.provys.wikiloader.wikimap.WikiElement;
+import com.provys.wikiloader.wikimap.WikiMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.sparx.Element;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.stream.Collectors;
@@ -25,32 +26,34 @@ class DataObjectHandler extends DefaultElementHandler {
      * Create and return handler for data object. Log warning if entity is not found based on supplied alias.
      *
      * @param element is element we create handler for
-     * @param id is id of wiki page where element will be described
+     * @param info is infromation about element mapping to wiki
      * @param catalogueRepository is Provys Catalogue repository used to retrieve information about entity and its
      *                           attributes
      */
-    DataObjectHandler(Element element, String id, CatalogueRepository catalogueRepository) {
-        super(element, id);
+    DataObjectHandler(Element element, WikiElement info, ElementHandlerFactory elementHandlerFactory,
+                      WikiMap wikiMap, CatalogueRepository catalogueRepository) {
+        super(element, info, elementHandlerFactory, wikiMap);
         this.entity = catalogueRepository.getEntityManager().getByNameNmIfExists(element.GetAlias()).orElse(null);
         if (this.entity == null) {
-            LOG.warn("Entity for data object {} not found", id);
+            LOG.warn("Entity for data object {} not found", element::GetAlias);
         }
     }
 
-    private void appendDomain(StringBuilder builder, Attr attr, LinkResolver linkResolver) {
+    private void appendDomain(StringBuilder builder, Attr attr) {
         var domainNm = attr.getDomain();
         builder.append(domainNm);
-        if (domainNm.equals("UID")) {
 
-        }
+        // missing code...
+
+
     }
 
-    private void appendAttr(StringBuilder builder, Attr attr, LinkResolver linkResolver) {
+    private void appendAttr(StringBuilder builder, Attr attr) {
         builder.append("|**").append(attr.getName()).append("**  |''")
                 .append(attr.getNameNm()).append("''  |  ");
-        appendDomain(builder, attr, linkResolver);
+        appendDomain(builder, attr);
         builder.append("  |\n|");
-        attr.getNote().map(linkResolver::formatProvysNote).ifPresent(builder::append);
+        attr.getNote().map(getWikiMap()::formatProvysNote).ifPresent(builder::append);
         builder.append("  |||");
     }
 
@@ -58,25 +61,23 @@ class DataObjectHandler extends DefaultElementHandler {
         builder.append("^ Name  ^ Int. Name  ^  Domain  ^");
     }
 
-    private void appendAttrs(StringBuilder builder, Collection<Attr> attrs, LinkResolver linkResolver) {
+    private void appendAttrs(StringBuilder builder, Collection<Attr> attrs) {
         for (var attr : attrs) {
-            appendAttr(builder, attr, linkResolver);
+            appendAttr(builder, attr);
         }
     }
 
-    private void appendAttrGrp(StringBuilder builder, AttrGrp attrGrp, LinkResolver linkResolver) {
+    private void appendAttrGrp(StringBuilder builder, AttrGrp attrGrp) {
         builder.append("===== ").append(attrGrp.getName()).append(" (").append(attrGrp.getNameNm()).append(") =====\n");
         appendAttrHeader(builder);
         attrGrp.getAttrs().stream()
                 .filter(attr -> attr.getAttrGrpId().isEmpty())
                 .sorted()
-                .forEach(attr -> appendAttr(builder, attr, linkResolver));
+                .forEach(attr -> appendAttr(builder, attr));
     }
 
     @Override
-    @Nonnull
-    String getDocument(LinkResolver linkResolver) {
-        var builder = new StringBuilder();
+    void appendDocument(StringBuilder builder) {
         if (entity == null) {
             appendTitle(builder);
             appendAlias(builder);
@@ -87,11 +88,11 @@ class DataObjectHandler extends DefaultElementHandler {
             if (!entity.isObjectClass()) {
                 builder.append("Astract type\n");
             }
-            builder.append("Belongs to group: [[").append(linkResolver.getPackageLink(getElement().GetPackageID()))
+            builder.append("Belongs to group: [[").append(getWikiMap().getPackageLink(getElement().GetPackageID()))
                     .append("]]\n");
             entity.getNote().ifPresent(note -> {
                 builder.append("===== Notes =====\n");
-                builder.append(linkResolver.formatProvysNote(note));
+                builder.append(getWikiMap().formatProvysNote(note));
             });
             builder.append("===== Code =====\n");
             entity.getTable().ifPresent(table -> builder.append("Base table: ''").append(table).append("''\n"));
@@ -105,7 +106,7 @@ class DataObjectHandler extends DefaultElementHandler {
             entity.getFpPackage().ifPresent(fpPackage -> builder.append("FP Package: ''").append(fpPackage)
                     .append("''\n"));
             builder.append("===== Attributes =====\n");
-            entity.getAttrGrps().stream().sorted().forEach(attrGrp -> appendAttrGrp(builder, attrGrp, linkResolver));
+            entity.getAttrGrps().stream().sorted().forEach(attrGrp -> appendAttrGrp(builder, attrGrp));
             // and append attributes not attached to any attribute group
             var attrs = entity.getAttrs().stream()
                     .filter(attr -> attr.getAttrGrpId().isEmpty())
@@ -114,9 +115,8 @@ class DataObjectHandler extends DefaultElementHandler {
             if (!attrs.isEmpty()) {
                 builder.append("\\\\\n");
                 appendAttrHeader(builder);
-                appendAttrs(builder, attrs, linkResolver);
+                appendAttrs(builder, attrs);
             }
         }
-        return builder.toString();
     }
 }

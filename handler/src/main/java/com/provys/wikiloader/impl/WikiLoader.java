@@ -1,8 +1,8 @@
 package com.provys.wikiloader.impl;
 
-import com.provys.catalogue.api.CatalogueRepository;
 import com.provys.common.exception.InternalException;
 import com.provys.provyswiki.ProvysWikiClient;
+import com.provys.wikiloader.wikimap.WikiMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.sparx.Collection;
@@ -30,9 +30,8 @@ public class WikiLoader {
     public void run(Repository eaRepository, ProvysWikiClient wikiClient) {
         Collection<Package> models = eaRepository.GetModels();
         Package model = models.GetByName("Product Model");
-        LinkResolver linkResolver = new LinkResolver(eaRepository, model, ROOT_NAMESPACE);
-
-        PackageHandler.ofPackage(model, elementHandlerFactory, linkResolver).ifPresentOrElse(
+        WikiMap wikiMap = new WikiMap(eaRepository, model, ROOT_NAMESPACE, true);
+        PackageHandler.ofPackage(model, elementHandlerFactory, wikiMap).ifPresentOrElse(
                 pkg -> pkg.sync(wikiClient),
                 () -> {throw new InternalException(LOG, "Root package not evaluated for synchronisation");});
         model.destroy();

@@ -11,13 +11,13 @@ import javax.annotation.Nonnull;
 public interface ElementHandler {
 
     /**
-     * @return name of object used as topic name in wiki; usually lower-case of alias
+     * @return link to element, relative from enclosing package / element
      */
     @Nonnull
-    String getName();
+    String getRelLink();
 
     /**
      * Synchronize wiki page, corresponding to given element
      */
-    void sync(ProvysWikiClient wikiClient, LinkResolver linkResolver);
+    void sync(ProvysWikiClient wikiClient);
 }

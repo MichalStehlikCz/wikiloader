@@ -1,7 +1,11 @@
 package com.provys.wikiloader.impl;
 
+import com.provys.common.exception.InternalException;
 import com.provys.dokuwiki.PageIdParser;
 import com.provys.provyswiki.ProvysWikiClient;
+import com.provys.wikiloader.elementhandlers.DiagramHandler;
+import com.provys.wikiloader.wikimap.WikiMap;
+import com.provys.wikiloader.wikimap.WikiPackage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.sparx.Package;
@@ -20,9 +24,12 @@ class PackageHandler {
     private static final Logger LOG = LogManager.getLogger(PackageHandler.class);
 
     static Optional<PackageHandler> ofPackage(Package pkg, ElementHandlerFactory elementHandlerFactory,
-                                                     LinkResolver linkResolver) {
-        return linkResolver.getPackageNamespace(pkg)
-                .map(ns -> new PackageHandler(pkg, ns, elementHandlerFactory, linkResolver));
+                                                     WikiMap wikiMap) {
+        var wikiPackage = wikiMap.getWikiPackage(pkg);
+        if (!wikiPackage.isExported()) {
+            return Optional.empty();
+        }
+        return Optional.of(new PackageHandler(pkg, wikiPackage, elementHandlerFactory, wikiMap));
     }
 
     @Nonnull
@@ -31,26 +38,28 @@ class PackageHandler {
     private final String namespace;
     @Nonnull
     private final String name;
+    private final boolean sync;
     /** Factory used to retrieve handlers for elements */
     @Nonnull
     private final ElementHandlerFactory elementHandlerFactory;
     /** Resolver used to resolve package and element links */
     @Nonnull
-    private final LinkResolver linkResolver;
+    private final WikiMap wikiMap;
 
     /**
      * Create new package reader usable to import content of given package to wiki.
      *
      * @param pkg is package to be imported
-     * @param namespace is namespace where package should be placed
      */
-    private PackageHandler(Package pkg, String namespace, ElementHandlerFactory elementHandlerFactory,
-                   LinkResolver linkResolver) {
+    private PackageHandler(Package pkg, WikiPackage wikiPackage, ElementHandlerFactory elementHandlerFactory,
+                           WikiMap wikiMap) {
         this.pkg = Objects.requireNonNull(pkg);
-        this.namespace = Objects.requireNonNull(namespace);
+        this.namespace = wikiPackage.getNamespace().orElseThrow(() -> new InternalException(LOG,
+                "Cannot export package " + pkg.GetName() + " without namespace (parent not exported or missing alias)"));
         this.name = new PageIdParser().getName(namespace);
+        this.sync = wikiPackage.isSync();
         this.elementHandlerFactory = Objects.requireNonNull(elementHandlerFactory);
-        this.linkResolver = Objects.requireNonNull(linkResolver);
+        this.wikiMap = Objects.requireNonNull(wikiMap);
     }
 
     /**
@@ -73,7 +82,7 @@ class PackageHandler {
         var diagrams = pkg.GetDiagrams();
         var result = new ArrayList<DiagramHandler>(diagrams.GetCount());
         for (var diagram : diagrams) {
-            result.add(new DiagramHandler(diagram));
+            result.add(new DiagramHandler(diagram, wikiMap));
         }
         diagrams.destroy();
         return result;
@@ -83,8 +92,8 @@ class PackageHandler {
         var subPackages = pkg.GetPackages();
         var result = new ArrayList<PackageHandler>(subPackages.GetCount());
         for (Package subPackage : subPackages) {
-            PackageHandler.ofPackage(subPackage, elementHandlerFactory, linkResolver).ifPresentOrElse(result::add,
-                    () -> LOG.info("Package " + subPackage.GetName() + " skipped, alias is empty"));
+            PackageHandler.ofPackage(subPackage, elementHandlerFactory, wikiMap).ifPresentOrElse(result::add,
+                    () -> LOG.info("Package {} skipped, alias is empty", subPackage::GetName));
         }
         subPackages.destroy();
         return result;
@@ -94,7 +103,7 @@ class PackageHandler {
         var elements = pkg.GetElements();
         var result = new ArrayList<ElementHandler>(elements.GetCount());
         for (var element : elements) {
-            elementHandlerFactory.getElementHandler(element, linkResolver).ifPresent(result::add);
+            elementHandlerFactory.getElementHandler(element, wikiMap).ifPresent(result::add);
         }
         elements.destroy();
         return result;
@@ -102,13 +111,20 @@ class PackageHandler {
 
     private void appendElement(ElementHandler element, ProvysWikiClient wikiClient, StringBuilder startBuilder,
                                List<String> contentBuilder) {
-        startBuilder.append("  * [[").append(element.getName()).append("]]\n");
-        contentBuilder.add(element.getName());
-        element.sync(wikiClient, linkResolver);
+        startBuilder.append("  * [[").append(element.getRelLink()).append("]]\n");
+        contentBuilder.add(element.getRelLink());
+        element.sync(wikiClient);
+    }
+
+    private void inlineElement(ElementHandler element, ProvysWikiClient wikiClient, StringBuilder startBuilder,
+                               List<String> contentBuilder) {
+        startBuilder.append("{{page>").append(element.getRelLink()).append("&noheader}}\n");
+        contentBuilder.add(element.getRelLink());
+        element.sync(wikiClient);
     }
 
     void sync(ProvysWikiClient wikiClient) {
-        LOG.info("Synchronize package {} to namespace {}", pkg.GetName(), namespace);
+        LOG.info("Synchronize package {} to namespace {}", pkg::GetName, () -> namespace);
         wikiClient.syncSidebar(namespace);
         StringBuilder startBuilder = new StringBuilder();
         List<String> contentBuilder = new ArrayList<>(10);
@@ -116,9 +132,15 @@ class PackageHandler {
         // handle diagrams
         var diagrams = getDiagrams();
         if (!diagrams.isEmpty()) {
-            startBuilder.append("\n==== Diagrams ====\n");
-            for (var diagram : diagrams) {
-                appendElement(diagram, wikiClient, startBuilder, contentBuilder);
+            if (diagrams.size() == 1) {
+                // if there is just one diagram, we expect it illustrates package and put it inline
+                inlineElement(diagrams.get(0), wikiClient, startBuilder, contentBuilder);
+            } else {
+                // multiple diagrams are exported as links in diagram section
+                startBuilder.append("\n==== Diagrams ====\n");
+                for (var diagram : diagrams) {
+                    appendElement(diagram, wikiClient, startBuilder, contentBuilder);
+                }
             }
         }
         // handle sub-packages
@@ -147,8 +169,10 @@ class PackageHandler {
         // synchronize to wiki
         wikiClient.putPage(namespace + ":start", startBuilder.toString());
         wikiClient.syncContent(namespace, contentBuilder);
-        wikiClient.deleteUnusedNamespaces(namespace, contentBuilder);
-        wikiClient.deleteUnusedPages(namespace, contentBuilder);
+        if (sync) {
+            wikiClient.deleteUnusedNamespaces(namespace, contentBuilder);
+            wikiClient.deleteUnusedPages(namespace, contentBuilder);
+        }
         // synchronize subpackages
         for (var subPackage : subPackages) {
             subPackage.sync(wikiClient);

@@ -2,7 +2,7 @@ package com.provys.wikiloader.elementhandlers;
 
 import com.provys.catalogue.api.CatalogueRepository;
 import com.provys.wikiloader.impl.ElementHandler;
-import com.provys.wikiloader.impl.LinkResolver;
+import com.provys.wikiloader.wikimap.WikiMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.sparx.Element;
@@ -29,23 +29,30 @@ class DefaultElementHandlerFactory implements com.provys.wikiloader.impl.Element
 
     @Override
     @Nonnull
-    @SuppressWarnings("squid:S3655") // Sonar does not support IsEmpty for Optional yet...
-    public Optional<ElementHandler> getElementHandler(Element element, LinkResolver linkResolver) {
-        Optional<String> id = linkResolver.getElementId(element);
-        if (id.isEmpty()) {
-            LOG.info("Skip {} {} with empty alias", element::GetType, element::GetName);
+    public Optional<ElementHandler> getElementHandler(Element element, WikiMap wikiMap) {
+        if (element.GetType().equals("Boundary") || element.GetType().equals("UMLDiagram")) {
+            // some types of elements are only used as areas in diagram and have are not exported themselves
+            LOG.debug("Skip element {} of type {}", element::GetName, element::GetType);
+            return Optional.empty();
+        }
+        var info = wikiMap.getWikiElement(element);
+        if (info.getTopicId().isEmpty()) {
+            if (element.GetName().equals("START") || element.GetName().equals("END")) {
+                // START and END process steps are used in diagram, but are not exported
+                LOG.debug("Skip {} {} with empty alias", element::GetType, element::GetName);
+            } else {
+                LOG.info("Skip {} {} with empty alias", element::GetType, element::GetName);
+            }
             return Optional.empty();
         }
         switch (element.GetType()) {
-            case "Boundary":
-                // Boundary in diagram links to package, but is not exported on its own
-                return Optional.empty();
             case "BusinessObject":
-                return Optional.of(new BusinessObjectHandler(element, id.get()));
+                return Optional.of(new BusinessObjectHandler(element, info, this, wikiMap));
             case "DataObject":
-                return Optional.of(new DataObjectHandler(element, id.get(), catalogueRepository));
+                return Optional.of(new DataObjectHandler(element, info, this, wikiMap,
+                        catalogueRepository));
             default:
-                return Optional.of(new DefaultElementHandler(element, id.get()));
+                return Optional.of(new DefaultElementHandler(element, info, this, wikiMap));
         }
     }
 }

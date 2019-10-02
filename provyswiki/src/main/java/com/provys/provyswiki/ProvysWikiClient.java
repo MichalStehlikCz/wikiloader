@@ -14,6 +14,13 @@ import java.util.Set;
 @SuppressWarnings("WeakerAccess")
 public class ProvysWikiClient extends DokuWikiClient {
 
+    /** Name of topic that defines sidebar for given namespace */
+    public static final String SIDEBAR = "sidebar";
+    /** Name of topic that defines content for given namespace */
+    public static final String CONTENT = "content";
+    /** Name of topic that acts as landing page for given namespace */
+    public static final String START = "start";
+
     /**
      * Create new provys-wiki client instance.
      *
@@ -32,26 +39,28 @@ public class ProvysWikiClient extends DokuWikiClient {
      */
     public void syncSidebar(String namespace) {
         int depth = getPageIdParser().getDepth(namespace);
-        StringBuilder builder = new StringBuilder().append("{{page>");
-        for (int i = 1; i < depth; i++) {
-            builder.append("..:");
-        }
-        builder.append("sidebar}}\n\n----\nContent ([[content?do=edit|edit]])\n");
+        StringBuilder builder = new StringBuilder().append("{{page>")
+                .append("..:".repeat(depth - 1))
+                .append(SIDEBAR).append("}}\n\n----\nContent ([[").append(CONTENT).append("?do=edit|edit]])\n");
         for (int i = depth - 2; i > 0; i--) {
-            for (int j = depth - 2; j > i; j--) {
-                builder.append("  ");
-            }
-            builder.append("  * [[");
-            for (int j = 0; j < i; j++) {
-                builder.append("..:");
-            }
-            builder.append("]]\n");
+            builder.append("  ".repeat(depth - i - 2))
+                    .append("  * [[")
+                    .append("..:".repeat(i))
+                    .append("]]\n");
         }
-        for (int j = depth - 2; j > 0; j--) {
-            builder.append("  ");
-        }
-        builder.append("  * [[.:]]{{page>content}}");
-        putPage(namespace + ":sidebar", builder.toString());
+        builder.append("  ".repeat(depth - 2))
+                .append("  * [[.:]]{{page>").append(CONTENT).append("}}");
+        putPage(namespace + ":" + SIDEBAR, builder.toString());
+    }
+
+    /**
+     * Delete sidebar in given namespace. Used when namespace is being converted to simple topic. Action is safe even if
+     * sidebar does not exist
+     *
+     * @param namespace is namespace in which sidebar should be deleted
+     */
+    public void deleteSidebarIfExists(String namespace) {
+        deletePageIfExists(namespace + ":" + SIDEBAR);
     }
 
     /**
@@ -60,7 +69,7 @@ public class ProvysWikiClient extends DokuWikiClient {
      * added to content. If supplied string is ---, adds separator to content
      */
     public void syncContent(String namespace, List<String> topics) {
-        String contentId = namespace + ":content";
+        String contentId = namespace + ":" + CONTENT;
         if (topics.isEmpty()) {
             // if content is empty, it has to be deleted, put might fail if no previous content exists...
             if (!getPage(contentId).isEmpty()) {
@@ -79,6 +88,16 @@ public class ProvysWikiClient extends DokuWikiClient {
             }
         }
         putPage(contentId, builder.toString());
+    }
+
+    /**
+     * Delete content in given namespace. Used when namespace is being converted to simple topic. Action is safe even if
+     * content does not exist
+     *
+     * @param namespace is namespace in which content should be deleted
+     */
+    public void deleteContentIfExists(String namespace) {
+        deletePageIfExists(namespace + ":" + CONTENT);
     }
 
     /**
@@ -104,9 +123,9 @@ public class ProvysWikiClient extends DokuWikiClient {
      */
     public void deleteUnusedPages(String namespace, List<String> used) {
         Set<String> usedSet = new HashSet<>(used);
-        usedSet.add("sidebar");
-        usedSet.add("start");
-        usedSet.add("content");
+        usedSet.add(SIDEBAR);
+        usedSet.add(START);
+        usedSet.add(CONTENT);
         getPageNames(namespace)
                 .stream()
                 .filter(page -> !usedSet.contains(page))

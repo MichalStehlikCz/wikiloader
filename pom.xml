@@ -175,7 +175,7 @@
             <dependency>
                 <groupId>com.provys.dokuwiki</groupId>
                 <artifactId>dokuwiki</artifactId>
-                <version>1.1.0</version>
+                <version>1.1.1</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
