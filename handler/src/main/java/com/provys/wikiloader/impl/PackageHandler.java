@@ -38,7 +38,7 @@ class PackageHandler {
     private final String namespace;
     @Nonnull
     private final String name;
-    private final boolean sync;
+    private final boolean syncContent;
     /** Factory used to retrieve handlers for elements */
     @Nonnull
     private final ElementHandlerFactory elementHandlerFactory;
@@ -57,7 +57,7 @@ class PackageHandler {
         this.namespace = wikiPackage.getNamespace().orElseThrow(() -> new InternalException(LOG,
                 "Cannot export package " + pkg.GetName() + " without namespace (parent not exported or missing alias)"));
         this.name = new PageIdParser().getName(namespace);
-        this.sync = wikiPackage.isSync();
+        this.syncContent = wikiPackage.isSync();
         this.elementHandlerFactory = Objects.requireNonNull(elementHandlerFactory);
         this.wikiMap = Objects.requireNonNull(wikiMap);
     }
@@ -110,10 +110,12 @@ class PackageHandler {
     }
 
     private void appendElement(ElementHandler element, ProvysWikiClient wikiClient, StringBuilder startBuilder,
-                               List<String> contentBuilder) {
+                               List<String> contentBuilder, boolean sync) {
         startBuilder.append("  * [[").append(element.getRelLink()).append("]]\n");
         contentBuilder.add(element.getRelLink());
-        element.sync(wikiClient);
+        if (sync) {
+            element.sync(wikiClient);
+        }
     }
 
     private void inlineElement(ElementHandler element, ProvysWikiClient wikiClient, StringBuilder startBuilder,
@@ -123,7 +125,7 @@ class PackageHandler {
         element.sync(wikiClient);
     }
 
-    void sync(ProvysWikiClient wikiClient) {
+    void sync(ProvysWikiClient wikiClient, boolean recursive) {
         LOG.info("Synchronize package {} to namespace {}", pkg::GetName, () -> namespace);
         wikiClient.syncSidebar(namespace);
         StringBuilder startBuilder = new StringBuilder();
@@ -131,17 +133,8 @@ class PackageHandler {
         startBuilder.append("===== ").append(pkg.GetName()).append(" =====\n");
         // handle diagrams
         var diagrams = getDiagrams();
-        if (!diagrams.isEmpty()) {
-            if (diagrams.size() == 1) {
-                // if there is just one diagram, we expect it illustrates package and put it inline
-                inlineElement(diagrams.get(0), wikiClient, startBuilder, contentBuilder);
-            } else {
-                // multiple diagrams are exported as links in diagram section
-                startBuilder.append("\n==== Diagrams ====\n");
-                for (var diagram : diagrams) {
-                    appendElement(diagram, wikiClient, startBuilder, contentBuilder);
-                }
-            }
+        for (var diagram : diagrams) {
+            inlineElement(diagram, wikiClient, startBuilder, contentBuilder);
         }
         // handle sub-packages
         var subPackages = getSubPackages();
@@ -163,19 +156,21 @@ class PackageHandler {
                 contentBuilder.add("\\\\");
             }
             for (var element : elements) {
-                appendElement(element, wikiClient, startBuilder, contentBuilder);
+                appendElement(element, wikiClient, startBuilder, contentBuilder, recursive);
             }
         }
         // synchronize to wiki
         wikiClient.putPage(namespace + ":start", startBuilder.toString());
-        wikiClient.syncContent(namespace, contentBuilder);
-        if (sync) {
+        if (syncContent) {
+            wikiClient.syncContent(namespace, contentBuilder);
             wikiClient.deleteUnusedNamespaces(namespace, contentBuilder);
             wikiClient.deleteUnusedPages(namespace, contentBuilder);
         }
         // synchronize subpackages
-        for (var subPackage : subPackages) {
-            subPackage.sync(wikiClient);
+        if (recursive) {
+            for (var subPackage : subPackages) {
+                subPackage.sync(wikiClient, true);
+            }
         }
     }
 }

@@ -20,6 +20,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 
+/**
+ * Class implements export of diagram to Wiki
+ */
 public class DiagramHandler implements ElementHandler {
 
     private static final Logger LOG = LogManager.getLogger(DiagramHandler.class);

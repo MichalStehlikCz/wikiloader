@@ -56,6 +56,13 @@ public class WikiLoaderCliApplication implements Runnable {
                     "Persist Security Info=True;User ID=ker;Data Source=enterprise_architect;LazyLoad=1;")
     private String eaAddress;
 
+    @CommandLine.Option(names = {"--path"}, description = "Path (excluding root model)")
+    private String path;
+
+    @CommandLine.Option(names = {"--single"}, description = "Single - export only single package / element, do not" +
+            " export children")
+    private boolean notRecursive;
+
     @CommandLine.Option(names = {"-l", "--logfile"}, description = "Log file")
     private File logFile;
 
@@ -86,8 +93,8 @@ public class WikiLoaderCliApplication implements Runnable {
                 addAttribute("additivity", true));
         Configurator.initialize(builder.build());
         final Logger logger = LogManager.getLogger(WikiLoaderCliApplication.class);
-        logger.info("LoggerInit: Logger initialized: " +
-                ((logFile != null) ? "file " + logFile.getPath() : "console") + ", level " + logLevel);
+        logger.info("LoggerInit: Logger initialized: {} , level {}",
+                () -> (logFile != null) ? "file " + logFile.getPath() : "console", () -> logLevel);
     }
 
     /**
@@ -106,6 +113,8 @@ public class WikiLoaderCliApplication implements Runnable {
                 .setProvysUser(provysUser)
                 .setProvysPwd(provysPwd)
                 .setEaAddress(eaAddress)
+                .setPath(path)
+                .setRecursive(! notRecursive)
                 .run();
     }
 }

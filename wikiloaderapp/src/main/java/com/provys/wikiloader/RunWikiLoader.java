@@ -38,6 +38,9 @@ public class RunWikiLoader implements Runnable {
     private String provysPwd;
     @Nullable
     private String eaAddress;
+    @Nullable
+    private String path;
+    private boolean recursive = true;
 
     @SuppressWarnings("CdiUnproxyableBeanTypesInspection")
     @Inject
@@ -88,6 +91,18 @@ public class RunWikiLoader implements Runnable {
     }
 
     @Nonnull
+    RunWikiLoader setPath(@Nullable String path) {
+        this.path = path;
+        return this;
+    }
+
+    @Nonnull
+    RunWikiLoader setRecursive(boolean recursive) {
+        this.recursive = recursive;
+        return this;
+    }
+
+    @Nonnull
     private ProvysWikiClient getWikiClient() {
         if (wikiUrl == null) {
             throw new RegularException(LOG, "JAVA_WIKILOADER_WIKIURLMISSING",
@@ -106,6 +121,15 @@ public class RunWikiLoader implements Runnable {
 
     @Override
     public void run() {
+        if (provysAddress == null) {
+            throw new IllegalStateException("Provys database address is not specified");
+        }
+        if (provysUser == null) {
+            throw new IllegalStateException("Provys database user is not specified");
+        }
+        if (provysPwd == null) {
+            throw new IllegalStateException("Provys database password is not specified");
+        }
         ConfigProviderResolver.instance().registerConfig(
                 ConfigProviderResolver.instance().getBuilder().forClassLoader(getClass().getClassLoader()).
                         withSources(new CommandLineParamsSource(provysAddress, provysUser, provysPwd)).build(),
@@ -116,7 +140,7 @@ public class RunWikiLoader implements Runnable {
             eaRepository = new Repository();
             // Attempt to open the provided file
             if (eaRepository.OpenFile(eaAddress)) {
-                wikiLoader.run(eaRepository, getWikiClient());
+                wikiLoader.run(eaRepository, getWikiClient(), path, recursive);
             } else {
                 // If the file couldn't be opened then notify the user
                 throw new RegularException(LOG, "EALOADER_CANNOTOPENREPOSITORY",
