@@ -39,6 +39,20 @@ class DataObjectHandler extends DefaultElementHandler {
         }
     }
 
+    @Override
+    void appendTitle(StringBuilder builder) {
+        builder.append("====== ")
+                .append((entity == null) ? getElement().GetName() : entity.getName())
+                .append(" (")
+                .append((entity == null) ? getElement().GetAlias() : entity.getNameNm())
+                .append(") ======\n");
+    }
+
+    @Override
+    void appendAlias(StringBuilder builder) {
+        // Alias is included in title, thus this method does nothing
+    }
+
     private void appendDomain(StringBuilder builder, Attr attr) {
         var domainNm = attr.getDomain();
         builder.append(domainNm);
@@ -79,12 +93,8 @@ class DataObjectHandler extends DefaultElementHandler {
     @Override
     void appendDocument(StringBuilder builder) {
         if (entity == null) {
-            appendTitle(builder);
-            appendAlias(builder);
             appendNotes(builder);
         } else {
-            builder.append("====== ").append(entity.getName()).append(" (").append(entity.getNameNm())
-                    .append(") ======\n");
             if (!entity.isObjectClass()) {
                 builder.append("Astract type\n");
             }

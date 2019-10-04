@@ -11,10 +11,7 @@ import org.apache.logging.log4j.Logger;
 import org.sparx.Package;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Class implements synchronisation of package to designated directory in wiki
@@ -78,14 +75,13 @@ class PackageHandler {
         return name;
     }
 
-    private List<DiagramHandler> getDiagrams() {
+    private Collection<DiagramHandler> getDiagrams() {
         var diagrams = pkg.GetDiagrams();
-        var result = new ArrayList<DiagramHandler>(diagrams.GetCount());
-        for (var diagram : diagrams) {
-            result.add(new DiagramHandler(diagram, wikiMap));
+        try {
+            return DiagramHandler.ofCollection(diagrams, wikiMap);
+        } finally {
+            diagrams.destroy();
         }
-        diagrams.destroy();
-        return result;
     }
 
     private List<PackageHandler> getSubPackages() {
@@ -114,15 +110,18 @@ class PackageHandler {
         startBuilder.append("  * [[").append(element.getRelLink()).append("]]\n");
         contentBuilder.add(element.getRelLink());
         if (sync) {
-            element.sync(wikiClient);
+            element.sync(wikiClient, true);
         }
     }
 
     private void inlineElement(ElementHandler element, ProvysWikiClient wikiClient, StringBuilder startBuilder,
-                               List<String> contentBuilder) {
-        startBuilder.append("{{page>").append(element.getRelLink()).append("&noheader}}\n");
+                               List<String> contentBuilder, boolean showHeader) {
+        startBuilder.append("{{page>")
+                .append(element.getRelLink())
+                .append(showHeader ? "" : "&noheader")
+                .append("}}\n");
         contentBuilder.add(element.getRelLink());
-        element.sync(wikiClient);
+        element.sync(wikiClient, true);
     }
 
     void sync(ProvysWikiClient wikiClient, boolean recursive) {
@@ -134,7 +133,7 @@ class PackageHandler {
         // handle diagrams
         var diagrams = getDiagrams();
         for (var diagram : diagrams) {
-            inlineElement(diagram, wikiClient, startBuilder, contentBuilder);
+            inlineElement(diagram, wikiClient, startBuilder, contentBuilder, (diagrams.size() > 1));
         }
         // handle sub-packages
         var subPackages = getSubPackages();

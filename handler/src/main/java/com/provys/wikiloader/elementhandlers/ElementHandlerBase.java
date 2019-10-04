@@ -10,10 +10,7 @@ import org.apache.logging.log4j.Logger;
 import org.sparx.Element;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 abstract class ElementHandlerBase implements ElementHandler {
 
@@ -27,6 +24,7 @@ abstract class ElementHandlerBase implements ElementHandler {
     private final ElementHandlerFactory elementHandlerFactory;
     @Nonnull
     private final WikiMap wikiMap;
+
 
     ElementHandlerBase(Element element, WikiElement info, ElementHandlerFactory elementHandlerFactory,
                        WikiMap wikiMap) {
@@ -91,13 +89,22 @@ abstract class ElementHandlerBase implements ElementHandler {
         builder.append("===== ").append(getElement().GetName()).append(" =====\n");
     }
 
-    private void appendDiagram(StringBuilder builder, ProvysWikiClient wikiClient) {
+    private Collection<DiagramHandler> getDiagrams() {
+        var diagrams = element.GetDiagrams();
+        try {
+            return DiagramHandler.ofCollection(diagrams, wikiMap);
+        } finally {
+            diagrams.destroy();
+        }
+    }
+
+    private void appendDiagrams(StringBuilder builder, ProvysWikiClient wikiClient) {
         // handle diagrams
         var diagrams = getDiagrams();
-        if (diagrams.size() == 1) {
-            // if there is just one diagram, we expect it illustrates element and put it inline
-            builder.append("{{page>").append(diagrams.get(0).getRelLink()).append("&noheader}}\n");
-            diagrams.get(0).sync(wikiClient);
+        boolean showHeader = (diagrams.size()>1);
+        for (var diagram : diagrams) {
+            builder.append("{{page>").append(diagram.getRelLink()).append(showHeader ? "" : "&noheader").append("}}\n");
+            diagram.sync(wikiClient);
         }
     }
 
@@ -128,16 +135,6 @@ abstract class ElementHandlerBase implements ElementHandler {
      */
     abstract void appendDocument(StringBuilder builder);
 
-    private List<DiagramHandler> getDiagrams() {
-        var diagrams = element.GetDiagrams();
-        var result = new ArrayList<DiagramHandler>(diagrams.GetCount());
-        for (var diagram : diagrams) {
-            result.add(new DiagramHandler(diagram, wikiMap));
-        }
-        diagrams.destroy();
-        return result;
-    }
-
     private List<ElementHandler> getElements() {
         var subElements = element.GetElements();
         var result = new ArrayList<ElementHandler>(subElements.GetCount());
@@ -149,13 +146,15 @@ abstract class ElementHandlerBase implements ElementHandler {
     }
 
     private void appendElement(ElementHandler element, ProvysWikiClient wikiClient, StringBuilder startBuilder,
-                               List<String> contentBuilder) {
+                               List<String> contentBuilder, boolean recursive) {
         startBuilder.append("  * [[").append(element.getRelLink()).append("]]\n");
         contentBuilder.add(element.getRelLink());
-        element.sync(wikiClient);
+        if (recursive) {
+            element.sync(wikiClient, true);
+        }
     }
 
-    private void appendSubElements(StringBuilder builder, ProvysWikiClient wikiClient) {
+    private void appendSubElements(StringBuilder builder, ProvysWikiClient wikiClient, boolean recursive) {
         if (getNamespace().isEmpty()) {
             return;
         }
@@ -165,18 +164,10 @@ abstract class ElementHandlerBase implements ElementHandler {
         LOG.info("Synchronize subelements of {} to namespace {}", element::GetAlias,
                 () -> namespace);
         List<String> contentBuilder = new ArrayList<>(10);
-        // handle diagrams
+        // register diagrams (they were already inserted in place... but we still want to add them to content)
         var diagrams = getDiagrams();
-        if (diagrams.size() > 1) {
-            used = true;
-            // multiple diagrams are exported as links in diagram section
-            builder.append("\n==== Diagrams ====\n");
-            for (var diagram : diagrams) {
-                appendElement(diagram, wikiClient, builder, contentBuilder);
-            }
-        } else if (diagrams.size() == 1) {
-            // diagram inserted inline, but we still should not delete it...
-            contentBuilder.add(diagrams.get(0).getRelLink());
+        for (var diagram : diagrams) {
+            contentBuilder.add(diagram.getRelLink());
         }
         // handle elements
         var subElements = getElements();
@@ -187,7 +178,7 @@ abstract class ElementHandlerBase implements ElementHandler {
                 contentBuilder.add("\\\\");
             }
             for (var subElement : subElements) {
-                appendElement(subElement, wikiClient, builder, contentBuilder);
+                appendElement(subElement, wikiClient, builder, contentBuilder, recursive);
             }
         }
         // synchronize to wiki
@@ -206,13 +197,14 @@ abstract class ElementHandlerBase implements ElementHandler {
      * Synchronize wiki page corresponding to given element
      */
     @Override
-    public void sync(ProvysWikiClient wikiClient) {
+    public void sync(ProvysWikiClient wikiClient, boolean recursive) {
         LOG.info("Synchronize document {}", this::getId);
         var builder = new StringBuilder();
         appendTitle(builder);
-        appendDiagram(builder, wikiClient);
+        appendAlias(builder);
+        appendDiagrams(builder, wikiClient);
         appendDocument(builder);
-        appendSubElements(builder, wikiClient);
+        appendSubElements(builder, wikiClient, recursive);
         wikiClient.putPage(this.getId(), builder.toString());
     }
 }

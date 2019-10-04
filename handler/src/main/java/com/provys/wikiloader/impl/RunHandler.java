@@ -152,7 +152,7 @@ class RunHandler {
             evalRoot();
             if (rootElement != null) {
                 elementHandlerFactory.getElementHandler(rootElement, wikiMap).ifPresentOrElse(
-                        element -> element.sync(wikiClient),
+                        element -> element.sync(wikiClient, recursive),
                         () -> {
                             throw new InternalException(LOG, "Root element not evaluated for export to wiki");
                         });
