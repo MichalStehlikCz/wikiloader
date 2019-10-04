@@ -27,6 +27,14 @@ public class DiagramHandler implements ElementHandler {
 
     private static final Logger LOG = LogManager.getLogger(DiagramHandler.class);
 
+    public static Collection<DiagramHandler> ofCollection(org.sparx.Collection<Diagram> diagrams, WikiMap wikiMap) {
+        var result = new ArrayList<DiagramHandler>(diagrams.GetCount());
+        for (var diagram : diagrams) {
+            result.add(new DiagramHandler(diagram, wikiMap));
+        }
+        return result;
+    }
+
     /**
      * Used to initialize diagram objects collection
      *
@@ -86,7 +94,7 @@ public class DiagramHandler implements ElementHandler {
     @Nonnull
     private final ImgPos imgPos;
 
-    public DiagramHandler(Diagram diagram, WikiMap wikiMap) {
+    DiagramHandler(Diagram diagram, WikiMap wikiMap) {
         this.diagram = Objects.requireNonNull(diagram);
         this.wikiMap = Objects.requireNonNull(wikiMap);
         this.name = WikiMap.getDiagramName(diagram);
@@ -338,7 +346,7 @@ public class DiagramHandler implements ElementHandler {
         }
     }
 
-    public void sync(ProvysWikiClient wikiClient) {
+    void sync(ProvysWikiClient wikiClient) {
         String namespace;
         if (diagram.GetParentID() > 0) {
             namespace = wikiMap.getElementNamespace(diagram.GetParentID())
@@ -352,5 +360,10 @@ public class DiagramHandler implements ElementHandler {
         LOG.info("Synchronize diagram {}:{}", namespace, name);
         wikiClient.putPage(namespace + ":" + name, getDocument(wikiMap));
         wikiClient.putAttachment(namespace + ":" + getFilename(), getDiagram(), true, true);
+    }
+
+    @Override
+    public void sync(ProvysWikiClient wikiClient, boolean recursive) {
+        sync(wikiClient);
     }
 }

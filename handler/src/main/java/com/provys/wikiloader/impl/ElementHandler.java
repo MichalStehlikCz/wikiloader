@@ -19,5 +19,5 @@ public interface ElementHandler {
     /**
      * Synchronize wiki page, corresponding to given element
      */
-    void sync(ProvysWikiClient wikiClient);
+    void sync(ProvysWikiClient wikiClient, boolean recursive);
 }

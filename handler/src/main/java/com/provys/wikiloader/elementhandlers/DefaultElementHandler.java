@@ -14,8 +14,6 @@ class DefaultElementHandler extends ElementHandlerBase {
 
     @Override
     void appendDocument(StringBuilder builder) {
-        appendTitle(builder);
-        appendAlias(builder);
         appendNotes(builder);
     }
 }
