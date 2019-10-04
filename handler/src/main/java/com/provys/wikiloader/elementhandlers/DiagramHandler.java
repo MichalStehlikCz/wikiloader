@@ -22,6 +22,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Class implements export of diagram to Wiki
+ */
 public class DiagramHandler implements ElementHandler {
 
     private static final Logger LOG = LogManager.getLogger(DiagramHandler.class);
