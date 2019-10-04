@@ -18,9 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Class implements export of diagram to Wiki
@@ -36,9 +34,9 @@ public class DiagramHandler implements ElementHandler {
      * @return collection of diagram objects related to supplied diagram
      */
     @Nonnull
-    private static List<DiagramObjectRef> getDiagramObjects(Diagram diagram) {
+    private static Set<DiagramObjectRef> getDiagramObjects(Diagram diagram) {
         var diagramObjects = diagram.GetDiagramObjects();
-        var result = new ArrayList<DiagramObjectRef>(diagramObjects.GetCount());
+        var result = new TreeSet<DiagramObjectRef>();
         for (var diagramObject : diagramObjects) {
             result.add(new DiagramObjectRef(diagramObject));
             diagramObject.destroy();
@@ -48,7 +46,7 @@ public class DiagramHandler implements ElementHandler {
     }
 
     @Nonnull
-    private static ImgPos getImgPos(List<DiagramObjectRef> diagramObjects) {
+    private static ImgPos getImgPos(Collection<DiagramObjectRef> diagramObjects) {
         if (diagramObjects.isEmpty()) {
             return ImgPos.ofImgPos(0, 30, 0, 30);
         }
@@ -84,7 +82,7 @@ public class DiagramHandler implements ElementHandler {
     @Nonnull
     private final String name;
     @Nonnull
-    private final List<DiagramObjectRef> diagramObjects;
+    private final Set<DiagramObjectRef> diagramObjects;
     @Nonnull
     private final ImgPos imgPos;
 
@@ -123,7 +121,7 @@ public class DiagramHandler implements ElementHandler {
         return builder.toString();
     }
 
-    private static class ImgPos {
+    private static class ImgPos implements Comparable<ImgPos> {
 
         static ImgPos ofEaPos(int left, int right, int top, int bottom) {
             return new ImgPos((int) Math.round(1.32 * left), (int) Math.round(1.32 * right),
@@ -153,9 +151,59 @@ public class DiagramHandler implements ElementHandler {
         int getHeight() {
             return bottom - top;
         }
+
+        /**
+         * Comparison is used to order elements in map. We want smaller items first (on top of bigger ones),
+         * within the same size we go left to right and top to bottom
+         *
+         * @param o is other object to be compared to
+         * @return  a negative integer, zero, or a positive integer as this object
+         *          is less than, equal to, or greater than the specified object.
+         */
+        @Override
+        public int compareTo(ImgPos o) {
+            var result = Integer.compare(right - left + bottom - top,
+                    o.right - o.left + o.bottom - o.top);
+            if ((result == 0) && !equals(o)) {
+                result = Integer.compare(right - left, o.right - o.left);
+                if (result == 0) {
+                    result = Integer.compare(left, o.left);
+                    if (result == 0) {
+                        result = Integer.compare(top, o.top);
+                    }
+                }
+            }
+            return result;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            ImgPos imgPos = (ImgPos) o;
+            return left == imgPos.left &&
+                    right == imgPos.right &&
+                    top == imgPos.top &&
+                    bottom == imgPos.bottom;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(left, right, top, bottom);
+        }
+
+        @Override
+        public String toString() {
+            return "ImgPos{" +
+                    "left=" + left +
+                    ", right=" + right +
+                    ", top=" + top +
+                    ", bottom=" + bottom +
+                    '}';
+        }
     }
 
-    private static class DiagramObjectRef {
+    private static class DiagramObjectRef implements Comparable<DiagramObjectRef> {
         private final ImgPos pos;
         private final int elementId;
 
@@ -183,6 +231,37 @@ public class DiagramHandler implements ElementHandler {
 
         private int getElementId() {
             return elementId;
+        }
+
+        @Override
+        public int compareTo(DiagramObjectRef o) {
+            var result = pos.compareTo(o.pos);
+            if ((result == 0) && !equals(o)) {
+                result = Integer.compare(elementId, o.elementId);
+            }
+            return result;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            DiagramObjectRef that = (DiagramObjectRef) o;
+            return elementId == that.elementId &&
+                    Objects.equals(pos, that.pos);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(pos, elementId);
+        }
+
+        @Override
+        public String toString() {
+            return "DiagramObjectRef{" +
+                    "pos=" + pos +
+                    ", elementId=" + elementId +
+                    '}';
         }
     }
 
