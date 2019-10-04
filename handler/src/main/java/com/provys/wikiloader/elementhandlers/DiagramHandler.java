@@ -162,10 +162,10 @@ public class DiagramHandler implements ElementHandler {
          */
         @Override
         public int compareTo(ImgPos o) {
-            var result = Integer.compare(left - right + top - bottom,
-                    o.left - o.right + o.top - o.bottom);
+            var result = Integer.compare(right - left + bottom - top,
+                    o.right - o.left + o.bottom - o.top);
             if ((result == 0) && !equals(o)) {
-                result = Integer.compare(left - right, o.left - o.right);
+                result = Integer.compare(right - left, o.right - o.left);
                 if (result == 0) {
                     result = Integer.compare(left, o.left);
                     if (result == 0) {
