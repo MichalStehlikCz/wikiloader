@@ -68,6 +68,14 @@ class DefaultExporter<T extends HandlerInt> implements Exporter {
     }
 
     /**
+     * Append tags, appropriate for given element. Empty in this ancestor, but might be overriden in ancestors to
+     * insert tags, needed by given document type
+     */
+    void appendTags() {
+        // empty in this ancestor
+    }
+
+    /**
      * Get title of exported topic. As a default, we just take title as defined in Enterprise Architect
      *
      * @return topic title
@@ -81,7 +89,7 @@ class DefaultExporter<T extends HandlerInt> implements Exporter {
      * Append title to page being built
      */
     void appendTitle() {
-        startBuilder.append("===== ").append(getTitle()).append(" =====\n");
+        startBuilder.append("====== ").append(getTitle()).append(" ======\n");
     }
 
     /**
@@ -152,17 +160,15 @@ class DefaultExporter<T extends HandlerInt> implements Exporter {
         // insert own content
         appendDocument();
         // handle sub-packages
-        var subPackages = getSubPackages();
         if (!subPackages.isEmpty()) {
-            startBuilder.append("\n==== Areas ====\n");
+            startBuilder.append("\n===== Areas =====\n");
             for (var subPackage : subPackages) {
                 appendElement(subPackage);
             }
         }
         // handle elements
-        var elements = getElements();
         if (!elements.isEmpty()) {
-            startBuilder.append("\n==== Objects ====\n");
+            startBuilder.append("\n===== Objects =====\n");
             if (!contentBuilder.isEmpty()) {
                 contentBuilder.add("\\\\");
             }
@@ -193,6 +199,7 @@ class DefaultExporter<T extends HandlerInt> implements Exporter {
     public Collection<Handler> run(boolean recursive) {
         LOG.info("Synchronise {} to {} using {}", () -> getHandler().getEaName(), () -> getHandler().getId(),
                 this::getClass);
+        appendTags();
         appendTitle();
         appendBody();
         syncWiki();

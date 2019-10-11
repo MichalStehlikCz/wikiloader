@@ -1,6 +1,8 @@
 package com.provys.wikiloader.wikimap;
 
 import com.provys.provyswiki.ProvysWikiClient;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.sparx.Diagram;
 import org.sparx.Element;
 
@@ -11,6 +13,8 @@ import java.util.Optional;
  * Helper class, represents element mapping to wiki
  */
 public class WikiElement {
+
+    private static final Logger LOG = LogManager.getLogger(WikiElement.class);
 
     private static final WikiElement EMPTY_ELEMENT_INFO = new WikiElement();
 
@@ -27,6 +31,7 @@ public class WikiElement {
             // diagram
             Diagram diagram = (Diagram) element.GetCompositeDiagram();
             if (diagram == null) {
+                LOG.info("Linked diagram missing in UMLDiagram element {}", element::GetName);
                 return EMPTY_ELEMENT_INFO;
             }
             return wikiMap.getDiagramLink(diagram)
@@ -60,7 +65,10 @@ public class WikiElement {
             var subElements = element.GetElements();
             var diagrams = element.GetDiagrams();
             try {
-                if ((subElements.GetCount() > 0) || (diagrams.GetCount() > 0)) {
+                if ((subElements.GetCount() > 0) || (diagrams.GetCount() > 0) ||
+                        element.GetStereotype().equals("ArchiMate_Product")) {
+                    // if there are sub-elements and diagrams, we need namespace to contain them in
+                    // Product element generates bunch of topics and thus also needs namespace
                     namespace = link;
                     link = link + ":";
                     relLink = "." + relLink + ":";

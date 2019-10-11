@@ -105,8 +105,6 @@ public class WikiMap {
      *
      * @param  pkg is EA repository package
      * @param namespace is mapping of package to wiki namespace; null if package is not exported to wiki
-     * @param sync defines if wiki namespace should be synchronised with package; false means new topics will
-     *                    be created, but existing topics are not removed
      * @return self to allow fluent build
      */
     WikiMap putWikiPackage(Package pkg, String namespace, boolean underParent) {
