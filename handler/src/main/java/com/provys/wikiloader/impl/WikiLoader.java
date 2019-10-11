@@ -14,15 +14,15 @@ import java.util.Objects;
 @ApplicationScoped
 public class WikiLoader {
 
-    private final ElementHandlerFactory elementHandlerFactory;
+    private final HandlerFactory handlerFactory;
 
     @Inject
-    public WikiLoader(ElementHandlerFactory elementHandlerFactory) {
-        this.elementHandlerFactory = Objects.requireNonNull(elementHandlerFactory);
+    public WikiLoader(HandlerFactory handlerFactory) {
+        this.handlerFactory = Objects.requireNonNull(handlerFactory);
     }
 
     public void run(Repository eaRepository, ProvysWikiClient wikiClient, @Nullable String path, boolean recursive) {
-        new RunHandler(eaRepository, wikiClient, elementHandlerFactory, path, recursive).run();
+        new RunHandler(eaRepository, wikiClient, handlerFactory, path, recursive).run();
 /*        var diagram = eaRepository.GetDiagramByID(98);
         var diagramHandler = new DiagramHandler(diagram);
         diagramHandler.sync(wikiClient, linkResolver);*/

@@ -23,7 +23,7 @@ public class WikiPackage {
                 parentInfo.getNamespace()
                         .map(parent -> parent + ":" + pkg.GetAlias().toLowerCase())
                         .orElse(null),
-                parentInfo.isSync());
+                true);
     }
 
     static WikiPackage of(int packageId, WikiMap wikiMap) {
@@ -36,12 +36,12 @@ public class WikiPackage {
     }
 
     @Nullable
-    private String namespace;
-    private boolean sync;
+    private final String namespace;
+    private final boolean underParent;
 
-    WikiPackage(@Nullable String namespace, boolean sync) {
+    WikiPackage(@Nullable String namespace, boolean underParent) {
         this.namespace = namespace;
-        this.sync = sync;
+        this.underParent = underParent;
     }
 
     /**
@@ -65,10 +65,10 @@ public class WikiPackage {
     }
 
     /**
-     * @return true if content of namespace is synchronised with wiki, false otherwise
+     * @return true if package is placed under its parent package in wiki, false otherwise. Used when exporting links in
+     * parent package
      */
-    public boolean isSync() {
-        return sync;
+    public boolean isUnderParent() {
+        return underParent;
     }
-
 }

@@ -28,18 +28,18 @@ class RunHandler {
 
     private final Repository eaRepository;
     private final ProvysWikiClient wikiClient;
-    private final ElementHandlerFactory elementHandlerFactory;
+    private final HandlerFactory handlerFactory;
     @Nullable
     private final String path;
     private final boolean recursive;
     private Package rootPackage;
     private Element rootElement;
 
-    RunHandler(Repository eaRepository, ProvysWikiClient wikiClient, ElementHandlerFactory elementHandlerFactory,
+    RunHandler(Repository eaRepository, ProvysWikiClient wikiClient, HandlerFactory handlerFactory,
                @Nullable String path, boolean recursive) {
         this.eaRepository = Objects.requireNonNull(eaRepository);
         this.wikiClient = Objects.requireNonNull(wikiClient);
-        this.elementHandlerFactory = Objects.requireNonNull(elementHandlerFactory);
+        this.handlerFactory = Objects.requireNonNull(handlerFactory);
         this.path = path;
         this.recursive = recursive;
     }
@@ -147,11 +147,11 @@ class RunHandler {
         Collection<Package> models = eaRepository.GetModels();
         try {
             rootPackage = models.GetByName(MODEL_NAME);
-            var wikiMap = new WikiMap(eaRepository, rootPackage, ROOT_NAMESPACE, true);
+            var wikiMap = new WikiMap(eaRepository, rootPackage, ROOT_NAMESPACE);
             rootElement = null;
             evalRoot();
             if (rootElement != null) {
-                elementHandlerFactory.getElementHandler(rootElement, wikiMap).ifPresentOrElse(
+                handlerFactory.getElementHandler(rootElement, wikiMap).ifPresentOrElse(
                         element -> element.sync(wikiClient, recursive),
                         () -> {
                             throw new InternalException(LOG, "Root element not evaluated for export to wiki");
@@ -159,7 +159,7 @@ class RunHandler {
                 rootElement.destroy();
                 rootElement = null;
             } else if (rootPackage != null) {
-                PackageHandler.ofPackage(rootPackage, elementHandlerFactory, wikiMap).ifPresentOrElse(
+                handlerFactory.getPackageHandler(rootPackage, wikiMap).ifPresentOrElse(
                         pkg -> pkg.sync(wikiClient, recursive),
                         () -> {
                             throw new InternalException(LOG, "Root package not evaluated for export to wiki");

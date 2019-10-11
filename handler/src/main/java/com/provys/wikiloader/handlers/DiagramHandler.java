@@ -1,8 +1,8 @@
-package com.provys.wikiloader.elementhandlers;
+package com.provys.wikiloader.handlers;
 
 import com.provys.common.exception.InternalException;
 import com.provys.provyswiki.ProvysWikiClient;
-import com.provys.wikiloader.impl.ElementHandler;
+import com.provys.wikiloader.impl.Handler;
 import com.provys.wikiloader.wikimap.WikiMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -23,12 +23,12 @@ import java.util.*;
 /**
  * Class implements export of diagram to Wiki
  */
-public class DiagramHandler implements ElementHandler {
+public class DiagramHandler implements HandlerInt {
 
     private static final Logger LOG = LogManager.getLogger(DiagramHandler.class);
 
-    public static Collection<DiagramHandler> ofCollection(org.sparx.Collection<Diagram> diagrams, WikiMap wikiMap) {
-        var result = new ArrayList<DiagramHandler>(diagrams.GetCount());
+    static Collection<Handler> ofCollection(org.sparx.Collection<Diagram> diagrams, WikiMap wikiMap) {
+        var result = new ArrayList<Handler>(diagrams.GetCount());
         for (var diagram : diagrams) {
             result.add(new DiagramHandler(diagram, wikiMap));
         }
@@ -94,7 +94,7 @@ public class DiagramHandler implements ElementHandler {
     @Nonnull
     private final ImgPos imgPos;
 
-    DiagramHandler(Diagram diagram, WikiMap wikiMap) {
+    private DiagramHandler(Diagram diagram, WikiMap wikiMap) {
         this.diagram = Objects.requireNonNull(diagram);
         this.wikiMap = Objects.requireNonNull(wikiMap);
         this.name = WikiMap.getDiagramName(diagram);
@@ -105,6 +105,11 @@ public class DiagramHandler implements ElementHandler {
     @Nonnull
     public String getRelLink() {
         return name;
+    }
+
+    @Override
+    public void appendPages(Collection<String> pages) {
+        pages.add(name);
     }
 
     @Nonnull
@@ -127,6 +132,67 @@ public class DiagramHandler implements ElementHandler {
         builder.append("{{<map}}")
                 .append(diagram.GetNotes());
         return builder.toString();
+    }
+
+    @Nonnull
+    @Override
+    public Collection<Handler> getDiagrams() {
+        return Collections.emptyList();
+    }
+
+    @Nonnull
+    @Override
+    public Collection<Handler> getSubPackages() {
+        return Collections.emptyList();
+    }
+
+    @Nonnull
+    @Override
+    public Collection<Handler> getElements() {
+        return Collections.emptyList();
+    }
+
+    @Nonnull
+    @Override
+    public String getEaName() {
+        return diagram.GetName();
+    }
+
+    @Nonnull
+    @Override
+    public String getEaAlias() {
+        return "";
+    }
+
+    @Nonnull
+    @Override
+    public String getEaNotes() {
+        return diagram.GetNotes();
+    }
+
+    @Nonnull
+    @Override
+    public Optional<String> getNamespace() {
+        return Optional.empty();
+    }
+
+    @Nonnull
+    private String getParentNamespace() {
+        if (diagram.GetParentID() > 0) {
+            return wikiMap.getElementNamespace(diagram.GetParentID())
+                    .orElseThrow(() -> new InternalException(LOG,
+                            "Cannot synchronise diagram - parent element namespace not resolved"));
+        } else {
+            return wikiMap.getPackageNamespace(diagram.GetPackageID())
+                    .orElseThrow(() -> new InternalException(LOG,
+                            "Cannot synchronise diagram - package namespace not resolved"));
+        }
+    }
+
+    @Nonnull
+    @Override
+    public String getId() {
+        return getParentNamespace() + ":" + name;
     }
 
     private static class ImgPos implements Comparable<ImgPos> {
@@ -360,6 +426,7 @@ public class DiagramHandler implements ElementHandler {
         LOG.info("Synchronize diagram {}:{}", namespace, name);
         wikiClient.putPage(namespace + ":" + name, getDocument(wikiMap));
         wikiClient.putAttachment(namespace + ":" + getFilename(), getDiagram(), true, true);
+        diagram.destroy();
     }
 
     @Override

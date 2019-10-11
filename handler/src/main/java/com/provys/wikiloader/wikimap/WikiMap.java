@@ -34,13 +34,12 @@ public class WikiMap {
      * @param model is root package, representing whole model. It has to be mapped in constructor to allow subsequent
      *             mapping of its sub-objects
      * @param rootNamespace is namespace model maps to
-     * @param sync defines if model namespace should be synchronized or only exported
      */
-    public WikiMap(Repository eaRepository, Package model, String rootNamespace, boolean sync) {
+    public WikiMap(Repository eaRepository, Package model, String rootNamespace) {
         this.eaRepository = Objects.requireNonNull(eaRepository);
         this.elementMap = new ConcurrentHashMap<>(10);
         this.packageMap = new ConcurrentHashMap<>(10);
-        this.packageMap.put(model.GetPackageID(), new WikiPackage(rootNamespace, sync));
+        this.packageMap.put(model.GetPackageID(), new WikiPackage(rootNamespace, false));
     }
 
     /**
@@ -110,9 +109,9 @@ public class WikiMap {
      *                    be created, but existing topics are not removed
      * @return self to allow fluent build
      */
-    WikiMap putWikiPackage(Package pkg, String namespace, boolean sync) {
+    WikiMap putWikiPackage(Package pkg, String namespace, boolean underParent) {
         var id = pkg.GetPackageID();
-        var wikiPackage = new WikiPackage(namespace, sync);
+        var wikiPackage = new WikiPackage(namespace, underParent);
         var old = packageMap.put(id, wikiPackage);
         if (old != null) {
             LOG.warn("Overwriting existing package mapping {} > {}", old, wikiPackage);
@@ -127,6 +126,8 @@ public class WikiMap {
      * @return information about package mapping to wiki
      */
     @Nonnull
+    @SuppressWarnings("squid:S3824") // cannot replace get + if with computeIfAbsent, as it does not allow recursive
+    // manipulation with map content
     WikiPackage getWikiPackage(int packageId) {
         var info = packageMap.get(packageId);
         if (info == null) {
