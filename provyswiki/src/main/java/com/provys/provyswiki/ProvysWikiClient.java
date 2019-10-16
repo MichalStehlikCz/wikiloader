@@ -101,6 +101,31 @@ public class ProvysWikiClient extends DokuWikiClient {
     }
 
     /**
+     * Insert specified page to wiki; prefix page with generated tag. Action skipped if current page contains manual tag
+     *
+     * @param id is wiki topic id
+     * @param text is text to be placed to this topic. It will be prefixed with generated tag
+     */
+    public void putGeneratedPage(String id, String text) {
+        if (!getPage(id).contains("{{tag>manual}}")) {
+            putPage(id, "{{tag>generated}}\n" + text);
+        }
+    }
+
+    /**
+     * Insert specified page to wiki if page doesn't exist yet; prefix page with empty tag. If page already exists, does
+     * nothing
+     *
+     * @param id is wiki topic id
+     * @param text is text to be placed to this topic. It will be prefixed with empty tag
+     */
+    public void putPageIfEmpty(String id, String text) {
+        if (!getPage(id).isEmpty()) {
+            putPage(id, "{{tag>empty}}\n" + text);
+        }
+    }
+
+    /**
      * Delete sub-namespaces that are not referenced from content. It expects that content contains references to
      * namespaces in form {@code ".name:"}.
      */

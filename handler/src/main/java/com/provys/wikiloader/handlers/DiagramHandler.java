@@ -412,7 +412,7 @@ public class DiagramHandler implements HandlerInt {
         }
     }
 
-    void sync(ProvysWikiClient wikiClient) {
+    private void sync(ProvysWikiClient wikiClient) {
         String namespace;
         if (diagram.GetParentID() > 0) {
             namespace = wikiMap.getElementNamespace(diagram.GetParentID())
@@ -424,7 +424,7 @@ public class DiagramHandler implements HandlerInt {
                             "Cannot synchronise diagram - package namespace not resolved"));
         }
         LOG.info("Synchronize diagram {}:{}", namespace, name);
-        wikiClient.putPage(namespace + ":" + name, getDocument(wikiMap));
+        wikiClient.putGeneratedPage(namespace + ":" + name, getDocument(wikiMap));
         wikiClient.putAttachment(namespace + ":" + getFilename(), getDiagram(), true, true);
         diagram.destroy();
     }

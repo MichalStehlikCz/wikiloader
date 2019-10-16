@@ -14,8 +14,11 @@ class ProductPackageExporter extends DefaultExporter<DefaultElementHandler> {
     private static final String PRODUCT_DESCRIPTION_NAME = "product_description";
     private static final String ATTRIBUTES_USED_NAME = "attributes_used";
     private static final String SAMPLE_DATA_NAME = "sample_data_description";
+    private static final String OVERVIEW_NAME = "overview";
+    private static final String COVERED_FUNCTIONS_NAME = "covered_functions";
     private static final String REPORTS_NAME = "reports";
     private static final String INTERFACES_NAME = "interfaces";
+    private static final String ADDITIONAL_SERVICES_NAME = "additional_services";
     private static final String MIGRATION_NAME = "migration";
     private static final String SETTINGS_QUESTIONNAIRE_NAME = "settingsquestionnaire";
     private static final String SETTINGS_NAME = "settings";
@@ -45,12 +48,9 @@ class ProductPackageExporter extends DefaultExporter<DefaultElementHandler> {
         return getPackageName() + " Package";
     }
 
-    private void prepareReports() {
-        reports = null;
-    }
-
-    private void prepareInterfaces() {
-        interfaces = null;
+    @Override
+    void appendTags() {
+        startBuilder.append("{{tag>package}}");
     }
 
     private void prepareManualPages() {
@@ -77,29 +77,12 @@ class ProductPackageExporter extends DefaultExporter<DefaultElementHandler> {
                     () -> getHandler().getEaName(), () -> getHandler().getId());
         }
         startBuilder.append("===== Product description =====\n")
-                .append("<btn collapse=\"Product_description\" type=\"success\" icon=\"fa fa-chevron-circle-down\">Single page description</btn>\n")
+                .append("<btn collapse=\"Product_description\" type=\"success\" icon=\"fa fa-chevron-circle-down\">Single Page Description</btn>\n")
                 .append("\n")
                 .append("<collapse id=\"Product_description\" collapsed=\"true\"><well>\n")
                 .append("{{page>").append(PRODUCT_DESCRIPTION_NAME).append("&noheader&editbutton}}\n")
                 .append("</well></collapse>\n")
-                .append("\n")
-        .append("<btn collapse=\"Product_description_links\" type=\"success\" icon=\"fa fa-chevron-circle-down\">Package content</btn>")
-        .append("\n")
-        .append("<collapse id=\"Product_description_links\" collapsed=\"true\"><well>");
-        // insert package content based on linked sub-packages and functions...
-        prepareReports();
-        if (reports != null) {
-            startBuilder.append("==== Reports ====\n")
-                    .append("{{page>").append(REPORTS_NAME).append("&noheader}}\n")
-                    .append("\n");
-        }
-        prepareInterfaces();
-        if (interfaces != null) {
-            startBuilder.append("==== Interfaces ====\n")
-                    .append("{{page>").append(INTERFACES_NAME).append("&noheader}}\n")
-                    .append("\n");
-        }
-        startBuilder.append("</well></collapse>\n");
+                .append("\n");
         prepareManualPages();
         startBuilder.append("===== Description =====\n")
                 .append("  * [[").append(ATTRIBUTES_USED_NAME).append("|Used attributes]]\n")
@@ -130,43 +113,99 @@ class ProductPackageExporter extends DefaultExporter<DefaultElementHandler> {
                 .append("{{page>").append(RELATED_NAME).append("&noheader&editbutton}}\n");
     }
 
-    private void exportProductDescription(String namespace) {
-        pages.add(PRODUCT_DESCRIPTION_NAME);
-        var id = namespace + ":" + PRODUCT_DESCRIPTION_NAME;
-        if (getWikiClient().getPage(id).isEmpty()) {
-            getWikiClient().putPage(id,"Package " + getPackageName() + " description");
-        }
+    private void exportOverview(String namespace) {
+        pages.add(OVERVIEW_NAME);
+        getWikiClient().putPageIfEmpty(namespace + ":" + OVERVIEW_NAME,
+                "===== Package " + getPackageName() + " Overview =====\n");
     }
 
-    private void exportAttributesUsed(String namespace) {
-        pages.add(ATTRIBUTES_USED_NAME);
-        var id = namespace + ":" + ATTRIBUTES_USED_NAME;
-        if (getWikiClient().getPage(id).isEmpty()) {
-            getWikiClient().putPage(id, "====== Attributes Used in " + getPackageName() + " Package ======\n" +
-                    "This page is used to keep consistency when configuring " + getPackageName() + " package.\n");
-        }
+    private void exportCoveredFunctions(String namespace) {
+        pages.add(COVERED_FUNCTIONS_NAME);
+        getWikiClient().putPageIfEmpty(namespace + ":" + COVERED_FUNCTIONS_NAME,
+                "===== Covered Functions - Package " + getPackageName() + " =====\n");
     }
 
-    private void exportSampleDataDescription(String namespace) {
-        pages.add(SAMPLE_DATA_NAME);
-        var id = namespace + ":" + SAMPLE_DATA_NAME;
-        if (getWikiClient().getPage(id).isEmpty()) {
-            getWikiClient().putPage(id, "====== Sample Data for Package " + getPackageName() + " ======\n");
-        }
+    /**
+     * Generate reports page to reports property
+     */
+    private void prepareReports() {
+        reports = null;
     }
 
     private void exportReports(String namespace) {
         if (reports != null) {
             pages.add(REPORTS_NAME);
-            getWikiClient().putPage(namespace + ":" + REPORTS_NAME, reports);
+            getWikiClient().putGeneratedPage(namespace + ":" + REPORTS_NAME, reports);
         }
+    }
+
+    /**
+     * Generate interfaces page to interfaces property
+     */
+    private void prepareInterfaces() {
+        interfaces = null;
     }
 
     private void exportInterfaces(String namespace) {
         if (reports != null) {
             pages.add(INTERFACES_NAME);
-            getWikiClient().putPage(namespace + ":" + INTERFACES_NAME, interfaces);
+            getWikiClient().putGeneratedPage(namespace + ":" + INTERFACES_NAME, interfaces);
         }
+    }
+
+    private void exportAdditionalServices(String namespace) {
+        pages.add(ADDITIONAL_SERVICES_NAME);
+        getWikiClient().putPageIfEmpty(namespace + ":" + ADDITIONAL_SERVICES_NAME,
+                "===== Recommended Additional Services for Package " + getPackageName() + " =====\n");
+    }
+
+    private void exportProductDescription(String namespace) {
+        pages.add(PRODUCT_DESCRIPTION_NAME);
+        var id = namespace + ":" + PRODUCT_DESCRIPTION_NAME;
+        var builder = new StringBuilder()
+                .append("{{tag>packagedescription}}\n")
+                .append("====== Package ").append(getPackageName()).append(" Description ======\n")
+                .append("===== Description =====\n")
+                .append("{{page>").append(OVERVIEW_NAME).append("&noheader&editbutton}}\n")
+                .append("\n");
+        exportOverview(namespace);
+        builder.append("===== Covered Functions =====\n")
+                .append("{{page>").append(COVERED_FUNCTIONS_NAME).append("&noheader&editbutton}}\n")
+                .append("\n");
+        exportCoveredFunctions(namespace);
+        // insert package content based on linked sub-packages and functions...
+        prepareReports();
+        if (reports != null) {
+            exportReports(namespace);
+            builder.append("===== Reports =====\n")
+                    .append("{{page>").append(REPORTS_NAME).append("&noheader}}\n")
+                    .append("\n");
+        }
+        prepareInterfaces();
+        if (interfaces != null) {
+            exportInterfaces(namespace);
+            builder.append("===== Interfaces =====\n")
+                    .append("{{page>").append(INTERFACES_NAME).append("&noheader}}\n")
+                    .append("\n");
+        }
+        builder.append("===== Recommended Services to Purchase =====\n")
+                .append("{{page>").append(ADDITIONAL_SERVICES_NAME).append("&noheader&editbutton}}\n")
+                .append("\n");
+        exportAdditionalServices(namespace);
+        getWikiClient().putGeneratedPage(id, builder.toString());
+    }
+
+    private void exportAttributesUsed(String namespace) {
+        pages.add(ATTRIBUTES_USED_NAME);
+        getWikiClient().putPageIfEmpty(namespace + ":" + ATTRIBUTES_USED_NAME,
+                "====== Attributes Used in " + getPackageName() + " Package ======\n" +
+                        "This page is used to keep consistency when configuring " + getPackageName() + " package.\n");
+    }
+
+    private void exportSampleDataDescription(String namespace) {
+        pages.add(SAMPLE_DATA_NAME);
+        getWikiClient().putPageIfEmpty(namespace + ":" + SAMPLE_DATA_NAME,
+                "====== Sample Data for Package " + getPackageName() + " ======\n");
     }
 
     private void exportMigration() {
@@ -183,10 +222,8 @@ class ProductPackageExporter extends DefaultExporter<DefaultElementHandler> {
 
     private void exportSettings(String namespace) {
         pages.add(SETTINGS_NAME);
-        var id = namespace + ":" + SETTINGS_NAME;
-        if (getWikiClient().getPage(id).isEmpty()) {
-            getWikiClient().putPage(id, "====== Settings for Package " + getPackageName() + " ======\n");
-        }
+        getWikiClient().putPageIfEmpty(namespace + ":" + SETTINGS_NAME,
+                "====== Settings for Package " + getPackageName() + " ======\n");
     }
 
     private void exportRelated() {
@@ -198,8 +235,6 @@ class ProductPackageExporter extends DefaultExporter<DefaultElementHandler> {
         exportProductDescription(namespace);
         exportAttributesUsed(namespace);
         exportSampleDataDescription(namespace);
-        exportReports(namespace);
-        exportInterfaces(namespace);
         exportMigration();
         exportSettingsQuestionnaire();
         exportSettings(namespace);

@@ -191,7 +191,7 @@ class DefaultExporter<T extends HandlerInt> implements Exporter {
     }
 
     void syncWiki() {
-        wikiClient.putPage(getHandler().getId(), startBuilder.toString());
+        wikiClient.putGeneratedPage(getHandler().getId(), startBuilder.toString());
         getHandler().getNamespace().ifPresent(this::syncNamespace);
     }
 
