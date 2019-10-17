@@ -27,7 +27,7 @@ public class WikiPackage {
     }
 
     static WikiPackage of(int packageId, WikiMap wikiMap) {
-        Package pkg = wikiMap.getEaRepository().GetPackageByID(packageId);
+        Package pkg = wikiMap.getRepository().GetPackageByID(packageId);
         try {
             return of(pkg, wikiMap);
         } finally {

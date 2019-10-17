@@ -2,6 +2,7 @@ package com.provys.wikiloader.impl;
 
 import com.provys.common.exception.InternalException;
 import com.provys.provyswiki.ProvysWikiClient;
+import com.provys.wikiloader.earepository.impl.EaRepositoryImpl;
 import com.provys.wikiloader.wikimap.WikiMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -147,7 +148,7 @@ class RunHandler {
         Collection<Package> models = eaRepository.GetModels();
         try {
             rootPackage = models.GetByName(MODEL_NAME);
-            var wikiMap = new WikiMap(eaRepository, rootPackage, ROOT_NAMESPACE);
+            var wikiMap = new WikiMap(new EaRepositoryImpl(eaRepository), rootPackage, ROOT_NAMESPACE);
             rootElement = null;
             evalRoot();
             if (rootElement != null) {

@@ -125,9 +125,4 @@ public abstract class ElementHandlerBase<T extends ElementHandlerBase> extends H
         subElements.destroy();
         return result;
     }
-
-    @Override
-    void destroyEaObject() {
-        element.destroy();
-    }
 }

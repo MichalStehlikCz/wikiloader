@@ -54,8 +54,7 @@ class DefaultHandlerFactory implements HandlerFactory {
                 return Optional.of(new DefaultElementHandler((handler, wikiClient) -> new DataObjectExporter(handler,
                         wikiClient, catalogueRepository), element, info, this, wikiMap));
             case "ArchiMate_Product":
-                return Optional.of(new DefaultElementHandler(ProductPackageExporter::new, element, info,
-                        this, wikiMap));
+                return Optional.of(new ProductPackageHandler(element, info,this, wikiMap));
             default:
                 return Optional.of(new DefaultElementHandler(element, info, this, wikiMap));
         }

@@ -23,16 +23,5 @@ public class WikiLoader {
 
     public void run(Repository eaRepository, ProvysWikiClient wikiClient, @Nullable String path, boolean recursive) {
         new RunHandler(eaRepository, wikiClient, handlerFactory, path, recursive).run();
-/*        var diagram = eaRepository.GetDiagramByID(98);
-        var diagramHandler = new DiagramHandler(diagram);
-        diagramHandler.sync(wikiClient, linkResolver);*/
-/*
-        DocumentGenerator documentGenerator = eaRepository.CreateDocumentGenerator();
-        documentGenerator.NewDocument("");
-        if (!documentGenerator.DocumentDiagram(90, 0, "Diagram Export")) {
-            throw new RuntimeException("Error inserting diagram: " + documentGenerator.GetLastError());
-        }
-        documentGenerator.SaveDocument("c:\\temp\\document.html", 1);
-        documentGenerator.destroy();*/
     }
 }

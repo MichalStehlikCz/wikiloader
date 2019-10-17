@@ -153,9 +153,4 @@ class DefaultPackageHandler extends HandlerBase<DefaultPackageHandler> {
     DefaultPackageHandler self() {
         return this;
     }
-
-    @Override
-    void destroyEaObject() {
-        pkg.destroy();
-    }
 }

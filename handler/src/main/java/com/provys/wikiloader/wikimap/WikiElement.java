@@ -85,7 +85,7 @@ public class WikiElement {
     }
 
     static WikiElement of(int elementId, WikiMap wikiMap) {
-        var element = wikiMap.getEaRepository().GetElementByID(elementId);
+        var element = wikiMap.getRepository().GetElementByID(elementId);
         try {
             return of(element, wikiMap);
         } finally {

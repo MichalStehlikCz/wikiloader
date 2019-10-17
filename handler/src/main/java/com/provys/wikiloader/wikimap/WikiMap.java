@@ -1,5 +1,6 @@
 package com.provys.wikiloader.wikimap;
 
+import com.provys.wikiloader.earepository.EaRepository;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.sparx.Diagram;
@@ -21,7 +22,7 @@ public class WikiMap {
     private static final Logger LOG = LogManager.getLogger(WikiMap.class);
 
     @Nonnull
-    private final Repository eaRepository;
+    private final EaRepository eaRepository;
     @Nonnull
     private final Map<Integer, WikiElement> elementMap;
     @Nonnull
@@ -35,7 +36,7 @@ public class WikiMap {
      *             mapping of its sub-objects
      * @param rootNamespace is namespace model maps to
      */
-    public WikiMap(Repository eaRepository, Package model, String rootNamespace) {
+    public WikiMap(EaRepository eaRepository, Package model, String rootNamespace) {
         this.eaRepository = Objects.requireNonNull(eaRepository);
         this.elementMap = new ConcurrentHashMap<>(10);
         this.packageMap = new ConcurrentHashMap<>(10);
@@ -43,11 +44,27 @@ public class WikiMap {
     }
 
     /**
+     * @return EA repository wrapper link resolver is used for
+     */
+    @Nonnull
+    public EaRepository getEaRepository() {
+        return eaRepository;
+    }
+
+    /**
      * @return EA repository link resolver is used for
      */
     @Nonnull
-    Repository getEaRepository() {
-        return eaRepository;
+    Repository getRepository() {
+        return eaRepository.getRepository();
+    }
+
+    /**
+     * Create and return wiki set builder
+     */
+    @Nonnull
+    public WikiSetBuilder getSetBuilder() {
+        return new WikiSetBuilderImpl(this);
     }
 
     /**

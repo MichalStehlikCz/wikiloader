@@ -2,12 +2,15 @@ package com.provys.wikiloader.handlers;
 
 import com.provys.common.exception.InternalException;
 import com.provys.provyswiki.ProvysWikiClient;
+import com.provys.wikiloader.earepository.EaElement;
+import com.provys.wikiloader.wikimap.WikiSetObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nonnull;
+import java.util.List;
 
-class ProductPackageExporter extends DefaultExporter<DefaultElementHandler> {
+class ProductPackageExporter extends DefaultExporter<ProductPackageHandler> {
 
     private static final Logger LOG = LogManager.getLogger(ProductPackageExporter.class);
 
@@ -34,7 +37,7 @@ class ProductPackageExporter extends DefaultExporter<DefaultElementHandler> {
     private boolean hasMigration;
     private boolean hasSettingsQuestionnaire;
 
-    ProductPackageExporter(DefaultElementHandler handler, ProvysWikiClient wikiClient) {
+    ProductPackageExporter(ProductPackageHandler handler, ProvysWikiClient wikiClient) {
         super(handler, wikiClient);
     }
 
@@ -226,6 +229,23 @@ class ProductPackageExporter extends DefaultExporter<DefaultElementHandler> {
                 "====== Settings for Package " + getPackageName() + " ======\n");
     }
 
+    private void exportExports() {
+        var builder = new StringBuilder()
+                .append("====== ").append(getPackageName()).append(" - User Guide ======\n");
+        var functionContent = getHandler().getFunctionContent();
+        for (var contentObject : functionContent) {
+            contentObject.appendContent(builder);
+        }
+        builder.append('\n')
+                .append("====== Output ======\n")
+                .append("Exported document: {{:").append(EXPORTS).append(getHandler().getEaAlias())
+                .append(EXPORT_USER_GUIDE_POSTFIX).append(".docx}} \\\\\n")
+                .append("Log: {{:").append(EXPORTS).append(getHandler().getEaAlias())
+                .append(EXPORT_USER_GUIDE_POSTFIX).append(".log}} \\\n");
+        getWikiClient().putGeneratedPage(EXPORTS + getHandler().getEaAlias() + EXPORT_USER_GUIDE_POSTFIX,
+                builder.toString());
+    }
+
     private void exportRelated() {
         pages.add(RELATED_NAME);
     }
@@ -238,6 +258,7 @@ class ProductPackageExporter extends DefaultExporter<DefaultElementHandler> {
         exportMigration();
         exportSettingsQuestionnaire();
         exportSettings(namespace);
+        exportExports();
         exportRelated();
         super.syncNamespace(namespace);
     }
