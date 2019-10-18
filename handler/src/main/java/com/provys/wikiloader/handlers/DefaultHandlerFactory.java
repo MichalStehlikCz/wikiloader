@@ -79,8 +79,7 @@ class DefaultHandlerFactory implements HandlerFactory {
             return Optional.empty();
         }
         switch (pkg.GetStereotypeEx()) {
-            case "PackagingModel":
-            case "PackageGroup":
+            case "provys_package_group":
                 return Optional.of(new DefaultPackageHandler(PackageGroupExporter::new, pkg, wikiPackage,
                         this, wikiMap));
             default:
