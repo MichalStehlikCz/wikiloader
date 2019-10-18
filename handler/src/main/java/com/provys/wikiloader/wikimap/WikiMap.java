@@ -210,7 +210,7 @@ public class WikiMap {
      */
     public static String getDiagramName(Diagram diagram) {
         return "dia_" + diagram.GetName().toLowerCase().replace(' ', '_')
-                .replaceAll("[():]", "");
+                .replace("&", "and").replaceAll("[():]", "");
     }
 
     /**
