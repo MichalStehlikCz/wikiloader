@@ -1,20 +1,23 @@
-package com.provys.wikiloader.handlers;
+package com.provys.wikiloader.earepository.impl;
 
 import com.provys.common.exception.InternalException;
 import com.provys.provyswiki.ProvysWikiClient;
-import com.provys.wikiloader.earepository.impl.DefaultExporter;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import com.provys.wikiloader.handlers.PackageGroupExporter;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 
-class PackageGroupExporter extends DefaultExporter<DefaultPackageHandler> {
+public class EaPackageGroupExporter extends EaParentExporter<EaPackageGroup> {
 
-    private static final Logger LOG = LogManager.getLogger(PackageGroupExporter.class);
+    EaPackageGroupExporter(EaPackageGroup eaObject, ProvysWikiClient wikiClient) {
+        super(eaObject, wikiClient);
+    }
 
-    PackageGroupExporter(DefaultPackageHandler handler, ProvysWikiClient wikiClient) {
-        super(handler, wikiClient);
+    /**
+     * Append header for elements section
+     */
+    void appendElementsHeader() {
+        startBuilder.append("\n===== Packages =====\n");
     }
 
     private static class SubPackageExporter {
@@ -23,19 +26,23 @@ class PackageGroupExporter extends DefaultExporter<DefaultPackageHandler> {
         private final StringBuilder builder = new StringBuilder();
         private int lines = 4; // empty box has height roughly corresponding to 4 lines of text
 
-        SubPackageExporter(HandlerInt pkg) {
+        SubPackageExporter(EaPackageGroupRef pkg) {
             appendSubPackage(pkg);
         }
 
         @SuppressWarnings("squid:S3457")
-        private void appendElementToContent(HandlerInt element, int level) {
-            builder.append(String.format("%" + (level * 2 + 10) + "s", "* [[")).append(element.getId()).append("]]\n");
+        private void appendElementToContent(EaProductPackageRef element, int level) {
+            builder.append(String.format("%" + (level * 2 + 10) + "s", "* [["));
+            element.appendLink(builder);
+            builder.append("]]\n");
             lines++;
         }
 
         @SuppressWarnings("squid:S3457")
-        private void appendPackageToContent(HandlerInt pkg, int level) {
-            builder.append(String.format("%" + (level * 2 + 10) + "s", "* [[")).append(pkg.getId()).append("]]\n");
+        private void appendPackageToContent(EaPackageGroupRef pkg, int level) {
+            builder.append(String.format("%" + (level * 2 + 10) + "s", "* [["));
+            pkg.appendLink(builder);
+            builder.append("]]\n");
             lines++;
             for (var subElement : pkg.getElements()) {
                 if (!(subElement instanceof HandlerInt)) {
@@ -51,9 +58,9 @@ class PackageGroupExporter extends DefaultExporter<DefaultPackageHandler> {
             }
         }
 
-        private void appendSubPackage(HandlerInt pkg) {
+        private void appendSubPackage(EaPackageGroupRef pkg) {
             builder.append("<panel type=\"default\" title=\"")
-                    .append(pkg.getEaName().replace("&", "And")).append("\">\n");
+                    .append(pkg.getName().replace("&", "And")).append("\">\n");
             appendPackageToContent(pkg, 0);
             builder.append("</panel>");
         }
@@ -68,16 +75,19 @@ class PackageGroupExporter extends DefaultExporter<DefaultPackageHandler> {
         }
     }
 
-    private void appendSubPackages() {
+    @Override
+    void appendPackages() {
         // we need to find height to split panels to two columns...
         final var panels = new ArrayList<SubPackageExporter>(3);
-        for (var subPackage : getSubPackages()) {
-            if (subPackage instanceof HandlerInt) {
-                panels.add(new SubPackageExporter((HandlerInt) subPackage));
-                contentBuilder.add(subPackage.getRelLink());
-                subPackage.appendPages(pages);
-            } else {
-                appendElement(subPackage);
+        for (var subPackage : getEaObject().getPackages()) {
+            if (subPackage.isTopic()) {
+                if (subPackage instanceof EaPackageGroupRef) {
+                    panels.add(new SubPackageExporter((EaPackageGroupRef) subPackage));
+                    contentBuilder.add(subPackage.getParentLink().orElseThrow());
+                    subPackage.appendPages(pages);
+                } else {
+                    appendElement(subPackage);
+                }
             }
         }
         if (panels.size() <= 1) {
@@ -87,7 +97,7 @@ class PackageGroupExporter extends DefaultExporter<DefaultPackageHandler> {
             }
         } else {
             // build two columns, target height is half of summary height
-            int height = panels.stream().mapToInt(SubPackageExporter::getLines).sum() / 2;
+            int height = panels.stream().mapToInt(PackageGroupExporter.SubPackageExporter::getLines).sum() / 2;
             startBuilder.append("<grid>\n")
                     .append("<col sm=\"6\">\n");
             int currentHeight = 0;
@@ -106,22 +116,14 @@ class PackageGroupExporter extends DefaultExporter<DefaultPackageHandler> {
         }
     }
 
-    @Override
     void appendBody() {
         // handle diagrams
         appendDiagrams();
-        // handle elements
-        var elements = getElements();
-        if (!elements.isEmpty()) {
-            startBuilder.append("\n==== Packages ====\n");
-            if (!contentBuilder.isEmpty()) {
-                contentBuilder.add("\\\\");
-            }
-            for (var element : elements) {
-                appendElement(element);
-            }
-        }
+        // insert own content
+        appendDocument();
+        // handle elements - they go before sub-packages
+        appendElements();
         // handle sub-packages
-        appendSubPackages();
+        appendPackages();
     }
 }

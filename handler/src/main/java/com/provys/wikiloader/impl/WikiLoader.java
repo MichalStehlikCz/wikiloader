@@ -1,7 +1,7 @@
 package com.provys.wikiloader.impl;
 
 import com.provys.provyswiki.ProvysWikiClient;
-import org.sparx.Repository;
+import com.provys.wikiloader.earepository.EaRepository;
 
 import javax.annotation.Nullable;
 import javax.enterprise.context.ApplicationScoped;
@@ -14,14 +14,15 @@ import java.util.Objects;
 @ApplicationScoped
 public class WikiLoader {
 
-    private final HandlerFactory handlerFactory;
+    private final EaRepository eaRepository;
 
+    @SuppressWarnings("CdiUnproxyableBeanTypesInspection")
     @Inject
-    public WikiLoader(HandlerFactory handlerFactory) {
-        this.handlerFactory = Objects.requireNonNull(handlerFactory);
+    public WikiLoader(EaRepository eaRepository) {
+        this.eaRepository = Objects.requireNonNull(eaRepository);
     }
 
-    public void run(Repository eaRepository, ProvysWikiClient wikiClient, @Nullable String path, boolean recursive) {
-        new RunHandler(eaRepository, wikiClient, handlerFactory, path, recursive).run();
+    public void run(ProvysWikiClient wikiClient, @Nullable String path, boolean recursive) {
+        eaRepository.getObjectRefByPath(path).sync(wikiClient, recursive);
     }
 }

@@ -1,43 +1,35 @@
 package com.provys.wikiloader.earepository;
 
+import com.provys.provyswiki.ProvysWikiClient;
+
 import javax.annotation.Nonnull;
-import java.util.List;
 import java.util.Optional;
 
-/**
- * Common interface for packages and elements as these two objects all together form tree of ea repository objects
- */
-public interface EaObject extends Comparable<EaObject> {
+public interface EaObject extends EaObjectRef {
 
     /**
-     * @return parent object
+     * @return EaRepository this object uses to resolve references to sub-objects
      */
     @Nonnull
-    Optional<EaObject> getParent();
+    EaRepository getRepository();
 
     /**
-     * @return name of given object; note that it is Enterprise Architect name, it does not use handler for lookup
+     * @return title of main page of given object on wiki
      */
     @Nonnull
-    String getName();
+    String getTitle();
 
     /**
-     * @return alias of given object
+     * @return notes attached to object
      */
-    @Nonnull
-    Optional<String> getAlias();
+    Optional<String> getNotes();
 
     /**
-     * @return stereotype of given object; for packages, StereotypeEx is used instead
-     */
-    @Nonnull
-    Optional<String> getStereotype();
-
-    /**
-     * Retrieve position of given items, defined as list of tree positions, starting from root package (model)
+     * Synchronize wiki page, corresponding to given object
      *
-     * @return list with tree positions, starting from root package to given object
+     * @param wikiClient is wikipedia client, used for export
+     * @param recursive defines if we should export even sub-packages and elements or only given object and associated
+     *                 diagrams
      */
-    @Nonnull
-    List<Integer> getPos();
+    void sync(ProvysWikiClient wikiClient, boolean recursive);
 }

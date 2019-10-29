@@ -1,9 +1,6 @@
 package com.provys.wikiloader.handlers;
 
-import com.provys.wikiloader.impl.Handler;
-import com.provys.wikiloader.impl.HandlerFactory;
-import com.provys.wikiloader.wikimap.WikiElement;
-import com.provys.wikiloader.wikimap.WikiMap;
+import com.provys.wikiloader.earepository.impl.ExporterProducer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.sparx.Element;

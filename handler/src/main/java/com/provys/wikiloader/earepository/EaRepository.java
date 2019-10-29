@@ -1,26 +1,51 @@
 package com.provys.wikiloader.earepository;
 
-import org.sparx.Repository;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
- * Maps objects in Enterprise Architect repository
+ * Holds repository of Enterprise Architect object (package, element, diagram) references and provides access to them
+ * via their Enterprise Architect Id. Is meant to fully encapsulate access to Enterprise Architect API
  */
 public interface EaRepository {
-
-    /**
-     * @return Enterprise Architect repository object, covered by this wrapper
-     */
-    Repository getRepository();
 
     /**
      * @param elementId is id of element in enterprise architect repository
      * @return element with specified id
      */
-    EaElement getElementById(int elementId);
+    @Nonnull
+    EaElementRef getElementRefById(int elementId);
 
     /**
-     * @param packageId is id of element in enterprise architect repository
-     * @return element with specified id
+     * @param packageId is id of package in enterprise architect repository
+     * @return package with specified id
      */
-    EaPackage getPackageById(int packageId);
+    @Nonnull
+    EaPackageRef getPackageRefById(int packageId);
+
+    /**
+     * @param diagramId is id of diagram in enterprise architect repository
+     * @return diagram with specified id
+     */
+    @Nonnull
+    EaDiagramRef getDiagramRefById(int diagramId);
+
+    /**
+     * Get repository object on given path.
+     *
+     * @param path is path,
+     */
+    @Nonnull
+    EaObjectRef getObjectRefByPath(@Nullable String path);
+
+    /**
+     * Get full Enterprise Architect object based on supplied reference
+     */
+    @Nonnull
+    EaObject getObjectByRef(EaObjectRef objectRef);
+
+    /**
+     * @return new Wiki set builder
+     */
+    WikiSetBuilder getWikiSetBuilder();
 }

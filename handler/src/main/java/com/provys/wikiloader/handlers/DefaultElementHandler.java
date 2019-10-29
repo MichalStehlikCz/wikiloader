@@ -1,9 +1,8 @@
 package com.provys.wikiloader.handlers;
 
 import com.provys.common.exception.InternalException;
-import com.provys.wikiloader.impl.*;
-import com.provys.wikiloader.wikimap.WikiElement;
-import com.provys.wikiloader.wikimap.WikiMap;
+import com.provys.wikiloader.earepository.impl.DefaultExporter;
+import com.provys.wikiloader.earepository.impl.ExporterProducer;
 import org.sparx.Element;
 
 import javax.annotation.Nonnull;

@@ -2,6 +2,7 @@ package com.provys.wikiloader;
 
 import com.provys.common.exception.RegularException;
 import com.provys.provyswiki.ProvysWikiClient;
+import com.provys.wikiloader.earepository.EaRepository;
 import com.provys.wikiloader.impl.WikiLoader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -130,30 +131,15 @@ public class RunWikiLoader implements Runnable {
         if (provysPwd == null) {
             throw new IllegalStateException("Provys database password is not specified");
         }
-        ConfigProviderResolver.instance().registerConfig(
-                ConfigProviderResolver.instance().getBuilder().forClassLoader(getClass().getClassLoader()).
-                        withSources(new CommandLineParamsSource(provysAddress, provysUser, provysPwd)).build(),
-                getClass().getClassLoader());
-        Repository eaRepository = null;
-        try {
-            // Create a repository object - This will create a new instance of EA
-            eaRepository = new Repository();
-            // Attempt to open the provided file
-            if (eaRepository.OpenFile(eaAddress)) {
-                wikiLoader.run(eaRepository, getWikiClient(), path, recursive);
-            } else {
-                // If the file couldn't be opened then notify the user
-                throw new RegularException(LOG, "EALOADER_CANNOTOPENREPOSITORY",
-                        "EA was unable to open the file '" + eaAddress + '\'');
-            }
-        } finally {
-            if (eaRepository != null) {
-                // Clean up
-                eaRepository.CloseFile();
-                eaRepository.Exit();
-                eaRepository.destroy();
-            }
+        if (eaAddress == null) {
+            throw new IllegalStateException("Enterprise Architect repository address is not specified");
         }
+        ConfigProviderResolver.instance().registerConfig(
+                ConfigProviderResolver.instance().getBuilder().forClassLoader(getClass().getClassLoader())
+                        .withSources(new CommandLineParamsSource(provysAddress, provysUser, provysPwd, eaAddress))
+                        .build(),
+                getClass().getClassLoader());
+        wikiLoader.run(getWikiClient(), path, recursive);
         LOG.info("Synchronisation of Enterprise Architect models to wiki finished");
     }
 
@@ -161,10 +147,11 @@ public class RunWikiLoader implements Runnable {
 
         private final Map<String, String> properties = new HashMap<>(3);
 
-        CommandLineParamsSource(String url, String user, String pwd) {
+        CommandLineParamsSource(String url, String user, String pwd, String eaAddress) {
             properties.put("PROVYSDB_URL", url);
             properties.put("PROVYSDB_USER", user);
             properties.put("PROVYSDB_PWD", pwd);
+            properties.put("EA_ADDRESS", eaAddress);
         }
 
         @Override

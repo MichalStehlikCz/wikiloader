@@ -5,6 +5,7 @@ import com.provys.catalogue.api.AttrGrp;
 import com.provys.catalogue.api.CatalogueRepository;
 import com.provys.catalogue.api.Entity;
 import com.provys.provyswiki.ProvysWikiClient;
+import com.provys.wikiloader.earepository.impl.DefaultExporter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

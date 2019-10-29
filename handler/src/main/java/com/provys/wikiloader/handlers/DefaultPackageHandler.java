@@ -1,10 +1,8 @@
 package com.provys.wikiloader.handlers;
 
 import com.provys.dokuwiki.PageIdParser;
-import com.provys.wikiloader.impl.Handler;
-import com.provys.wikiloader.impl.HandlerFactory;
-import com.provys.wikiloader.wikimap.WikiMap;
-import com.provys.wikiloader.wikimap.WikiPackage;
+import com.provys.wikiloader.earepository.impl.DefaultExporter;
+import com.provys.wikiloader.earepository.impl.ExporterProducer;
 import org.sparx.Package;
 
 import javax.annotation.Nonnull;
