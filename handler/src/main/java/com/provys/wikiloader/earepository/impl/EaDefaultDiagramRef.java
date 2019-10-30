@@ -2,6 +2,7 @@ package com.provys.wikiloader.earepository.impl;
 
 import com.provys.common.exception.InternalException;
 import com.provys.wikiloader.earepository.EaDiagramRef;
+import com.provys.wikiloader.earepository.EaObject;
 import com.provys.wikiloader.earepository.EaObjectRef;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -27,8 +28,9 @@ class EaDefaultDiagramRef extends EaObjectRefBase implements EaDiagramRef {
 
     private final int diagramId;
 
-    EaDefaultDiagramRef(EaObjectRefBase parent, String name, @Nullable String stereotype, int diagramId) {
-        super(parent, name, getAlias(name), stereotype, 0);
+    EaDefaultDiagramRef(EaRepositoryImpl repository, EaObjectRefBase parent, String name, @Nullable String stereotype,
+                        int diagramId) {
+        super(repository, parent, name, getAlias(name), stereotype, 0);
         Objects.requireNonNull(parent);
         this.diagramId = diagramId;
     }
@@ -36,6 +38,11 @@ class EaDefaultDiagramRef extends EaObjectRefBase implements EaDiagramRef {
     @Override
     public int getDiagramId() {
         return diagramId;
+    }
+
+    @Override
+    public EaObject getObject() {
+        return getRepository().getLoader().loadDefaultDiagram(this);
     }
 
     @Override
@@ -55,7 +62,7 @@ class EaDefaultDiagramRef extends EaObjectRefBase implements EaDiagramRef {
         return getParent()
                 .map(EaObjectRef::getNamespace) // get namespace from parent
                 .orElse(Optional.of("")) // if no parent, use "" as prefix
-                .map(ns -> ns + getAlias().get()); // append this topic's alias
+                .map(ns -> ns + ":" + getAlias().get()); // append this topic's alias
     }
 
     @Override
@@ -64,15 +71,15 @@ class EaDefaultDiagramRef extends EaObjectRefBase implements EaDiagramRef {
     }
 
     @Override
-    public void appendNamespace(StringBuilder builder) {
+    public void appendNamespace(StringBuilder builder, boolean trailingColon) {
         throw new InternalException(LOG, "Diagram cannot is not exported as namespace " + this);
     }
 
     @Override
     @SuppressWarnings("squid:S3655") // sonar does not recognise Optional.isEmpty
-    public void appendParentLink(StringBuilder builder) {
+    public void appendParentLink(StringBuilder builder, boolean leadingDot) {
         if (!hasLink() || getAlias().isEmpty()) {
-            throw new InternalException(LOG, "Cannot append diagram link - diagram, not exported " + this);
+            throw new InternalException(LOG, "Cannot append diagram link - diagram not exported " + this);
         }
         builder.append(getAlias().get());
     }

@@ -1,10 +1,13 @@
 package com.provys.provyswiki;
 
 import com.provys.dokuwiki.DokuWikiClient;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Extension of generic DokuWiki client, that implements functionality depending on structure of provys wikipedia -
@@ -13,6 +16,8 @@ import java.util.Set;
  */
 @SuppressWarnings("WeakerAccess")
 public class ProvysWikiClient extends DokuWikiClient {
+
+    private static final Logger LOG = LogManager.getLogger(ProvysWikiClient.class);
 
     /** Name of topic that defines sidebar for given namespace */
     public static final String SIDEBAR = "sidebar";
@@ -130,24 +135,29 @@ public class ProvysWikiClient extends DokuWikiClient {
      * namespaces in form {@code ".name:"}.
      */
     public void deleteUnusedNamespaces(String namespace, List<String> used) {
-        Set<String> usedSet = new HashSet<>(used.size());
-        for (var name : used) {
-            if ((name.charAt(0) == '.') && (name.charAt(name.length()-1) == ':')) {
-                usedSet.add(name.substring(1, name.length() - 1));
-            }
-        }
+        var usedSet = used.stream()
+                .filter(name -> (name.charAt(0) == '.') && (name.charAt(name.length()-1) == ':'))
+                .map(name -> name.substring(1, name.length() - 1))
+                .map(String::toLowerCase)
+                .collect(Collectors.toSet());
         getNamespaceNames(namespace)
                 .stream()
                 .filter(name -> !usedSet.contains(name))
                 .map(name -> namespace + ":" + name)
-                .forEach(this::deleteNamespace);
+                .forEach(delNameSpace -> {
+                    LOG.info("Delete unused namespace {}", delNameSpace);
+                    deleteNamespace(delNameSpace);
+                });
     }
 
     /**
      * Delete topics that are not referenced from content and are not standard topics (sidebar, content, start).
      */
     public void deleteUnusedPages(String namespace, List<String> used) {
-        Set<String> usedSet = new HashSet<>(used);
+        Set<String> usedSet = used.stream()
+                .map(pageId -> (pageId.charAt(0) == '.') ? pageId.substring(1) : pageId)
+                .map(String::toLowerCase)
+                .collect(Collectors.toSet());
         usedSet.add(SIDEBAR);
         usedSet.add(START);
         usedSet.add(CONTENT);
@@ -155,6 +165,9 @@ public class ProvysWikiClient extends DokuWikiClient {
                 .stream()
                 .filter(page -> !usedSet.contains(page))
                 .map(page -> namespace + ":" + page)
-                .forEach(this::deletePage);
+                .forEach(pageId -> {
+                    LOG.info("Delete unused page {}", pageId);
+                    deletePage(pageId);
+                });
     }
 }

@@ -8,6 +8,8 @@ import java.util.*;
 
 abstract class EaObjectRefBase implements EaObjectRef {
 
+    @Nonnull
+    private final EaRepositoryImpl repository;
     @Nullable
     private final EaObjectRefBase parent;
     @Nonnull
@@ -18,13 +20,20 @@ abstract class EaObjectRefBase implements EaObjectRef {
     private final String stereotype;
     private final int treePos;
 
-    EaObjectRefBase(@Nullable EaObjectRefBase parent, String name, @Nullable String alias, @Nullable String stereotype,
-                    int treePos) {
+    EaObjectRefBase(EaRepositoryImpl repository, @Nullable EaObjectRefBase parent, String name, @Nullable String alias,
+                    @Nullable String stereotype, int treePos) {
+        this.repository = Objects.requireNonNull(repository);
         this.parent = parent;
         this.name = Objects.requireNonNull(name);
-        this.alias = ((alias == null) || alias.isEmpty()) ? null : alias;
+        this.alias = ((alias == null) || alias.isEmpty()) ? null : alias.toLowerCase();
         this.stereotype = ((stereotype == null) || stereotype.isEmpty()) ? null : stereotype;
         this.treePos = treePos;
+    }
+
+    @Nonnull
+    @Override
+    public EaRepositoryImpl getRepository() {
+        return repository;
     }
 
     @Override
@@ -63,7 +72,7 @@ abstract class EaObjectRefBase implements EaObjectRef {
             return Optional.empty();
         }
         var builder = new StringBuilder();
-        appendLink(builder);
+        appendParentLink(builder);
         return Optional.of(builder.toString());
     }
 
@@ -71,9 +80,16 @@ abstract class EaObjectRefBase implements EaObjectRef {
     public void appendLink(StringBuilder builder) {
         builder.append(":");
         if (parent != null) {
-            parent.appendNamespace(builder);
+            parent.appendNamespace(builder, true);
         }
-        appendParentLink(builder);
+        appendParentLink(builder, false);
+    }
+
+    abstract void appendParentLink(StringBuilder builder, boolean leadingDot);
+
+    @Override
+    public void appendParentLink(StringBuilder builder) {
+        appendParentLink(builder, true);
     }
 
     public void appendPages(Collection<String> pages) {
@@ -122,7 +138,8 @@ abstract class EaObjectRefBase implements EaObjectRef {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         EaObjectRefBase eaObject = (EaObjectRefBase) o;
-        return treePos == eaObject.treePos &&
+        return repository == eaObject.repository &&
+                treePos == eaObject.treePos &&
                 Objects.equals(parent, eaObject.parent) &&
                 (name.equals(eaObject.name)) &&
                 Objects.equals(alias, eaObject.alias) &&

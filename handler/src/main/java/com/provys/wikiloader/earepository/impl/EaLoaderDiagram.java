@@ -7,6 +7,7 @@ import org.apache.logging.log4j.Logger;
 import org.sparx.Diagram;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -16,6 +17,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Class used by loader to render diagram from Enterprise Architect. One of few classes that actually directly access
@@ -34,13 +36,19 @@ class EaLoaderDiagram {
     @Nonnull
     private static Set<EaDefaultDiagram.DiagramObjectRef> getDiagramObjects(Diagram diagram, EaRepository eaRepository) {
         var diagramObjects = diagram.GetDiagramObjects();
-        var result = new TreeSet<EaDefaultDiagram.DiagramObjectRef>();
-        for (var diagramObject : diagramObjects) {
-            result.add(new EaDefaultDiagram.DiagramObjectRef(diagramObject, eaRepository));
-            diagramObject.destroy();
+        try {
+            var result = new TreeSet<EaDefaultDiagram.DiagramObjectRef>();
+            for (var diagramObject : diagramObjects) {
+                try {
+                    result.add(new EaDefaultDiagram.DiagramObjectRef(diagramObject, eaRepository));
+                } finally {
+                    diagramObject.destroy();
+                }
+            }
+            return result;
+        } finally {
+            diagramObjects.destroy();
         }
-        diagramObjects.destroy();
-        return result;
     }
 
     @Nonnull
@@ -88,7 +96,9 @@ class EaLoaderDiagram {
 
     @Nonnull
     Set<EaDefaultDiagram.DiagramObjectRef> getDiagramObjects() {
-        return Collections.unmodifiableSet(diagramObjects);
+        return diagramObjects.stream()
+                .map(diagramObject -> diagramObject.shiftBy(imgPos.getLeft(), imgPos.getTop()))
+                .collect(Collectors.toUnmodifiableSet());
     }
 
     @Nonnull
@@ -96,8 +106,13 @@ class EaLoaderDiagram {
         return "export_diagram.png";
     }
 
+    @Nullable
     private BufferedImage getImagePage(int xpage, int ypage, String filename) {
         if (!diagram.SaveImagePage(xpage, ypage, 0, 0, filename, 0)) {
+            if (diagram.GetLastError().equals("x or y is out of range.")) {
+                // probably diagram is exported slightly smaller than expected...
+                return null;
+            }
             throw new InternalException(LOG, "Failed to export diagram " + diagram.GetName() + " page "
                     + xpage + ", " + ypage + " to " + filename + ": " + diagram.GetLastError());
         }
@@ -125,24 +140,30 @@ class EaLoaderDiagram {
                 int origWidth = 0;
                 for (int yPage = 1; origYPos <= imgPos.getBottom(); yPage++) {
                     var page = getImagePage(xPage, yPage, filename);
-                    origWidth = page.getWidth();
-                    int origHeight = page.getHeight();
-                    if ((origXPos < imgPos.getLeft() + 4) || (origYPos < imgPos.getTop() + 4)) {
-                        // we do not need whole generated page - need to crop top or left
-                        int subLeft = Integer.max(imgPos.getLeft() - origXPos, 4);
-                        int subTop = Integer.max(imgPos.getTop() - origYPos, 4);
-                        int subWidth = Integer.min(page.getWidth() - subLeft, imgPos.getRight() - origXPos + 1);
-                        int subHeight = Integer.min(page.getHeight() - subTop, imgPos.getBottom() - origYPos + 1);
-                        if ((subWidth <= 0) || (subHeight <= 0)) {
-                            // nothing to use from this page
-                            page = null;
+                    int origHeight;
+                    if (page != null) {
+                        origWidth = page.getWidth();
+                        origHeight = page.getHeight();
+                        if ((origXPos < imgPos.getLeft() + 4) || (origYPos < imgPos.getTop() + 4)) {
+                            // we do not need whole generated page - need to crop top or left
+                            int subLeft = Integer.max(imgPos.getLeft() - origXPos, 4);
+                            int subTop = Integer.max(imgPos.getTop() - origYPos, 4);
+                            int subWidth = Integer.min(page.getWidth() - subLeft, imgPos.getRight() - origXPos + 1);
+                            int subHeight = Integer.min(page.getHeight() - subTop, imgPos.getBottom() - origYPos + 1);
+                            if ((subWidth <= 0) || (subHeight <= 0)) {
+                                // nothing to use from this page
+                                page = null;
+                            } else {
+                                page = page.getSubimage(subLeft, subTop, subWidth, subHeight);
+                            }
                         } else {
-                            page = page.getSubimage(subLeft, subTop, subWidth, subHeight);
+                            origWidth -= 4;
+                            origHeight -= 4;
+                            page = page.getSubimage(4, 4, origWidth, origHeight);
                         }
                     } else {
-                        origWidth -= 4;
-                        origHeight -= 4;
-                        page = page.getSubimage(4, 4, origWidth, origHeight);
+                        origWidth = 0;
+                        origHeight = 0;
                     }
                     if (page != null) {
                         // move position to already painted; on the first picture, start from 0, 0

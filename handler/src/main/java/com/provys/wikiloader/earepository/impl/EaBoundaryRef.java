@@ -1,6 +1,7 @@
 package com.provys.wikiloader.earepository.impl;
 
 import com.provys.common.exception.InternalException;
+import com.provys.wikiloader.earepository.EaObject;
 import com.provys.wikiloader.earepository.EaObjectRef;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -17,8 +18,14 @@ class EaBoundaryRef extends EaElementRefBase {
 
     private static final Logger LOG = LogManager.getLogger(EaBoundaryRef.class);
 
-    EaBoundaryRef(@Nullable EaObjectRefBase parent, String name, @Nullable String alias, int treePos, int elementId) {
-        super(parent, name, alias, "Boundary", treePos, elementId);
+    EaBoundaryRef(EaRepositoryImpl repository, @Nullable EaObjectRefBase parent, String name, @Nullable String alias,
+                  int treePos, int elementId) {
+        super(repository, parent, name, alias, "Boundary", treePos, elementId);
+    }
+
+    @Override
+    public EaObject getObject() {
+        return new EaBoundary(this);
     }
 
     @Override
@@ -46,16 +53,34 @@ class EaBoundaryRef extends EaElementRefBase {
     }
 
     @Override
-    public void appendNamespace(StringBuilder builder) {
-        throw new InternalException(LOG, "Cannot append namespace - diagram reference not exported " + this);
+    public void appendLink(StringBuilder builder) {
+        if (!hasLink()) {
+            throw new InternalException(LOG, "Cannot append link - boundary not exported " + this);
+        }
+        var alias = getAlias().orElseThrow();
+        if (alias.charAt(0) != ':') {
+            // in case alias starts with :, it contains full path and we cannot prefix it with parent namespace
+            getParent().ifPresent(parent -> parent.appendNamespace(builder, true));
+        }
+        builder.append(alias).append(":");
     }
 
     @Override
-    public void appendParentLink(StringBuilder builder) {
+    void appendParentLink(StringBuilder builder, boolean leadingDot) {
         if (!hasLink()) {
-            throw new InternalException(LOG, "Cannot append link - diagram not exported " + this);
+            throw new InternalException(LOG, "Cannot append link - boundary not exported " + this);
         }
-        builder.append(getAlias().orElseThrow());
+        var alias = getAlias().orElseThrow();
+        if (leadingDot && (alias.charAt(0) != ':')) {
+            builder.append(".");
+        }
+        builder.append(alias).append(":");
+    }
+
+    @Override
+    public void appendNamespace(StringBuilder builder, boolean trailingColon) {
+        throw new InternalException(LOG, "Cannot append namespace - boundary " + this +
+                "does not correspond to namespace");
     }
 
     @Override

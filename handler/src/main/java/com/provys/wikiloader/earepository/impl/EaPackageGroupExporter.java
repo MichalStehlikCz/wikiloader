@@ -1,13 +1,13 @@
 package com.provys.wikiloader.earepository.impl;
 
-import com.provys.common.exception.InternalException;
 import com.provys.provyswiki.ProvysWikiClient;
-import com.provys.wikiloader.handlers.PackageGroupExporter;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 
-public class EaPackageGroupExporter extends EaParentExporter<EaPackageGroup> {
+class EaPackageGroupExporter extends EaParentExporter<EaPackageGroup> {
 
     EaPackageGroupExporter(EaPackageGroup eaObject, ProvysWikiClient wikiClient) {
         super(eaObject, wikiClient);
@@ -39,22 +39,17 @@ public class EaPackageGroupExporter extends EaParentExporter<EaPackageGroup> {
         }
 
         @SuppressWarnings("squid:S3457")
-        private void appendPackageToContent(EaPackageGroupRef pkg, int level) {
+        private void appendPackageToContent(EaPackageGroupRef pkgRef, int level) {
             builder.append(String.format("%" + (level * 2 + 10) + "s", "* [["));
-            pkg.appendLink(builder);
+            pkgRef.appendLink(builder);
             builder.append("]]\n");
             lines++;
+            var pkg = pkgRef.getObject();
             for (var subElement : pkg.getElements()) {
-                if (!(subElement instanceof HandlerInt)) {
-                    throw new InternalException(LOG, "Sub-element is surprisingly not HandlerInt");
-                }
-                appendElementToContent((HandlerInt) subElement, level + 1);
+                appendElementToContent(subElement, level + 1);
             }
-            for (var subPackage : pkg.getSubPackages()) {
-                if (!(subPackage instanceof HandlerInt)) {
-                    throw new InternalException(LOG, "Sub-package is surprisingly not HandlerInt");
-                }
-                appendPackageToContent((HandlerInt) subPackage, level + 1);
+            for (var subPackage : pkg.getPackages()) {
+                appendPackageToContent(subPackage, level + 1);
             }
         }
 
@@ -81,13 +76,9 @@ public class EaPackageGroupExporter extends EaParentExporter<EaPackageGroup> {
         final var panels = new ArrayList<SubPackageExporter>(3);
         for (var subPackage : getEaObject().getPackages()) {
             if (subPackage.isTopic()) {
-                if (subPackage instanceof EaPackageGroupRef) {
-                    panels.add(new SubPackageExporter((EaPackageGroupRef) subPackage));
-                    contentBuilder.add(subPackage.getParentLink().orElseThrow());
-                    subPackage.appendPages(pages);
-                } else {
-                    appendElement(subPackage);
-                }
+                panels.add(new SubPackageExporter(subPackage));
+                contentBuilder.add(subPackage.getParentLink().orElseThrow());
+                subPackage.appendPages(pages);
             }
         }
         if (panels.size() <= 1) {
@@ -97,7 +88,7 @@ public class EaPackageGroupExporter extends EaParentExporter<EaPackageGroup> {
             }
         } else {
             // build two columns, target height is half of summary height
-            int height = panels.stream().mapToInt(PackageGroupExporter.SubPackageExporter::getLines).sum() / 2;
+            int height = panels.stream().mapToInt(SubPackageExporter::getLines).sum() / 2;
             startBuilder.append("<grid>\n")
                     .append("<col sm=\"6\">\n");
             int currentHeight = 0;

@@ -1,7 +1,6 @@
 package com.provys.wikiloader.earepository.impl;
 
 import com.provys.catalogue.api.CatalogueRepository;
-import com.provys.catalogue.api.Entity;
 import com.provys.common.exception.InternalException;
 import com.provys.common.exception.RegularException;
 import com.provys.wikiloader.earepository.*;
@@ -19,6 +18,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * Interface for accessing Enterprise Architect repository and retrieve Ref objects from this repository - the only
@@ -63,13 +63,13 @@ class EaLoaderImpl {
     }
 
     @Nonnull
-    EaDefaultPackageRef getModel() {
+    EaDefaultPackageRef getModel(EaRepositoryImpl eaRepository) {
         Collection<Package> models = repository.GetModels();
         try {
             var model = models.GetByName(MODEL_NAME);
             try {
-                return new EaDefaultPackageRef(null, MODEL_NAME, ROOT_NAMESPACE, model.GetStereotypeEx(),
-                        model.GetTreePos(), model.GetPackageID());
+                return new EaDefaultPackageRef(eaRepository, null, MODEL_NAME, ROOT_NAMESPACE,
+                        model.GetStereotypeEx(), model.GetTreePos(), model.GetPackageID());
             } finally {
                 model.destroy();
             }
@@ -93,13 +93,13 @@ class EaLoaderImpl {
         } else {
             diagramRef = eaRepository.getDiagramRefById(diagram.GetDiagramID());
         }
-        return new EaUmlDiagramElementRef(getElementParent(element, eaRepository), element.GetName(),
+        return new EaUmlDiagramElementRef(eaRepository, getElementParent(element, eaRepository), element.GetName(),
                 element.GetTreePos(), element.GetElementID(), diagramRef);
     }
 
     private EaBoundaryRef createEaRefBoundary(Element element, EaRepositoryImpl eaRepository) {
-        return new EaBoundaryRef(getElementParent(element, eaRepository), element.GetName(), element.GetAlias(),
-                element.GetTreePos(), element.GetElementID());
+        return new EaBoundaryRef(eaRepository, getElementParent(element, eaRepository), element.GetName(),
+                element.GetAlias(), element.GetTreePos(), element.GetElementID());
     }
 
     private EaProductPackageRef createEaRefProductPackage(Element element, EaRepositoryImpl eaRepository) {
@@ -124,8 +124,8 @@ class EaLoaderImpl {
         } finally {
             taggedValues.destroy();
         }
-        return new EaProductPackageRef(getElementParent(element, eaRepository), element.GetName(), element.GetAlias(),
-                element.GetTreePos(), element.GetElementID(), packageType);
+        return new EaProductPackageRef(eaRepository, getElementParent(element, eaRepository), element.GetName(),
+                element.GetAlias(), element.GetTreePos(), element.GetElementID(), packageType);
     }
 
     private EaDefaultElementRef createEaRefDefaultElement(Element element, EaRepositoryImpl eaRepository) {
@@ -140,8 +140,8 @@ class EaLoaderImpl {
             leaf = false;
         }
         diagrams.destroy();
-        return new EaDefaultElementRef(getElementParent(element, eaRepository), element.GetName(), element.GetAlias(),
-                element.GetStereotype(), element.GetTreePos(), element.GetElementID(), leaf);
+        return new EaDefaultElementRef(eaRepository, getElementParent(element, eaRepository), element.GetName(),
+                element.GetAlias(), element.GetStereotype(), element.GetTreePos(), element.GetElementID(), leaf);
     }
 
     /**
@@ -192,14 +192,14 @@ class EaLoaderImpl {
                 }
             }
         }
-        return new EaPackageGroupRef(parent, pkg.GetName(), pkg.GetAlias(), pkg.GetStereotypeEx(),
+        return new EaPackageGroupRef(eaRepository, parent, pkg.GetName(), pkg.GetAlias(), pkg.GetStereotypeEx(),
                 pkg.GetTreePos(), pkg.GetPackageID(), sales, technical);
     }
 
     private EaDefaultPackageRef createEaRefDefaultPackage(Package pkg, EaRepositoryImpl eaRepository) {
         var parentId = pkg.GetParentID();
         var parent = (parentId > 0) ? eaRepository.getPackageRefById(parentId) : null;
-        return new EaDefaultPackageRef(parent, pkg.GetName(), pkg.GetAlias(), pkg.GetStereotypeEx(),
+        return new EaDefaultPackageRef(eaRepository, parent, pkg.GetName(), pkg.GetAlias(), pkg.GetStereotypeEx(),
                 pkg.GetTreePos(), pkg.GetPackageID());
     }
 
@@ -209,7 +209,7 @@ class EaLoaderImpl {
      * @param packageId is Enterprise Architect repository package identifier
      * @return new package reference
      */
-    EaPackageRef packageRefFromId(int packageId, EaRepositoryImpl eaRepository) {
+    EaDefaultPackageRef packageRefFromId(int packageId, EaRepositoryImpl eaRepository) {
         var pkg = repository.GetPackageByID(packageId);
         try {
             if (pkg.GetStereotypeEx().equals("provys_package_group")) {
@@ -233,7 +233,7 @@ class EaLoaderImpl {
             var parentElement = diagram.GetParentID();
             var parent = (parentElement > 0) ? eaRepository.getElementRefById(parentElement) :
                     eaRepository.getPackageRefById(diagram.GetPackageID());
-            return new EaDefaultDiagramRef(parent, diagram.GetName(), diagram.GetStereotype(), diagramId);
+            return new EaDefaultDiagramRef(eaRepository, parent, diagram.GetName(), diagram.GetStereotype(), diagramId);
         } finally {
             diagram.destroy();
         }
@@ -314,7 +314,7 @@ class EaLoaderImpl {
      * @return ref object that corresponds to supplied path, throw exception when such object is not found
      */
     EaObjectRef getRefObjectByPath(@Nullable String path, EaRepositoryImpl eaRepository) {
-        Package rootPackage = repository.GetPackageByID(getModel().getPackageId());
+        Package rootPackage = repository.GetPackageByID(getModel(eaRepository).getPackageId());
         Element rootElement = null;
         try {
             if (path != null) {
@@ -428,44 +428,78 @@ class EaLoaderImpl {
         }
     }
 
-    private EaDefaultDiagram createDefaultDiagram(EaDiagramRef diagramRef, EaRepository eaRepository) {
+    EaDefaultDiagram loadDefaultDiagram(EaDiagramRef diagramRef) {
         var diagram = repository.GetDiagramByID(diagramRef.getDiagramId());
         try {
-            var diagramLoader = new EaLoaderDiagram(diagram, eaRepository);
-            return new EaDefaultDiagram(eaRepository, diagramRef, diagram.GetNotes(),
-                    diagramLoader.getDiagram(), diagramLoader.getDiagramObjects());
+            var diagramLoader = new EaLoaderDiagram(diagram, diagramRef.getRepository());
+            return new EaDefaultDiagram(diagramRef, diagram.GetNotes(), diagramLoader.getDiagram(),
+                    diagramLoader.getDiagramObjects());
         } finally {
             diagram.destroy();
         }
     }
 
-    private EaParent<EaObjectRef> createDefaultPackage(EaPackageRef packageRef, EaRepository eaRepository) {
-        var pkg = repository.GetPackageByID(packageRef.getPackageId());
+    private static List<EaProductPackageRef> getPackageGroupElements(Package pkg, EaPackageGroupRef packageGroupRef) {
+        return getElements(pkg::GetElements, packageGroupRef.getRepository())
+                .stream()
+                .collect(Collectors.collectingAndThen(
+                        Collectors.partitioningBy(element -> element instanceof EaProductPackageRef),
+                        map -> {
+                            if (map.get(false) != null) { // we will log elements different than product packages
+                                map.get(false).forEach(element -> LOG.warn(
+                                        "Element {} of type different than product package is ignored in " +
+                                                "package group {}",
+                                        element::getName, packageGroupRef::getName));
+                            }
+                            return map.get(true).stream() // and only register product packages
+                                    .map(element -> (EaProductPackageRef) element)
+                                    .collect(Collectors.toList());
+                        }
+                ));
+    }
+
+    private static List<EaPackageGroupRef> getPackageGroupPackages(Package pkg, EaPackageGroupRef packageGroupRef) {
+        return getPackages(pkg::GetPackages, packageGroupRef.getRepository())
+                .stream()
+                .collect(Collectors.collectingAndThen(
+                        Collectors.partitioningBy(pack -> pack instanceof EaPackageGroupRef),
+                        map -> {
+                            if (map.get(false) != null) { // we will log elements different than product packages
+                                map.get(false).forEach(pack -> LOG.warn(
+                                        "Subpackage {} of type different than package group is ignored in " +
+                                                "package group {}",
+                                        pack::getName, packageGroupRef::getName));
+                            }
+                            return map.get(true).stream() // and only register product packages
+                                    .map(pack -> (EaPackageGroupRef) pack)
+                                    .collect(Collectors.toList());
+                        }
+                ));
+    }
+
+    @Nonnull
+    EaPackageGroup loadPackageGroup(EaPackageGroupRef packageGroupRef) {
+        var pkg = repository.GetPackageByID(packageGroupRef.getPackageId());
         try {
-            return new EaParent<>(eaRepository, packageRef, pkg.GetNotes(),
-                    getDiagrams(pkg::GetDiagrams, eaRepository), getElements(pkg::GetElements, eaRepository),
-                    getPackages(pkg::GetPackages, eaRepository));
+            return new EaPackageGroup(packageGroupRef, pkg.GetNotes(),
+                    getDiagrams(pkg::GetDiagrams, packageGroupRef.getRepository()),
+                    getPackageGroupElements(pkg, packageGroupRef),
+                    getPackageGroupPackages(pkg, packageGroupRef));
         } finally {
             pkg.destroy();
         }
     }
 
-    private EaObject createDataObject(EaElementRef elementRef, EaRepository eaRepository) {
-        var element = repository.GetElementByID(elementRef.getElementId());
+    @Nonnull
+    EaParentBase loadDefaultPackage(EaPackageRef packageRef) {
+        var pkg = repository.GetPackageByID(packageRef.getPackageId());
         try {
-            if (hasDiagrams(element::GetDiagrams)) {
-                LOG.warn("Diagrams under ArchiMate_DataObject element {} are ignored - DataObject should be" +
-                        " leaf", element::GetName);
-            }
-            if (hasElements(element::GetElements)) {
-                LOG.warn("Elements under ArchiMate_DataObject element {} are ignored - DataObject should be" +
-                        " leaf", element::GetName);
-            }
-            var entity = elementRef.getAlias().flatMap(alias -> catalogue.getEntityManager().getByNameNmIfExists(alias))
-                    .orElse(null);
-            return new EaDataObject(eaRepository, elementRef, entity, element.GetNotes());
+            return new EaParent(packageRef, pkg.GetNotes(),
+                    getDiagrams(pkg::GetDiagrams, packageRef.getRepository()),
+                    getElements(pkg::GetElements, packageRef.getRepository()),
+                    getPackages(pkg::GetPackages, packageRef.getRepository()));
         } finally {
-            element.destroy();
+            pkg.destroy();
         }
     }
 
@@ -491,58 +525,63 @@ class EaLoaderImpl {
         return result;
     }
 
-    private EaObject createProductPackage(EaProductPackageRef elementRef, EaRepository eaRepository) {
+    @Nonnull
+    EaProductPackage loadProductPackage(EaProductPackageRef elementRef) {
         var element = repository.GetElementByID(elementRef.getElementId());
         try {
-            var diagrams = getDiagrams(element::GetDiagrams, eaRepository);
+            var diagrams = getDiagrams(element::GetDiagrams, elementRef.getRepository());
             if (hasElements(element::GetElements)) {
                 LOG.warn("Elements under ArchiMate_Product element {} are ignored - Product Package should be" +
                         " leaf", element::GetName);
             }
-            return new EaProductPackage(eaRepository, elementRef, element.GetNotes(), diagrams,
-                    getProductPackageFunctions(element, eaRepository));
+            return new EaProductPackage(elementRef, element.GetNotes(), diagrams,
+                    getProductPackageFunctions(element, elementRef.getRepository()));
         } finally {
             element.destroy();
         }
     }
 
-    private EaObject createDefaultElement(EaElementRef elementRef, EaRepository eaRepository) {
+    private EaObject loadDataObject(EaElementRef elementRef) {
         var element = repository.GetElementByID(elementRef.getElementId());
         try {
-            var diagrams = getDiagrams(element::GetDiagrams, eaRepository);
-            var elements = getElements(element::GetElements, eaRepository);
+            if (hasDiagrams(element::GetDiagrams)) {
+                LOG.warn("Diagrams under ArchiMate_DataObject element {} are ignored - DataObject should be" +
+                        " leaf", element::GetName);
+            }
+            if (hasElements(element::GetElements)) {
+                LOG.warn("Elements under ArchiMate_DataObject element {} are ignored - DataObject should be" +
+                        " leaf", element::GetName);
+            }
+            var entity = elementRef.getAlias().flatMap(alias -> catalogue.getEntityManager().getByNameNmIfExists(alias))
+                    .orElse(null);
+            return new EaDataObject(elementRef, entity, element.GetNotes());
+        } finally {
+            element.destroy();
+        }
+    }
+
+    private EaObject loadDefaultElement(EaElementRef elementRef) {
+        var element = repository.GetElementByID(elementRef.getElementId());
+        try {
+            var diagrams = getDiagrams(element::GetDiagrams, elementRef.getRepository());
+            var elements = getElements(element::GetElements, elementRef.getRepository());
             if (diagrams.isEmpty() && elements.isEmpty()) {
-                return new EaObjectRegularBase<>(eaRepository, elementRef, element.GetNotes());
+                return new EaObjectRegular(elementRef, element.GetNotes());
             } else {
-                return new EaParent<>(eaRepository, elementRef, element.GetNotes(), diagrams, elements, null);
+                return new EaParent(elementRef, element.GetNotes(), diagrams, elements, null);
             }
         } finally {
             element.destroy();
         }
     }
 
-    private EaObject createElement(EaElementRef elementRef, EaRepository eaRepository) {
+    @Nonnull
+    EaObject loadElement(EaElementRef elementRef) {
         switch (elementRef.getStereotype().orElse("")) {
             case "ArchiMate_DataObject":
-                return createDataObject(elementRef, eaRepository);
+                return loadDataObject(elementRef);
             default:
-                return createDefaultElement(elementRef, eaRepository);
+                return loadDefaultElement(elementRef);
         }
-    }
-
-    @Nonnull
-    EaObject getObjectByRef(EaObjectRef objectRef, EaRepository eaRepository) {
-        if (objectRef instanceof EaBoundaryRef) {
-            return new EaBoundary((EaBoundaryRef) objectRef);
-        } else if (objectRef instanceof EaDiagramRef) {
-            return createDefaultDiagram((EaDiagramRef) objectRef, eaRepository);
-        } else if (objectRef instanceof EaPackageRef) {
-            return createDefaultPackage((EaPackageRef) objectRef, eaRepository);
-        } else if (objectRef instanceof EaProductPackageRef) {
-            return createProductPackage((EaProductPackageRef) objectRef, eaRepository);
-        } else if (objectRef instanceof EaElementRef) {
-            return createElement((EaElementRef) objectRef, eaRepository);
-        }
-        throw new InternalException(LOG, "Unsupported reference object " + objectRef);
     }
 }

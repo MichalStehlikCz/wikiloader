@@ -14,9 +14,10 @@ class EaPackageGroupRef extends EaDefaultPackageRef {
     private final boolean sales;
     private final boolean technical;
 
-    EaPackageGroupRef(@Nullable EaObjectRefBase parent, String name, @Nullable String alias,
-                      @Nullable String stereotype, int treePos, int packageId, boolean sales, boolean technical) {
-        super(parent, name, alias, stereotype, treePos, packageId);
+    EaPackageGroupRef(EaRepositoryImpl repository, @Nullable EaObjectRefBase parent, String name,
+                      @Nullable String alias, @Nullable String stereotype, int treePos, int packageId, boolean sales,
+                      boolean technical) {
+        super(repository, parent, name, alias, stereotype, treePos, packageId);
         this.sales = sales;
         this.technical = technical;
     }
@@ -29,6 +30,11 @@ class EaPackageGroupRef extends EaDefaultPackageRef {
         return technical;
     }
 
+    @Override
+    public EaPackageGroup getObject() {
+        return getRepository().getLoader().loadPackageGroup(this);
+    }
+
     void appendSalesLink(StringBuilder builder) {
         if (!hasLink()) {
             throw new InternalException(LOG, "Cannot append sales link - element not exported to wiki");
@@ -37,7 +43,7 @@ class EaPackageGroupRef extends EaDefaultPackageRef {
             throw new InternalException(LOG, "Cannot append sales link - not sales package");
         }
         builder.append(":");
-        getParent().orElseThrow().appendNamespace(builder);
+        getParent().orElseThrow().appendNamespace(builder, true);
         getAlias().ifPresent(builder::append);
         builder.append(":sales");
     }
@@ -50,7 +56,7 @@ class EaPackageGroupRef extends EaDefaultPackageRef {
             throw new InternalException(LOG, "Cannot append technical link - not technical package");
         }
         builder.append(":");
-        getParent().orElseThrow().appendNamespace(builder);
+        getParent().orElseThrow().appendNamespace(builder, true);
         getAlias().ifPresent(builder::append);
         builder.append(":technical");
     }

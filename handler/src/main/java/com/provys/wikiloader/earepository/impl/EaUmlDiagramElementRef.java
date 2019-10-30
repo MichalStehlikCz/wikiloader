@@ -1,7 +1,7 @@
 package com.provys.wikiloader.earepository.impl;
 
 import com.provys.common.exception.InternalException;
-import com.provys.wikiloader.earepository.EaObjectRef;
+import com.provys.wikiloader.earepository.EaObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -19,10 +19,15 @@ class EaUmlDiagramElementRef extends EaElementRefBase {
     @Nullable
     private final EaDefaultDiagramRef diagram;
 
-    EaUmlDiagramElementRef(@Nullable EaObjectRefBase parent, String name, int treePos, int elementId,
-                           @Nullable EaDefaultDiagramRef diagram) {
-        super(parent, name, null, "UMLDiagram", treePos, elementId);
+    EaUmlDiagramElementRef(EaRepositoryImpl eaRepository, @Nullable EaObjectRefBase parent, String name, int treePos,
+                           int elementId, @Nullable EaDefaultDiagramRef diagram) {
+        super(eaRepository, parent, name, null, "UMLDiagram", treePos, elementId);
         this.diagram = diagram;
+    }
+
+    @Override
+    public EaObject getObject() {
+        return new EaUmlDiagramElement(this);
     }
 
     @Override
@@ -47,16 +52,21 @@ class EaUmlDiagramElementRef extends EaElementRefBase {
     }
 
     @Override
-    public void appendNamespace(StringBuilder builder) {
+    public void appendNamespace(StringBuilder builder, boolean trailingColon) {
         throw new InternalException(LOG, "Cannot append namespace - diagram reference not exported " + this);
     }
 
     @Override
-    public void appendParentLink(StringBuilder builder) {
-        if (!hasLink()) {
+    public void appendLink(StringBuilder builder) {
+        if (!hasLink() || (diagram == null)) {
             throw new InternalException(LOG, "Cannot append link - diagram not exported " + this);
         }
-        builder.append(getAlias().orElseThrow());
+        diagram.appendLink(builder);
+    }
+
+    @Override
+    public void appendParentLink(StringBuilder builder, boolean leadingDot) {
+        appendLink(builder);
     }
 
     @Override

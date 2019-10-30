@@ -1,6 +1,7 @@
 package com.provys.wikiloader.earepository.impl;
 
 import com.provys.common.exception.InternalException;
+import com.provys.wikiloader.earepository.EaObject;
 import com.provys.wikiloader.earepository.EaObjectRef;
 import com.provys.wikiloader.earepository.EaPackageRef;
 import org.apache.logging.log4j.LogManager;
@@ -16,15 +17,72 @@ public class EaDefaultPackageRef extends EaObjectRefBase implements EaPackageRef
 
     private final int packageId;
 
-    EaDefaultPackageRef(@Nullable EaObjectRefBase parent, String name, @Nullable String alias,
-                        @Nullable String stereotype, int treePos, int packageId) {
-        super(parent, name, alias, stereotype, treePos);
+    EaDefaultPackageRef(EaRepositoryImpl repository, @Nullable EaObjectRefBase parent, String name,
+                        @Nullable String alias, @Nullable String stereotype, int treePos, int packageId) {
+        super(repository, parent, name, alias, stereotype, treePos);
         this.packageId = packageId;
     }
 
     @Override
     public int getPackageId() {
         return packageId;
+    }
+
+    @Override
+    public EaObject getObject() {
+        return getRepository().getLoader().loadDefaultPackage(this);
+    }
+
+    @Override
+    public boolean isTopic() {
+        if (getAlias().isEmpty()) {
+            LOG.info("Package {} is not exported - alias is empty", this::getName);
+            return false;
+        }
+        return getParent().map(EaObjectRef::hasLink).orElse(true);
+    }
+
+    @Override
+    public Optional<String> getTopicId() {
+        return getNamespace()
+                .map(ns -> ns + ":start");
+    }
+
+    @Override
+    public Optional<String> getNamespace() {
+        if (getAlias().isEmpty()) {
+            return Optional.empty();
+        }
+        return getParent()
+                .map(parent -> parent.getNamespace().map(ns -> ns + ":")) // get namespace from parent
+                .orElse(Optional.of("")) // if no parent, use "" as prefix
+                .map(ns -> ns + getAlias().get()); // append this topic's alias, acting as namespace
+    }
+
+    @Override
+    @SuppressWarnings("squid:S3655") // sonar does not recognise Optional.isEmpty...
+    public void appendNamespace(StringBuilder builder, boolean trailingColon) {
+        if (getAlias().isEmpty()) {
+            throw new InternalException(LOG,
+                    "Request to append namespace for element that does not translate to namespace " + this);
+        }
+        getParent().ifPresent(parent -> parent.appendNamespace(builder, true));
+        builder.append(getAlias().get());
+        if (trailingColon) {
+            builder.append(':');
+        }
+    }
+
+    @Override
+    public void appendParentLink(StringBuilder builder, boolean leadingDot) {
+        if (!hasLink()) {
+            throw new InternalException(LOG, "Cannot append link - element not exported to wiki");
+        }
+        if (leadingDot) {
+            builder.append('.');
+        }
+        getAlias().ifPresent(builder::append);
+        builder.append(":");
     }
 
     @Override
@@ -46,51 +104,5 @@ public class EaDefaultPackageRef extends EaObjectRefBase implements EaPackageRef
         return "EaPackageImpl{" +
                 "packageId=" + packageId +
                 "} " + super.toString();
-    }
-
-    @Override
-    public boolean isTopic() {
-        if (getAlias().isEmpty()) {
-            LOG.info("Package {} is not exported - alias is empty", this::getName);
-            return false;
-        }
-        return getParent().map(EaObjectRef::hasLink).orElse(true);
-    }
-
-    @Override
-    public Optional<String> getTopicId() {
-        return getNamespace()
-                .map(ns -> ns + "start");
-    }
-
-    @Override
-    public Optional<String> getNamespace() {
-        if (getAlias().isEmpty()) {
-            return Optional.empty();
-        }
-        return getParent()
-                .map(EaObjectRef::getNamespace) // get namespace from parent
-                .orElse(Optional.of("")) // if no parent, use "" as prefix
-                .map(ns -> ns + getAlias().get() + ":"); // append this topic's alias, acting as namespace
-    }
-
-    @Override
-    @SuppressWarnings("squid:S3655") // sonar does not recognise Optional.isEmpty...
-    public void appendNamespace(StringBuilder builder) {
-        if (getAlias().isEmpty()) {
-            throw new InternalException(LOG,
-                    "Request to append namespace for element that does not translate to namespace " + this);
-        }
-        getParent().ifPresent(parent -> parent.appendNamespace(builder));
-        builder.append(getAlias().get()).append(":");
-    }
-
-    @Override
-    public void appendParentLink(StringBuilder builder) {
-        if (!hasLink()) {
-            throw new InternalException(LOG, "Cannot append link - element not exported to wiki");
-        }
-        getAlias().ifPresent(builder::append);
-        builder.append(":");
     }
 }

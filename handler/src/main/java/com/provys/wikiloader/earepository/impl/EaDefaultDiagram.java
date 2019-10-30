@@ -18,11 +18,11 @@ class EaDefaultDiagram extends EaObjectRegularBase<EaDiagramRef> {
     private final byte[] diagram;
     private final Set<DiagramObjectRef> diagramObjects;
 
-    EaDefaultDiagram(EaRepository repository, EaDiagramRef objectRef, @Nullable String notes, byte[] diagram,
+    EaDefaultDiagram(EaDiagramRef objectRef, @Nullable String notes, byte[] diagram,
                      Collection<DiagramObjectRef> diagramObjects) {
-        super(repository, objectRef, notes);
+        super(objectRef, notes);
         this.diagram = Objects.requireNonNull(diagram);
-        this.diagramObjects = new HashSet<>(diagramObjects);
+        this.diagramObjects = Set.copyOf(diagramObjects);
     }
 
     byte[] getDiagram() {
@@ -30,7 +30,7 @@ class EaDefaultDiagram extends EaObjectRegularBase<EaDiagramRef> {
     }
 
     Set<DiagramObjectRef> getDiagramObjects() {
-        return Collections.unmodifiableSet(diagramObjects);
+        return diagramObjects;
     }
 
     @Nonnull
@@ -141,12 +141,17 @@ class EaDefaultDiagram extends EaObjectRegularBase<EaDiagramRef> {
         @Nonnull
         private final ImgPos pos;
         @Nonnull
-        private final EaElementRef element;
+        private final EaElementRef elementRef;
 
         DiagramObjectRef(DiagramObject diagramObject, EaRepository repository) {
             this.pos = ImgPos.ofEaPos(diagramObject.GetLeft(), diagramObject.GetRight(), diagramObject.GetTop(),
                     diagramObject.GetBottom());
-            this.element = repository.getElementRefById(diagramObject.GetElementID());
+            this.elementRef = repository.getElementRefById(diagramObject.GetElementID());
+        }
+
+        private DiagramObjectRef(ImgPos pos, EaElementRef eaElementRef) {
+            this.pos = pos;
+            this.elementRef = eaElementRef;
         }
 
         int getImgLeft() {
@@ -165,15 +170,23 @@ class EaDefaultDiagram extends EaObjectRegularBase<EaDiagramRef> {
             return pos.bottom;
         }
 
+        @Nonnull
         EaElementRef getElementRef() {
-            return element;
+            return elementRef;
+        }
+
+        @Nonnull
+        DiagramObjectRef shiftBy(int left, int top) {
+            return new DiagramObjectRef(
+                    ImgPos.ofImgPos(getImgLeft() - left, getImgRight() - left, getImgTop() - top, getImgBottom() - top),
+                    elementRef);
         }
 
         @Override
         public int compareTo(DiagramObjectRef o) {
             var result = pos.compareTo(o.pos);
             if ((result == 0) && !equals(o)) {
-                result = Integer.compare(element.getElementId(), o.getElementRef().getElementId());
+                result = Integer.compare(elementRef.getElementId(), o.getElementRef().getElementId());
             }
             return result;
         }
@@ -183,22 +196,38 @@ class EaDefaultDiagram extends EaObjectRegularBase<EaDiagramRef> {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             DiagramObjectRef that = (DiagramObjectRef) o;
-            return element.equals(that.element) &&
+            return elementRef.equals(that.elementRef) &&
                     pos.equals(that.pos);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(pos, element);
+            return Objects.hash(pos, elementRef);
         }
 
         @Override
         public String toString() {
             return "DiagramObjectRef{" +
                     "pos=" + pos +
-                    ", element=" + element +
+                    ", elementRef=" + elementRef +
                     '}';
         }
     }
 
+    @Override
+    public boolean equals(@Nullable Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        EaDefaultDiagram that = (EaDefaultDiagram) o;
+        return Arrays.equals(diagram, that.diagram) &&
+                Objects.equals(diagramObjects, that.diagramObjects);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hash(super.hashCode(), diagramObjects);
+        result = 31 * result + Arrays.hashCode(diagram);
+        return result;
+    }
 }

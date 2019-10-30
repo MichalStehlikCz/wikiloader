@@ -133,15 +133,15 @@ class EaObjectRegularExporter<T extends EaObject> implements Exporter {
 
     @Override
     public void run(boolean recursive) {
-        LOG.info("Synchronise {} to {} using {}", () -> getEaObject().getName(), () -> getEaObject().getTopicId(),
-                this::getClass);
+        LOG.info("Synchronise {} to {} using {}", () -> getEaObject().getName(),
+                () -> getEaObject().getTopicId().orElseThrow(), this::getClass);
         appendTags();
         appendTitle();
         appendBody();
         syncWiki();
         if (recursive) {
             for (var subObject : subObjects) {
-                getEaObject().getRepository().getObjectByRef(subObject).sync(wikiClient, recursive);
+                subObject.getObject().sync(wikiClient, true);
             }
         }
     }

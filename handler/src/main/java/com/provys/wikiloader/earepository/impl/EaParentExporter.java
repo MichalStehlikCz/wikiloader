@@ -1,15 +1,15 @@
 package com.provys.wikiloader.earepository.impl;
 
 import com.provys.provyswiki.ProvysWikiClient;
+import com.provys.wikiloader.earepository.EaDiagramRef;
+import com.provys.wikiloader.earepository.EaElementRef;
 import com.provys.wikiloader.earepository.EaObjectRef;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import com.provys.wikiloader.earepository.EaPackageRef;
 
 import java.util.stream.Collectors;
 
-class EaParentExporter<T extends EaParent<? extends EaObjectRef>> extends EaObjectRegularExporter<T> {
-
-    private static final Logger LOG = LogManager.getLogger(EaParentExporter.class);
+class EaParentExporter<T extends EaParentBase<? extends EaObjectRef, ? extends EaDiagramRef, ? extends EaElementRef,
+        ? extends EaPackageRef>> extends EaObjectRegularExporter<T> {
 
     EaParentExporter(T eaObject, ProvysWikiClient wikiClient) {
         super(eaObject, wikiClient);

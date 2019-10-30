@@ -1,9 +1,6 @@
 package com.provys.wikiloader.earepository.impl;
 
-import com.provys.wikiloader.earepository.EaObject;
-import com.provys.wikiloader.earepository.EaObjectRef;
-import com.provys.wikiloader.earepository.EaRepository;
-import com.provys.wikiloader.earepository.WikiSetBuilder;
+import com.provys.wikiloader.earepository.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -28,8 +25,13 @@ class EaRepositoryImpl implements EaRepository {
     public EaRepositoryImpl(EaLoaderImpl loader) {
         this.loader = loader;
         // we also need to initialise model as root package and set its mapping to wiki
-        var model = loader.getModel();
+        var model = loader.getModel(this);
         packageById.put(model.getPackageId(), model);
+    }
+
+    @Nonnull
+    EaLoaderImpl getLoader() {
+        return loader;
     }
 
     @Override
@@ -78,12 +80,6 @@ class EaRepositoryImpl implements EaRepository {
     @Nonnull
     public EaObjectRef getObjectRefByPath(@Nullable String path) {
         return loader.getRefObjectByPath(path, this);
-    }
-
-    @Nonnull
-    @Override
-    public EaObject getObjectByRef(EaObjectRef objectRef) {
-        return null;
     }
 
     @Override

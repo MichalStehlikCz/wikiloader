@@ -3,7 +3,6 @@ package com.provys.wikiloader.earepository.impl;
 import com.provys.provyswiki.ProvysWikiClient;
 import com.provys.wikiloader.earepository.EaDiagramRef;
 import com.provys.wikiloader.earepository.EaElementRef;
-import com.provys.wikiloader.earepository.EaRepository;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -17,9 +16,9 @@ class EaProductPackage extends EaObjectRegularBase<EaProductPackageRef> {
     private final List<EaDiagramRef> diagrams;
     private final List<EaElementRef> functions;
 
-    EaProductPackage(EaRepository repository, EaProductPackageRef objectRef, @Nullable String notes,
+    EaProductPackage(EaProductPackageRef objectRef, @Nullable String notes,
                      List<EaDiagramRef> diagrams, List<EaElementRef> functions) {
-        super(repository, objectRef, notes);
+        super(objectRef, notes);
         this.diagrams = List.copyOf(diagrams);
         this.functions = List.copyOf(functions);
     }

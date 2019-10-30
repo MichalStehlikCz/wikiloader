@@ -1,5 +1,8 @@
 package com.provys.wikiloader.earepository.impl;
 
+import com.provys.wikiloader.earepository.EaObject;
+import com.provys.wikiloader.earepository.EaRepository;
+
 import javax.annotation.Nullable;
 import java.util.Optional;
 
@@ -9,8 +12,18 @@ import java.util.Optional;
  */
 class TestEaObjectRef extends EaObjectRefBase {
 
-    TestEaObjectRef(@Nullable String alias) {
-        super(null, "Mock Parent", alias, null, 1);
+    TestEaObjectRef(EaRepositoryImpl repository, @Nullable String alias) {
+        super(repository, null, "Mock Parent", alias, null, 1);
+    }
+
+    @Override
+    public EaObject getObject() {
+        throw new RuntimeException("Method not implemented in mock");
+    }
+
+    @Override
+    public boolean isTopic() {
+        return getAlias().isPresent();
     }
 
     @Override
@@ -29,15 +42,18 @@ class TestEaObjectRef extends EaObjectRefBase {
     }
 
     @Override
-    public void appendNamespace(StringBuilder builder) {
-        if (getAlias().isEmpty()) {
-            throw new RuntimeException("Cannot append namespace - alias is empty");
-        }
-        builder.append(getAlias().get()).append(":");
+    void appendParentLink(StringBuilder builder, boolean leadingDot) {
+        throw new RuntimeException("Method not implemented in mock");
     }
 
     @Override
-    public void appendParentLink(StringBuilder builder) {
-        throw new RuntimeException("Method not implemented in mock");
+    public void appendNamespace(StringBuilder builder, boolean trailingColon) {
+        if (getAlias().isEmpty()) {
+            throw new RuntimeException("Cannot append namespace - alias is empty");
+        }
+        builder.append(getAlias().get());
+        if (trailingColon) {
+            builder.append(":");
+        }
     }
 }

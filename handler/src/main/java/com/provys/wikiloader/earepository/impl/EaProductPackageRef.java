@@ -7,10 +7,15 @@ class EaProductPackageRef extends EaDefaultElementRef {
 
     private final EaProductPackageType packageType;
 
-    EaProductPackageRef(@Nullable EaObjectRefBase parent, String name, @Nullable String alias, int treePos,
-                        int elementId, EaProductPackageType packageType) {
-        super(parent, name, alias, "ArchiMate_Product", treePos, elementId, false);
+    EaProductPackageRef(EaRepositoryImpl repository, @Nullable EaObjectRefBase parent, String name,
+                        @Nullable String alias, int treePos, int elementId, EaProductPackageType packageType) {
+        super(repository, parent, name, alias, "ArchiMate_Product", treePos, elementId, false);
         this.packageType = packageType;
+    }
+
+    @Override
+    public EaProductPackage getObject() {
+        return getRepository().getLoader().loadProductPackage(this);
     }
 
     EaProductPackageType getPackageType() {

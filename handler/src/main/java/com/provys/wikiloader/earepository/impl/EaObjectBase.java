@@ -18,21 +18,19 @@ abstract class EaObjectBase<T extends EaObjectRef> implements EaObject {
     private static final Logger LOG = LogManager.getLogger(EaObjectBase.class);
 
     @Nonnull
-    private final EaRepository repository;
-    @Nonnull
     private final T objectRef;
 
-    EaObjectBase(EaRepository repository, T objectRef) {
-        this.repository = Objects.requireNonNull(repository);
+    EaObjectBase(T objectRef) {
         this.objectRef = Objects.requireNonNull(objectRef);
     }
 
     @Override
     @Nonnull
     public EaRepository getRepository() {
-        return repository;
+        return objectRef.getRepository();
     }
 
+    @Nonnull
     T getObjectRef() {
         return objectRef;
     }
@@ -59,6 +57,11 @@ abstract class EaObjectBase<T extends EaObjectRef> implements EaObject {
     @Nonnull
     public Optional<String> getStereotype() {
         return objectRef.getStereotype();
+    }
+
+    @Override
+    public EaObject getObject() {
+        return this;
     }
 
     @Override
@@ -89,8 +92,8 @@ abstract class EaObjectBase<T extends EaObjectRef> implements EaObject {
     }
 
     @Override
-    public void appendNamespace(StringBuilder builder) {
-        objectRef.appendNamespace(builder);
+    public void appendNamespace(StringBuilder builder, boolean trailingColon) {
+        objectRef.appendNamespace(builder, trailingColon);
     }
 
     @Override
@@ -129,7 +132,7 @@ abstract class EaObjectBase<T extends EaObjectRef> implements EaObject {
     }
 
     void logNotExported() {
-        LOG.log(getLogLevel(), "Synchronisation to wiki skipped for boundary {}, object type {}", this::getName,
+        LOG.log(getLogLevel(), "Synchronisation to wiki skipped for {}, object type {}", this::getName,
                 this::getClass);
     }
 

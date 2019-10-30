@@ -39,12 +39,6 @@ public interface EaRepository {
     EaObjectRef getObjectRefByPath(@Nullable String path);
 
     /**
-     * Get full Enterprise Architect object based on supplied reference
-     */
-    @Nonnull
-    EaObject getObjectByRef(EaObjectRef objectRef);
-
-    /**
      * @return new Wiki set builder
      */
     WikiSetBuilder getWikiSetBuilder();

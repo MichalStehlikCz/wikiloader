@@ -1,23 +1,26 @@
 package com.provys.wikiloader.earepository.impl;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.configuration.IMockitoConfiguration;
 
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.mock;
 
 class EaRefDefaultPackageTest {
 
-    private final EaObjectRefBase parent = new TestEaObjectRef("parent");
-    private final EaObjectRefBase parent2 = new TestEaObjectRef(null);
-    private final EaDefaultPackageRef packageRef1 = new EaDefaultPackageRef(parent, "Package", "alpkg",
-            "", 1,1);
-    private final EaDefaultPackageRef packageRef2 = new EaDefaultPackageRef(parent, "Package", "",
-            "", 1,1);
-    private final EaDefaultPackageRef packageRef3 = new EaDefaultPackageRef(null, "Package", "alpkg",
-            "", 1,1);
-    private final EaDefaultPackageRef packageRef4 = new EaDefaultPackageRef(parent2, "Package", "alpkg",
-            "", 1,1);
+    private final EaRepositoryImpl eaRepository = mock(EaRepositoryImpl.class);
+    private final EaObjectRefBase parent = new TestEaObjectRef(eaRepository, "parent");
+    private final EaObjectRefBase parent2 = new TestEaObjectRef(eaRepository, null);
+    private final EaDefaultPackageRef packageRef1 = new EaDefaultPackageRef(eaRepository, parent, "Package",
+            "alpkg","", 1,1);
+    private final EaDefaultPackageRef packageRef2 = new EaDefaultPackageRef(eaRepository, parent, "Package",
+            "","", 1,1);
+    private final EaDefaultPackageRef packageRef3 = new EaDefaultPackageRef(eaRepository, null, "Package",
+            "alpkg","", 1,1);
+    private final EaDefaultPackageRef packageRef4 = new EaDefaultPackageRef(eaRepository, parent2, "Package",
+            "alpkg","", 1,1);
 
     @Test
     void getTopicIdTest() {
@@ -46,13 +49,13 @@ class EaRefDefaultPackageTest {
     @Test
     void appendNamespaceTest() {
         var builder = new StringBuilder();
-        packageRef1.appendNamespace(builder);
+        packageRef1.appendNamespace(builder, true);
         assertThat(builder.toString()).isEqualTo("parent:alpkg:");
-        assertThatThrownBy(() -> packageRef2.appendNamespace(new StringBuilder()));
+        assertThatThrownBy(() -> packageRef2.appendNamespace(new StringBuilder(), true));
         builder = new StringBuilder();
-        packageRef3.appendNamespace(builder);
+        packageRef3.appendNamespace(builder, true);
         assertThat(builder.toString()).isEqualTo("alpkg:");
-        assertThatThrownBy(() -> packageRef4.appendNamespace(new StringBuilder()));
+        assertThatThrownBy(() -> packageRef4.appendNamespace(new StringBuilder(), true));
     }
 
     @Test
@@ -71,11 +74,11 @@ class EaRefDefaultPackageTest {
     void appendParentLinkTest() {
         var builder = new StringBuilder();
         packageRef1.appendParentLink(builder);
-        assertThat(builder.toString()).isEqualTo("alpkg:");
+        assertThat(builder.toString()).isEqualTo(".alpkg:");
         assertThatThrownBy(() -> packageRef2.appendParentLink(new StringBuilder()));
         builder = new StringBuilder();
         packageRef3.appendParentLink(builder);
-        assertThat(builder.toString()).isEqualTo("alpkg:");
+        assertThat(builder.toString()).isEqualTo(".alpkg:");
         assertThatThrownBy(() -> packageRef4.appendParentLink(new StringBuilder()));
     }
 }

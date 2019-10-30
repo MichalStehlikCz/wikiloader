@@ -11,6 +11,12 @@ import java.util.Optional;
 public interface EaObjectRef extends Comparable<EaObjectRef> {
 
     /**
+     * @return repository this object reference has been retrieved from
+     */
+    @Nonnull
+    EaRepository getRepository();
+
+    /**
      * @return parent object
      */
     @Nonnull
@@ -35,6 +41,11 @@ public interface EaObjectRef extends Comparable<EaObjectRef> {
     Optional<String> getStereotype();
 
     /**
+     * @return full object this reference represents, read from repository
+     */
+    EaObject getObject();
+
+    /**
      * @return true if given object is exported as topic to wiki, false otherwise. Similar to hasLink, but hasLink
      * returns true even for some elements (boundary, UMLDiagram) that are not exported on their own
      */
@@ -50,14 +61,15 @@ public interface EaObjectRef extends Comparable<EaObjectRef> {
 
     /**
      * Get namespace, corresponding to given topic in wiki. Only if Enterprise Architect object translates to namespace,
-     * empty if it translates to single topic. Namespace does not have leading : and has trailing :
+     * empty if it translates to single topic. Namespace does not have leading nor trailing :
      *
      * @return namespace this object exports to
      */
     Optional<String> getNamespace();
 
     /**
-     * Get link to topic, with path relative from parent object's namespace. Does not start with .
+     * Get link to topic, with path relative from parent object's namespace. Starts with . if it is namespace or
+     * if it points to element in sub-namespace, might be full path if linked topic is not under parent
      *
      * @return link to topic from parent's namespace
      */
@@ -72,11 +84,12 @@ public interface EaObjectRef extends Comparable<EaObjectRef> {
 
     /**
      * Append namespace, corresponding to this object. If object does not map to namespace, throws exception. Namespace
-     * does not have leading : and has trailing :
+     * does not have leading semicolon
      *
      * @param builder is {@code StringBuilder} namespace should be appended to
+     * @param trailingColon defines if trailing should or should not be appended
      */
-    void appendNamespace(StringBuilder builder);
+    void appendNamespace(StringBuilder builder, boolean trailingColon);
 
     /**
      * Append link to topic, corresponding to this object. Link starts with :. Namespace link ends with : without final
@@ -87,7 +100,8 @@ public interface EaObjectRef extends Comparable<EaObjectRef> {
     void appendLink(StringBuilder builder);
 
     /**
-     * Append link to topic, with path relative from parent object's namespace. Does not start with .
+     * Append link to topic, with path relative from parent object's namespace. Starts with . if it is namespace or
+     * if it points to element in sub-namespace, might be full path if linked topic is not under parent
      *
      * @param builder is {@code StringBuilder} link should be appended to
      */

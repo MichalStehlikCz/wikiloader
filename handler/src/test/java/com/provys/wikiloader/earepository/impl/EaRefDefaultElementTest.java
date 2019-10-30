@@ -5,19 +5,21 @@ import org.junit.jupiter.api.Test;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.mock;
 
 class EaRefDefaultElementTest {
 
-    private final EaObjectRefBase parent = new TestEaObjectRef("parent");
-    private final EaObjectRefBase parent2 = new TestEaObjectRef(null);
-    private final EaDefaultElementRef elementRef1 = new EaDefaultElementRef(parent, "Element", "alelement",
-            "", 1,1, true);
-    private final EaDefaultElementRef elementRef2 = new EaDefaultElementRef(parent, "Element", "",
-            "", 1,1, true);
-    private final EaDefaultElementRef elementRef3 = new EaDefaultElementRef(parent, "Element", "alelement",
-            "", 1,1, false);
-    private final EaDefaultElementRef elementRef4 = new EaDefaultElementRef(parent2, "Element", "alelement",
-            "", 1,1, false);
+    private final EaRepositoryImpl eaRepository = mock(EaRepositoryImpl.class);
+    private final EaObjectRefBase parent = new TestEaObjectRef(eaRepository,"parent");
+    private final EaObjectRefBase parent2 = new TestEaObjectRef(eaRepository,null);
+    private final EaDefaultElementRef elementRef1 = new EaDefaultElementRef(eaRepository, parent, "Element",
+            "alelement","", 1,1, true);
+    private final EaDefaultElementRef elementRef2 = new EaDefaultElementRef(eaRepository, parent, "Element",
+            "","", 1,1, true);
+    private final EaDefaultElementRef elementRef3 = new EaDefaultElementRef(eaRepository, parent, "Element",
+            "alelement","", 1,1, false);
+    private final EaDefaultElementRef elementRef4 = new EaDefaultElementRef(eaRepository, parent2, "Element",
+            "alelement","", 1,1, false);
 
     @Test
     void getTopicIdTest() {
@@ -46,11 +48,11 @@ class EaRefDefaultElementTest {
     @Test
     void appendNamespaceTest() {
         var builder = new StringBuilder();
-        assertThatThrownBy(() -> elementRef1.appendNamespace(builder));
-        assertThatThrownBy(() -> elementRef2.appendNamespace(builder));
-        elementRef3.appendNamespace(builder);
+        assertThatThrownBy(() -> elementRef1.appendNamespace(builder, true));
+        assertThatThrownBy(() -> elementRef2.appendNamespace(builder, true));
+        elementRef3.appendNamespace(builder, true);
         assertThat(builder.toString()).isEqualTo("parent:alelement:");
-        assertThatThrownBy(() -> elementRef4.appendNamespace(builder));
+        assertThatThrownBy(() -> elementRef4.appendNamespace(builder, true));
     }
 
     @Test
@@ -73,7 +75,7 @@ class EaRefDefaultElementTest {
         assertThatThrownBy(() -> elementRef2.appendParentLink(new StringBuilder()));
         builder = new StringBuilder();
         elementRef3.appendParentLink(builder);
-        assertThat(builder.toString()).isEqualTo("alelement:");
+        assertThat(builder.toString()).isEqualTo(".alelement:");
         assertThatThrownBy(() -> elementRef4.appendParentLink(new StringBuilder()));
     }
 }

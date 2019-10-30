@@ -23,6 +23,6 @@ public class WikiLoader {
     }
 
     public void run(ProvysWikiClient wikiClient, @Nullable String path, boolean recursive) {
-        eaRepository.getObjectRefByPath(path).sync(wikiClient, recursive);
+        eaRepository.getObjectRefByPath(path).getObject().sync(wikiClient, recursive);
     }
 }

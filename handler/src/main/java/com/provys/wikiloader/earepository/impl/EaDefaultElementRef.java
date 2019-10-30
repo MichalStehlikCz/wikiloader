@@ -1,6 +1,7 @@
 package com.provys.wikiloader.earepository.impl;
 
 import com.provys.common.exception.InternalException;
+import com.provys.wikiloader.earepository.EaObject;
 import com.provys.wikiloader.earepository.EaObjectRef;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -15,9 +16,9 @@ class EaDefaultElementRef extends EaElementRefBase {
 
     private final boolean leaf;
 
-    EaDefaultElementRef(@Nullable EaObjectRefBase parent, String name, @Nullable String alias,
-                        @Nullable String stereotype, int treePos, int elementId, boolean leaf) {
-        super(parent, name, alias, stereotype, treePos, elementId);
+    EaDefaultElementRef(EaRepositoryImpl repository,  @Nullable EaObjectRefBase parent, String name,
+                        @Nullable String alias, @Nullable String stereotype, int treePos, int elementId, boolean leaf) {
+        super(repository, parent, name, alias, stereotype, treePos, elementId);
         this.leaf = leaf;
     }
 
@@ -26,12 +27,19 @@ class EaDefaultElementRef extends EaElementRefBase {
     }
 
     @Override
+    public EaObject getObject() {
+        return getRepository().getLoader().loadElement(this);
+    }
+
+    @Override
     public boolean isTopic() {
         if (getAlias().isEmpty()) {
             if (getName().equals("START") || getName().equals("END")) {
-                LOG.debug("Skip element {} {} with empty alias", this::getStereotype, this::getName);
+                LOG.debug("Skip element {} {} with empty alias", () -> getStereotype().orElse(null),
+                        this::getName);
             } else {
-                LOG.info("Skip element {} {} with empty alias", this::getStereotype, this::getName);
+                LOG.info("Skip element {} {} with empty alias", () -> getStereotype().orElse(null),
+                        this::getName);
             }
             return false;
         }
@@ -48,7 +56,7 @@ class EaDefaultElementRef extends EaElementRefBase {
         return getParent()
                 .map(EaObjectRef::getNamespace) // get namespace from parent
                 .orElse(Optional.of("")) // if no parent, use "" as prefix
-                .map(ns -> ns + name); // append this topic's alias, acting as namespace
+                .map(ns -> ns + ":" + name); // append this topic's alias, acting as namespace
     }
 
     @Override
@@ -59,24 +67,30 @@ class EaDefaultElementRef extends EaElementRefBase {
         return getParent()
                     .map(EaObjectRef::getNamespace) // get namespace from parent
                     .orElse(Optional.of("")) // if no parent, use "" as prefix
-                    .map(ns -> ns + getAlias().get() + ":"); // append this topic's alias, acting as namespace
+                    .map(ns -> ns + ":" + getAlias().get()); // append this topic's alias, acting as namespace
     }
 
     @Override
     @SuppressWarnings("squid:S3655") // sonar does not recognise Optional.isEmpty...
-    public void appendNamespace(StringBuilder builder) {
+    public void appendNamespace(StringBuilder builder, boolean trailingColon) {
         if (leaf || getAlias().isEmpty()) {
             throw new InternalException(LOG,
                     "Request to append namespace for element that does not translate to namespace " + this);
         }
-        getParent().ifPresent(parent -> parent.appendNamespace(builder));
-        builder.append(getAlias().get()).append(":");
+        getParent().ifPresent(parent -> parent.appendNamespace(builder, true));
+        builder.append(getAlias().get());
+        if (trailingColon) {
+            builder.append(":");
+        }
     }
 
     @Override
-    public void appendParentLink(StringBuilder builder) {
+    public void appendParentLink(StringBuilder builder, boolean leadingDot) {
         if (!hasLink()) {
             throw new InternalException(LOG, "Cannot append link - element not exported to wiki");
+        }
+        if (leadingDot && !leaf) {
+            builder.append('.');
         }
         getAlias().ifPresent(builder::append);
         if (!leaf) {
