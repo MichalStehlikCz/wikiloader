@@ -49,11 +49,13 @@ class EaLoaderImpl {
         String eaAddress = config
                 .getValue("EA_ADDRESS", String.class);
         // Attempt to open the provided file
+        LOG.debug("Open Enterprise Architect repository {}", eaAddress);
         if (!repository.OpenFile(eaAddress)) {
             // If the file couldn't be opened then notify the user
             throw new RegularException(LOG, "EALOADER_CANNOTOPENREPOSITORY",
                     "Enterprise Architect was unable to open the file '" + eaAddress + '\'');
         }
+        LOG.debug("Enterprise architect repository opened");
         this.catalogue = Objects.requireNonNull(catalogue);
     }
 
@@ -97,24 +99,24 @@ class EaLoaderImpl {
                 element.GetTreePos(), element.GetElementID(), diagramRef);
     }
 
-    private EaBoundaryRef createEaRefBoundary(Element element, EaRepositoryImpl eaRepository) {
-        return new EaBoundaryRef(eaRepository, getElementParent(element, eaRepository), element.GetName(),
-                element.GetAlias(), element.GetTreePos(), element.GetElementID());
+    private EaGroupRef loadEaGroupRef(Element element, EaRepositoryImpl eaRepository) {
+        return new EaGroupRef(eaRepository, getElementParent(element, eaRepository), element.GetName(),
+                element.GetAlias(), element.GetType(), element.GetTreePos(), element.GetElementID());
     }
 
     private EaProductPackageRef createEaRefProductPackage(Element element, EaRepositoryImpl eaRepository) {
         EaProductPackageType packageType;
         var taggedValues = element.GetTaggedValues();
         try {
-            var taggedValue = taggedValues.GetByName("PROVYS:PackageType");
+            var taggedValue = taggedValues.GetByName("PROVYS::PackageType");
             if (taggedValue == null) {
-                LOG.warn("PackageType tag missing for provys package element {}", element::GetName);
+                LOG.warn("PROVYS::PackageType tag missing for provys package element {}", element::GetName);
                 packageType = EaProductPackageType.UNIVERSAL;
             } else {
                 try {
                     packageType = EaProductPackageType.valueOf(taggedValue.GetValue());
-                } catch (NoSuchElementException e) {
-                    LOG.warn("Incorrect PROVYS:PackageType value {} on element {}", taggedValue::GetValue,
+                } catch (IllegalArgumentException e) {
+                    LOG.warn("Incorrect PROVYS::PackageType value {} on element {}", taggedValue::GetValue,
                             element::GetName);
                     packageType = EaProductPackageType.UNIVERSAL;
                 } finally {
@@ -141,7 +143,8 @@ class EaLoaderImpl {
         }
         diagrams.destroy();
         return new EaDefaultElementRef(eaRepository, getElementParent(element, eaRepository), element.GetName(),
-                element.GetAlias(), element.GetStereotype(), element.GetTreePos(), element.GetElementID(), leaf);
+                element.GetAlias(), element.GetType(), element.GetStereotype(), element.GetTreePos(),
+                element.GetElementID(), leaf);
     }
 
     /**
@@ -155,8 +158,8 @@ class EaLoaderImpl {
         try {
             if (element.GetType().equals("UMLDiagram")) {
                 return createRefUmlDiagramElement(element, eaRepository);
-            } else if (element.GetType().equals("Boundary")) {
-                return createEaRefBoundary(element, eaRepository);
+            } else if (element.GetType().equals("Boundary") || element.GetType().equals("Grouping")) {
+                return loadEaGroupRef(element, eaRepository);
             } else if (element.GetStereotype().equals("ArchiMate_Product")) {
                 return createEaRefProductPackage(element, eaRepository);
             } else {
@@ -167,36 +170,14 @@ class EaLoaderImpl {
         }
     }
 
-    private EaPackageGroupRef createEaRefPackageGroup(Package pkg, EaRepositoryImpl eaRepository) {
+    private EaPackageGroupRef loadEaPackageGroupRef(Package pkg, EaRepositoryImpl eaRepository) {
         var parentId = pkg.GetParentID();
         var parent = (parentId > 0) ? eaRepository.getPackageRefById(parentId) : null;
-        var sales = false;
-        var technical = false;
-        for (var subPackage : getPackages(pkg::GetPackages, eaRepository)) {
-            if (subPackage instanceof EaPackageGroupRef) {
-                if (((EaPackageGroupRef) subPackage).isSales()) {
-                    sales = true;
-                }
-                if (((EaPackageGroupRef) subPackage).isTechnical()) {
-                    technical = true;
-                }
-            }
-        }
-        for (var element : getElements(pkg::GetElements, eaRepository)) {
-            if (element instanceof EaProductPackageRef) {
-                if (((EaProductPackageRef) element).getPackageType().isSales()) {
-                    sales = true;
-                }
-                if (((EaProductPackageRef) element).getPackageType().isTechnical()) {
-                    technical = true;
-                }
-            }
-        }
         return new EaPackageGroupRef(eaRepository, parent, pkg.GetName(), pkg.GetAlias(), pkg.GetStereotypeEx(),
-                pkg.GetTreePos(), pkg.GetPackageID(), sales, technical);
+                pkg.GetTreePos(), pkg.GetPackageID());
     }
 
-    private EaDefaultPackageRef createEaRefDefaultPackage(Package pkg, EaRepositoryImpl eaRepository) {
+    private EaDefaultPackageRef loadEaDefaultPackageRef(Package pkg, EaRepositoryImpl eaRepository) {
         var parentId = pkg.GetParentID();
         var parent = (parentId > 0) ? eaRepository.getPackageRefById(parentId) : null;
         return new EaDefaultPackageRef(eaRepository, parent, pkg.GetName(), pkg.GetAlias(), pkg.GetStereotypeEx(),
@@ -213,9 +194,12 @@ class EaLoaderImpl {
         var pkg = repository.GetPackageByID(packageId);
         try {
             if (pkg.GetStereotypeEx().equals("provys_package_group")) {
-                return createEaRefPackageGroup(pkg, eaRepository);
+                return loadEaPackageGroupRef(pkg, eaRepository);
             }
-            return createEaRefDefaultPackage(pkg, eaRepository);
+            if (!pkg.GetStereotypeEx().isEmpty()) {
+                LOG.debug("Unrecognized stereotype {} in package {}", pkg::GetStereotypeEx, pkg::GetName);
+            }
+            return loadEaDefaultPackageRef(pkg, eaRepository);
         } finally {
             pkg.destroy();
         }
@@ -314,6 +298,7 @@ class EaLoaderImpl {
      * @return ref object that corresponds to supplied path, throw exception when such object is not found
      */
     EaObjectRef getRefObjectByPath(@Nullable String path, EaRepositoryImpl eaRepository) {
+        LOG.debug("Lookup page {}", path);
         Package rootPackage = repository.GetPackageByID(getModel(eaRepository).getPackageId());
         Element rootElement = null;
         try {
@@ -345,9 +330,11 @@ class EaLoaderImpl {
                 }
             }
             if (rootElement != null) {
+                LOG.debug("Found element {}", rootElement::GetName);
                 return eaRepository.getElementRefById(rootElement.GetElementID());
             }
             assert rootPackage != null;
+            LOG.debug("Found package {}", rootPackage::GetName);
             return eaRepository.getPackageRefById(rootPackage.GetPackageID());
         } finally {
             if (rootPackage != null) {
@@ -442,6 +429,7 @@ class EaLoaderImpl {
     private static List<EaProductPackageRef> getPackageGroupElements(Package pkg, EaPackageGroupRef packageGroupRef) {
         return getElements(pkg::GetElements, packageGroupRef.getRepository())
                 .stream()
+                .filter(elementRef -> (!elementRef.isIgnoredType())) // we can safely ignore boundaries and similar
                 .collect(Collectors.collectingAndThen(
                         Collectors.partitioningBy(element -> element instanceof EaProductPackageRef),
                         map -> {

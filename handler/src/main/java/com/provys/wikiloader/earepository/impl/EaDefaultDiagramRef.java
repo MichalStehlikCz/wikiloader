@@ -30,7 +30,7 @@ class EaDefaultDiagramRef extends EaObjectRefBase implements EaDiagramRef {
 
     EaDefaultDiagramRef(EaRepositoryImpl repository, EaObjectRefBase parent, String name, @Nullable String stereotype,
                         int diagramId) {
-        super(repository, parent, name, getAlias(name), stereotype, 0);
+        super(repository, parent, name, getAlias(name), "Diagram", stereotype, 0);
         Objects.requireNonNull(parent);
         this.diagramId = diagramId;
     }
@@ -43,15 +43,6 @@ class EaDefaultDiagramRef extends EaObjectRefBase implements EaDiagramRef {
     @Override
     public EaObject getObject() {
         return getRepository().getLoader().loadDefaultDiagram(this);
-    }
-
-    @Override
-    public boolean isTopic() {
-        if (getAlias().isEmpty()) {
-            LOG.info("Diagram {} {} is not exported - alias is empty", this::getStereotype, this::getName);
-            return false;
-        }
-        return getParent().orElseThrow().hasLink();
     }
 
     @Override
@@ -76,12 +67,8 @@ class EaDefaultDiagramRef extends EaObjectRefBase implements EaDiagramRef {
     }
 
     @Override
-    @SuppressWarnings("squid:S3655") // sonar does not recognise Optional.isEmpty
-    public void appendParentLink(StringBuilder builder, boolean leadingDot) {
-        if (!hasLink() || getAlias().isEmpty()) {
-            throw new InternalException(LOG, "Cannot append diagram link - diagram not exported " + this);
-        }
-        builder.append(getAlias().get());
+    public void appendParentLinkNoCheck(StringBuilder builder, boolean leadingDot) {
+        builder.append(getAlias().orElseThrow());
     }
 
     @Override

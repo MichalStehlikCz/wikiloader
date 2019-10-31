@@ -35,15 +35,32 @@ public interface EaObjectRef extends Comparable<EaObjectRef> {
     Optional<String> getAlias();
 
     /**
+     * @return type of given object; Package, Diagram or value of type property for elements
+     */
+    @Nonnull
+    String getType();
+
+    /**
      * @return stereotype of given object; for packages, StereotypeEx is used instead
      */
     @Nonnull
     Optional<String> getStereotype();
 
     /**
+     * @return description of enterprise architect object, used in log messages
+     */
+    @Nonnull
+    String getEaDesc();
+
+    /**
      * @return full object this reference represents, read from repository
      */
     EaObject getObject();
+
+    /**
+     * @return true if given object is element of type, that is never exported (boundaries,  diagram links, ...)
+     */
+    boolean isIgnoredType();
 
     /**
      * @return true if given object is exported as topic to wiki, false otherwise. Similar to hasLink, but hasLink

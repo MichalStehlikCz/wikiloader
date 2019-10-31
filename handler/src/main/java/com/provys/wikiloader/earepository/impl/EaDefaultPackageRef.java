@@ -19,7 +19,7 @@ public class EaDefaultPackageRef extends EaObjectRefBase implements EaPackageRef
 
     EaDefaultPackageRef(EaRepositoryImpl repository, @Nullable EaObjectRefBase parent, String name,
                         @Nullable String alias, @Nullable String stereotype, int treePos, int packageId) {
-        super(repository, parent, name, alias, stereotype, treePos);
+        super(repository, parent, name, alias, "Package", stereotype, treePos);
         this.packageId = packageId;
     }
 
@@ -74,10 +74,7 @@ public class EaDefaultPackageRef extends EaObjectRefBase implements EaPackageRef
     }
 
     @Override
-    public void appendParentLink(StringBuilder builder, boolean leadingDot) {
-        if (!hasLink()) {
-            throw new InternalException(LOG, "Cannot append link - element not exported to wiki");
-        }
+    public void appendParentLinkNoCheck(StringBuilder builder, boolean leadingDot) {
         if (leadingDot) {
             builder.append('.');
         }

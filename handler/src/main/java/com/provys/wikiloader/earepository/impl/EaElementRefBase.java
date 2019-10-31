@@ -10,8 +10,8 @@ abstract class EaElementRefBase extends EaObjectRefBase implements EaElementRef 
     private final int elementId;
 
     EaElementRefBase(EaRepositoryImpl repository, @Nullable EaObjectRefBase parent, String name, @Nullable String alias,
-                     @Nullable String stereotype, int treePos, int elementId) {
-        super(repository, parent, name, alias, stereotype, treePos);
+                     String type, @Nullable String stereotype, int treePos, int elementId) {
+        super(repository, parent, name, alias, type, stereotype, treePos);
         Objects.requireNonNull(parent);
         this.elementId = elementId;
     }

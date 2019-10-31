@@ -1,12 +1,17 @@
 package com.provys.wikiloader.earepository.impl;
 
+import com.provys.common.exception.InternalException;
 import com.provys.wikiloader.earepository.EaObjectRef;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 
 abstract class EaObjectRefBase implements EaObjectRef {
+
+    private static final Logger LOG = LogManager.getLogger(EaObjectRefBase.class);
 
     @Nonnull
     private final EaRepositoryImpl repository;
@@ -16,16 +21,19 @@ abstract class EaObjectRefBase implements EaObjectRef {
     private final String name;
     @Nullable
     private final String alias;
+    @Nonnull
+    private final String type;
     @Nullable
     private final String stereotype;
     private final int treePos;
 
     EaObjectRefBase(EaRepositoryImpl repository, @Nullable EaObjectRefBase parent, String name, @Nullable String alias,
-                    @Nullable String stereotype, int treePos) {
+                    String type, @Nullable String stereotype, int treePos) {
         this.repository = Objects.requireNonNull(repository);
         this.parent = parent;
         this.name = Objects.requireNonNull(name);
         this.alias = ((alias == null) || alias.isEmpty()) ? null : alias.toLowerCase();
+        this.type = Objects.requireNonNull(type);
         this.stereotype = ((stereotype == null) || stereotype.isEmpty()) ? null : stereotype;
         this.treePos = treePos;
     }
@@ -56,8 +64,41 @@ abstract class EaObjectRefBase implements EaObjectRef {
 
     @Nonnull
     @Override
+    public String getType() {
+        return type;
+    }
+
+    @Nonnull
+    @Override
     public Optional<String> getStereotype() {
         return Optional.ofNullable(stereotype);
+    }
+
+    @Nonnull
+    public String getEaDesc() {
+        return type + ((stereotype == null) ? "" : " " + stereotype) + " " + name;
+    }
+
+    @Override
+    public boolean isIgnoredType() {
+        return false;
+    }
+
+    @Override
+    public boolean isTopic() {
+        if (isIgnoredType()) {
+            LOG.debug("{} is not exportable type", this::getEaDesc);
+            return false;
+        }
+        if ((parent != null) && (!parent.isTopic())) {
+            LOG.debug("{} not exported - parent not exported", this::getEaDesc);
+            return false;
+        }
+        if (alias == null) {
+            LOG.info("{} not exported - alias missing", this::getEaDesc);
+            return false;
+        }
+        return true;
     }
 
     @Override
@@ -76,20 +117,30 @@ abstract class EaObjectRefBase implements EaObjectRef {
         return Optional.of(builder.toString());
     }
 
-    @Override
-    public void appendLink(StringBuilder builder) {
+    void appendLinkNoCheck(StringBuilder builder) {
         builder.append(":");
         if (parent != null) {
             parent.appendNamespace(builder, true);
         }
-        appendParentLink(builder, false);
+        appendParentLinkNoCheck(builder, false);
     }
 
-    abstract void appendParentLink(StringBuilder builder, boolean leadingDot);
+    @Override
+    public void appendLink(StringBuilder builder) {
+        if (!hasLink()) {
+            throw new InternalException(LOG, "Cannot append link - boundary not exported " + this);
+        }
+        appendLinkNoCheck(builder);
+    }
+
+    abstract void appendParentLinkNoCheck(StringBuilder builder, boolean leadingDot);
 
     @Override
     public void appendParentLink(StringBuilder builder) {
-        appendParentLink(builder, true);
+        if (!hasLink()) {
+            throw new InternalException(LOG, "Cannot append link - boundary not exported " + this);
+        }
+        appendParentLinkNoCheck(builder, true);
     }
 
     public void appendPages(Collection<String> pages) {

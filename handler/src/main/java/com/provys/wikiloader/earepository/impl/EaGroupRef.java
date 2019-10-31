@@ -10,28 +10,27 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 
 /**
- * Represents Boundary element.
- * Boundary element is not exported, but if its alias is specified, it is considered link to package or element with
+ * Represents box-like elements (Boundary, Grouping).
+ * These elements are not exported, but if their alias is specified, it is considered link to package or element with
  * specified path - often used to mark area corresponding to package in diagram
  */
-class EaBoundaryRef extends EaElementRefBase {
+class EaGroupRef extends EaElementRefBase {
 
-    private static final Logger LOG = LogManager.getLogger(EaBoundaryRef.class);
+    private static final Logger LOG = LogManager.getLogger(EaGroupRef.class);
 
-    EaBoundaryRef(EaRepositoryImpl repository, @Nullable EaObjectRefBase parent, String name, @Nullable String alias,
-                  int treePos, int elementId) {
-        super(repository, parent, name, alias, "Boundary", treePos, elementId);
+    EaGroupRef(EaRepositoryImpl repository, @Nullable EaObjectRefBase parent, String name, @Nullable String alias,
+               String type, int treePos, int elementId) {
+        super(repository, parent, name, alias, type, null, treePos, elementId);
     }
 
     @Override
     public EaObject getObject() {
-        return new EaBoundary(this);
+        return new EaGroup(this);
     }
 
     @Override
-    public boolean isTopic() {
-        LOG.debug("Boundary {} is not exported", this::getName);
-        return false;
+    public boolean isIgnoredType() {
+        return true;
     }
 
     @Override
@@ -45,31 +44,31 @@ class EaBoundaryRef extends EaElementRefBase {
     }
 
     @Override
+    @SuppressWarnings("squid:S3655") // sonar doesn't recognise Optional.isEmpty
     public boolean hasLink() {
         if (getAlias().isEmpty()) {
+            LOG.debug("{} not exported - alias is missing", this::getEaDesc);
             return false;
+        }
+        if (getAlias().get().charAt(0) == ':') {
+            // if alias contains full path, we can export it regardless of parent...
+            return true;
         }
         return getParent().map(EaObjectRef::hasLink).orElse(true);
     }
 
     @Override
-    public void appendLink(StringBuilder builder) {
-        if (!hasLink()) {
-            throw new InternalException(LOG, "Cannot append link - boundary not exported " + this);
-        }
+    public void appendLinkNoCheck(StringBuilder builder) {
         var alias = getAlias().orElseThrow();
         if (alias.charAt(0) != ':') {
-            // in case alias starts with :, it contains full path and we cannot prefix it with parent namespace
-            getParent().ifPresent(parent -> parent.appendNamespace(builder, true));
+            super.appendLinkNoCheck(builder);
+        } else {
+            builder.append(alias).append(":");
         }
-        builder.append(alias).append(":");
     }
 
     @Override
-    void appendParentLink(StringBuilder builder, boolean leadingDot) {
-        if (!hasLink()) {
-            throw new InternalException(LOG, "Cannot append link - boundary not exported " + this);
-        }
+    void appendParentLinkNoCheck(StringBuilder builder, boolean leadingDot) {
         var alias = getAlias().orElseThrow();
         if (leadingDot && (alias.charAt(0) != ':')) {
             builder.append(".");

@@ -107,23 +107,70 @@ class EaLoaderDiagram {
     }
 
     @Nullable
-    private BufferedImage getImagePage(int xpage, int ypage, String filename) {
-        if (!diagram.SaveImagePage(xpage, ypage, 0, 0, filename, 0)) {
+    private BufferedImage getImagePage(int xPage, int yPage, String filename) {
+        LOG.debug("Generate diagram {} page {} / {}", diagram::GetName, () -> xPage, () -> yPage);
+        if (!diagram.SaveImagePage(xPage, yPage, 0, 0, filename, 0)) {
             if (diagram.GetLastError().equals("x or y is out of range.")) {
                 // probably diagram is exported slightly smaller than expected...
+                LOG.info("Page out of range reported when generating {} page {} / {}", diagram::GetName,
+                        () -> xPage, () -> yPage);
                 return null;
             }
             throw new InternalException(LOG, "Failed to export diagram " + diagram.GetName() + " page "
-                    + xpage + ", " + ypage + " to " + filename + ": " + diagram.GetLastError());
+                    + xPage + ", " + yPage + " to " + filename + ": " + diagram.GetLastError());
         }
         BufferedImage page;
         try {
             page = ImageIO.read(new File(filename));
         } catch (IOException e) {
             throw new InternalException(LOG, "Failed to read exported file " + diagram.GetName() + " page "
-                    + xpage + ", " + ypage + " from " + filename);
+                    + xPage + ", " + yPage + " from " + filename);
         }
         return page;
+    }
+
+    /**
+     * Render column to graphics and return width that has been used from EA rendered drawing
+     *
+     * @param g is graphics element picture is rendered to
+     * @return width of column in EA rendered diagram
+     */
+    private int renderColumn(Graphics g, int xPage, int origXPos, String filename) {
+        int origYPos = 0;
+        int origWidth = 0;
+        for (int yPage = 1; origYPos <= imgPos.getBottom(); yPage++) {
+            var page = getImagePage(xPage, yPage, filename);
+            if (page == null) {
+                break;
+            }
+            int origHeight;
+            origWidth = page.getWidth();
+            origHeight = page.getHeight();
+            if ((origXPos < imgPos.getLeft() + 4) || (origYPos < imgPos.getTop() + 4)) {
+                // we do not need whole generated page - need to crop top or left
+                int subLeft = Integer.max(imgPos.getLeft() - origXPos, 4);
+                int subTop = Integer.max(imgPos.getTop() - origYPos, 4);
+                int subWidth = Integer.min(page.getWidth() - subLeft, imgPos.getRight() - origXPos + 1);
+                int subHeight = Integer.min(page.getHeight() - subTop, imgPos.getBottom() - origYPos + 1);
+                if ((subWidth <= 0) || (subHeight <= 0)) {
+                    // nothing to use from this page
+                    page = null;
+                } else {
+                    page = page.getSubimage(subLeft, subTop, subWidth, subHeight);
+                }
+            } else {
+                origWidth -= 4;
+                origHeight -= 4;
+                page = page.getSubimage(4, 4, origWidth, origHeight);
+            }
+            if (page != null) {
+                // move position to already painted; on the first picture, start from 0, 0
+                g.drawImage(page, Integer.max(origXPos - imgPos.getLeft(), 0),
+                        Integer.max(origYPos - imgPos.getTop(), 0), null);
+            }
+            origYPos += origHeight;
+        }
+        return origWidth;
     }
 
     @Nonnull
@@ -136,41 +183,10 @@ class EaLoaderDiagram {
         try {
             int origXPos = 0;
             for (int xPage = 1; origXPos <= imgPos.getRight(); xPage++) {
-                int origYPos = 0;
-                int origWidth = 0;
-                for (int yPage = 1; origYPos <= imgPos.getBottom(); yPage++) {
-                    var page = getImagePage(xPage, yPage, filename);
-                    int origHeight;
-                    if (page != null) {
-                        origWidth = page.getWidth();
-                        origHeight = page.getHeight();
-                        if ((origXPos < imgPos.getLeft() + 4) || (origYPos < imgPos.getTop() + 4)) {
-                            // we do not need whole generated page - need to crop top or left
-                            int subLeft = Integer.max(imgPos.getLeft() - origXPos, 4);
-                            int subTop = Integer.max(imgPos.getTop() - origYPos, 4);
-                            int subWidth = Integer.min(page.getWidth() - subLeft, imgPos.getRight() - origXPos + 1);
-                            int subHeight = Integer.min(page.getHeight() - subTop, imgPos.getBottom() - origYPos + 1);
-                            if ((subWidth <= 0) || (subHeight <= 0)) {
-                                // nothing to use from this page
-                                page = null;
-                            } else {
-                                page = page.getSubimage(subLeft, subTop, subWidth, subHeight);
-                            }
-                        } else {
-                            origWidth -= 4;
-                            origHeight -= 4;
-                            page = page.getSubimage(4, 4, origWidth, origHeight);
-                        }
-                    } else {
-                        origWidth = 0;
-                        origHeight = 0;
-                    }
-                    if (page != null) {
-                        // move position to already painted; on the first picture, start from 0, 0
-                        g.drawImage(page, Integer.max(origXPos - imgPos.getLeft(), 0),
-                                Integer.max(origYPos - imgPos.getTop(), 0), null);
-                    }
-                    origYPos += origHeight;
+                int origWidth = renderColumn(g, xPage, origXPos, filename);
+                if (origWidth == 0) {
+                    // we didn't render anything, probably because x position is out of range...
+                    break;
                 }
                 origXPos += origWidth;
             }

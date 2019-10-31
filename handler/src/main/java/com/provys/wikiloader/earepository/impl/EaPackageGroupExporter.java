@@ -1,8 +1,6 @@
 package com.provys.wikiloader.earepository.impl;
 
 import com.provys.provyswiki.ProvysWikiClient;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -16,6 +14,7 @@ class EaPackageGroupExporter extends EaParentExporter<EaPackageGroup> {
     /**
      * Append header for elements section
      */
+    @Override
     void appendElementsHeader() {
         startBuilder.append("\n===== Packages =====\n");
     }
@@ -79,6 +78,7 @@ class EaPackageGroupExporter extends EaParentExporter<EaPackageGroup> {
                 panels.add(new SubPackageExporter(subPackage));
                 contentBuilder.add(subPackage.getParentLink().orElseThrow());
                 subPackage.appendPages(pages);
+                subObjects.add(subPackage);
             }
         }
         if (panels.size() <= 1) {
@@ -107,6 +107,7 @@ class EaPackageGroupExporter extends EaParentExporter<EaPackageGroup> {
         }
     }
 
+    @Override
     void appendBody() {
         // handle diagrams
         appendDiagrams();

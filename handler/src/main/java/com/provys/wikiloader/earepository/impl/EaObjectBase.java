@@ -55,13 +55,30 @@ abstract class EaObjectBase<T extends EaObjectRef> implements EaObject {
 
     @Override
     @Nonnull
+    public String getType() {
+        return objectRef.getType();
+    }
+
+    @Override
+    @Nonnull
     public Optional<String> getStereotype() {
         return objectRef.getStereotype();
     }
 
     @Override
+    @Nonnull
+    public String getEaDesc() {
+        return objectRef.getEaDesc();
+    }
+
+    @Override
     public EaObject getObject() {
         return this;
+    }
+
+    @Override
+    public boolean isIgnoredType() {
+        return objectRef.isIgnoredType();
     }
 
     @Override

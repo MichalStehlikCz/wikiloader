@@ -17,8 +17,9 @@ class EaDefaultElementRef extends EaElementRefBase {
     private final boolean leaf;
 
     EaDefaultElementRef(EaRepositoryImpl repository,  @Nullable EaObjectRefBase parent, String name,
-                        @Nullable String alias, @Nullable String stereotype, int treePos, int elementId, boolean leaf) {
-        super(repository, parent, name, alias, stereotype, treePos, elementId);
+                        @Nullable String alias, String type, @Nullable String stereotype, int treePos, int elementId,
+                        boolean leaf) {
+        super(repository, parent, name, alias, type, stereotype, treePos, elementId);
         this.leaf = leaf;
     }
 
@@ -33,26 +34,22 @@ class EaDefaultElementRef extends EaElementRefBase {
 
     @Override
     public boolean isTopic() {
-        if (getAlias().isEmpty()) {
-            if (getName().equals("START") || getName().equals("END")) {
-                LOG.debug("Skip element {} {} with empty alias", () -> getStereotype().orElse(null),
-                        this::getName);
-            } else {
-                LOG.info("Skip element {} {} with empty alias", () -> getStereotype().orElse(null),
-                        this::getName);
-            }
+        if (getAlias().isEmpty() && (getName().equals("START") || getName().equals("END"))) {
+            // only debug for start / end of process
+            LOG.debug("Skip element {} with empty alias", this::getEaDesc);
             return false;
         }
-        return getParent().map(EaObjectRef::hasLink).orElse(true);
+        return super.isTopic();
     }
 
     @Override
     public Optional<String> getTopicId() {
-        if (getAlias().isEmpty()) {
+        var alias = getAlias().orElse(null);
+        if (alias == null) {
             return Optional.empty();
         }
         @SuppressWarnings("squid:S3655") // sonar does not recognise Optional.isEmpty...
-        var name = leaf ? getAlias().get() : getAlias().get() + ":start";
+        var name = leaf ? alias : alias + ":start";
         return getParent()
                 .map(EaObjectRef::getNamespace) // get namespace from parent
                 .orElse(Optional.of("")) // if no parent, use "" as prefix
@@ -85,10 +82,7 @@ class EaDefaultElementRef extends EaElementRefBase {
     }
 
     @Override
-    public void appendParentLink(StringBuilder builder, boolean leadingDot) {
-        if (!hasLink()) {
-            throw new InternalException(LOG, "Cannot append link - element not exported to wiki");
-        }
+    public void appendParentLinkNoCheck(StringBuilder builder, boolean leadingDot) {
         if (leadingDot && !leaf) {
             builder.append('.');
         }

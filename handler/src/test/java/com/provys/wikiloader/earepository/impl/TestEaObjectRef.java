@@ -13,7 +13,7 @@ import java.util.Optional;
 class TestEaObjectRef extends EaObjectRefBase {
 
     TestEaObjectRef(EaRepositoryImpl repository, @Nullable String alias) {
-        super(repository, null, "Mock Parent", alias, null, 1);
+        super(repository, null, "Mock Parent", alias, "Type", null, 1);
     }
 
     @Override
@@ -42,7 +42,7 @@ class TestEaObjectRef extends EaObjectRefBase {
     }
 
     @Override
-    void appendParentLink(StringBuilder builder, boolean leadingDot) {
+    void appendParentLinkNoCheck(StringBuilder builder, boolean leadingDot) {
         throw new RuntimeException("Method not implemented in mock");
     }
 

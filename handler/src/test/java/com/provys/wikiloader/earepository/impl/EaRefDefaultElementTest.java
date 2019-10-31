@@ -13,13 +13,13 @@ class EaRefDefaultElementTest {
     private final EaObjectRefBase parent = new TestEaObjectRef(eaRepository,"parent");
     private final EaObjectRefBase parent2 = new TestEaObjectRef(eaRepository,null);
     private final EaDefaultElementRef elementRef1 = new EaDefaultElementRef(eaRepository, parent, "Element",
-            "alelement","", 1,1, true);
+            "alelement","Type", "", 1,1, true);
     private final EaDefaultElementRef elementRef2 = new EaDefaultElementRef(eaRepository, parent, "Element",
-            "","", 1,1, true);
+            "","Type", "", 1,1, true);
     private final EaDefaultElementRef elementRef3 = new EaDefaultElementRef(eaRepository, parent, "Element",
-            "alelement","", 1,1, false);
+            "alelement","Type", "", 1,1, false);
     private final EaDefaultElementRef elementRef4 = new EaDefaultElementRef(eaRepository, parent2, "Element",
-            "alelement","", 1,1, false);
+            "alelement","Type","", 1,1, false);
 
     @Test
     void getTopicIdTest() {

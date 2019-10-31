@@ -21,7 +21,7 @@ class EaUmlDiagramElementRef extends EaElementRefBase {
 
     EaUmlDiagramElementRef(EaRepositoryImpl eaRepository, @Nullable EaObjectRefBase parent, String name, int treePos,
                            int elementId, @Nullable EaDefaultDiagramRef diagram) {
-        super(eaRepository, parent, name, null, "UMLDiagram", treePos, elementId);
+        super(eaRepository, parent, name, null, "UMLDiagram", null, treePos, elementId);
         this.diagram = diagram;
     }
 
@@ -31,9 +31,8 @@ class EaUmlDiagramElementRef extends EaElementRefBase {
     }
 
     @Override
-    public boolean isTopic() {
-        LOG.debug("UMLDiagram element {} not exported - diagram links are not exported", this::getName);
-        return false;
+    public boolean isIgnoredType() {
+        return true;
     }
 
     @Override
@@ -57,16 +56,14 @@ class EaUmlDiagramElementRef extends EaElementRefBase {
     }
 
     @Override
-    public void appendLink(StringBuilder builder) {
-        if (!hasLink() || (diagram == null)) {
-            throw new InternalException(LOG, "Cannot append link - diagram not exported " + this);
-        }
+    public void appendLinkNoCheck(StringBuilder builder) {
+        assert (diagram != null);
         diagram.appendLink(builder);
     }
 
     @Override
-    public void appendParentLink(StringBuilder builder, boolean leadingDot) {
-        appendLink(builder);
+    public void appendParentLinkNoCheck(StringBuilder builder, boolean leadingDot) {
+        appendLinkNoCheck(builder);
     }
 
     @Override

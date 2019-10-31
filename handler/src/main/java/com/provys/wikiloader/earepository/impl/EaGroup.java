@@ -6,9 +6,9 @@ import org.apache.logging.log4j.Level;
 import javax.annotation.Nonnull;
 import java.util.Optional;
 
-class EaBoundary extends EaObjectBase<EaBoundaryRef> {
+class EaGroup extends EaObjectBase<EaGroupRef> {
 
-    EaBoundary(EaBoundaryRef objectRef) {
+    EaGroup(EaGroupRef objectRef) {
         super(objectRef);
     }
 
