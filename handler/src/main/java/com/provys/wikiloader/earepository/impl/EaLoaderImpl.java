@@ -540,7 +540,9 @@ class EaLoaderImpl {
                 LOG.warn("Elements under ArchiMate_DataObject element {} are ignored - DataObject should be" +
                         " leaf", element::GetName);
             }
-            var entity = elementRef.getAlias().flatMap(alias -> catalogue.getEntityManager().getByNameNmIfExists(alias))
+            var entity = elementRef.getAlias()
+                    .map(String::toUpperCase)
+                    .flatMap(alias -> catalogue.getEntityManager().getByNameNmIfExists(alias))
                     .orElse(null);
             return new EaDataObject(elementRef, entity, element.GetNotes());
         } finally {
