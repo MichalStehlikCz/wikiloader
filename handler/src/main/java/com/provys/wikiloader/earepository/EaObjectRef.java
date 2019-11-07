@@ -55,6 +55,7 @@ public interface EaObjectRef extends Comparable<EaObjectRef> {
     /**
      * @return full object this reference represents, read from repository
      */
+    @Nonnull
     EaObject getObject();
 
     /**
@@ -74,6 +75,7 @@ public interface EaObjectRef extends Comparable<EaObjectRef> {
      *
      * @return topic this object exports to
      */
+    @Nonnull
     Optional<String> getTopicId();
 
     /**
@@ -82,6 +84,7 @@ public interface EaObjectRef extends Comparable<EaObjectRef> {
      *
      * @return namespace this object exports to
      */
+    @Nonnull
     Optional<String> getNamespace();
 
     /**

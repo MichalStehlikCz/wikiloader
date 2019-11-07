@@ -104,30 +104,14 @@ class EaLoaderImpl {
                 element.GetAlias(), element.GetType(), element.GetTreePos(), element.GetElementID());
     }
 
-    private EaProductPackageRef createEaRefProductPackage(Element element, EaRepositoryImpl eaRepository) {
-        EaProductPackageType packageType;
-        var taggedValues = element.GetTaggedValues();
-        try {
-            var taggedValue = taggedValues.GetByName("PROVYS::PackageType");
-            if (taggedValue == null) {
-                LOG.warn("PROVYS::PackageType tag missing for provys package element {}", element::GetName);
-                packageType = EaProductPackageType.UNIVERSAL;
-            } else {
-                try {
-                    packageType = EaProductPackageType.valueOf(taggedValue.GetValue());
-                } catch (IllegalArgumentException e) {
-                    LOG.warn("Incorrect PROVYS::PackageType value {} on element {}", taggedValue::GetValue,
-                            element::GetName);
-                    packageType = EaProductPackageType.UNIVERSAL;
-                } finally {
-                    taggedValue.destroy();
-                }
-            }
-        } finally {
-            taggedValues.destroy();
-        }
+    private EaProductPackageRef loadEaProductPackageRef(Element element, EaRepositoryImpl eaRepository) {
         return new EaProductPackageRef(eaRepository, getElementParent(element, eaRepository), element.GetName(),
-                element.GetAlias(), element.GetTreePos(), element.GetElementID(), packageType);
+                element.GetAlias(), element.GetTreePos(), element.GetElementID());
+    }
+
+    private EaTechnicalPackageRef loadEaTechnicalPackageRef(Element element, EaRepositoryImpl eaRepository) {
+        return new EaTechnicalPackageRef(eaRepository, getElementParent(element, eaRepository), element.GetName(),
+                element.GetAlias(), element.GetTreePos(), element.GetElementID());
     }
 
     private EaDefaultElementRef createEaRefDefaultElement(Element element, EaRepositoryImpl eaRepository) {
@@ -161,7 +145,13 @@ class EaLoaderImpl {
             } else if (element.GetType().equals("Boundary") || element.GetType().equals("Grouping")) {
                 return loadEaGroupRef(element, eaRepository);
             } else if (element.GetStereotype().equals("ArchiMate_Product")) {
-                return createEaRefProductPackage(element, eaRepository);
+                return loadEaProductPackageRef(element, eaRepository);
+            } else if (element.GetStereotype().equals("ArchiMate_ApplicationComponent")
+                    && eaRepository.getPackageRefById(element.GetPackageID())
+                    .getStereotype()
+                    .filter(stereotype -> stereotype.equals("provys_technical_package_group"))
+                    .isPresent()) {
+                return loadEaTechnicalPackageRef(element, eaRepository);
             } else {
                 return createEaRefDefaultElement(element, eaRepository);
             }
@@ -170,11 +160,18 @@ class EaLoaderImpl {
         }
     }
 
-    private EaPackageGroupRef loadEaPackageGroupRef(Package pkg, EaRepositoryImpl eaRepository) {
+    private EaProductPackageGroupRef loadEaProductPackageGroupRef(Package pkg, EaRepositoryImpl eaRepository) {
         var parentId = pkg.GetParentID();
         var parent = (parentId > 0) ? eaRepository.getPackageRefById(parentId) : null;
-        return new EaPackageGroupRef(eaRepository, parent, pkg.GetName(), pkg.GetAlias(), pkg.GetStereotypeEx(),
+        return new EaProductPackageGroupRef(eaRepository, parent, pkg.GetName(), pkg.GetAlias(), pkg.GetStereotypeEx(),
                 pkg.GetTreePos(), pkg.GetPackageID());
+    }
+
+    private EaItemGroupRef loadEaTechnicalPackageGroupRef(Package pkg, EaRepositoryImpl eaRepository) {
+        var parentId = pkg.GetParentID();
+        var parent = (parentId > 0) ? eaRepository.getPackageRefById(parentId) : null;
+        return new EaTechnicalPackageGroupRef(eaRepository, parent, pkg.GetName(), pkg.GetAlias(),
+                pkg.GetStereotypeEx(), pkg.GetTreePos(), pkg.GetPackageID());
     }
 
     private EaDefaultPackageRef loadEaDefaultPackageRef(Package pkg, EaRepositoryImpl eaRepository) {
@@ -193,8 +190,10 @@ class EaLoaderImpl {
     EaDefaultPackageRef packageRefFromId(int packageId, EaRepositoryImpl eaRepository) {
         var pkg = repository.GetPackageByID(packageId);
         try {
-            if (pkg.GetStereotypeEx().equals("provys_package_group")) {
-                return loadEaPackageGroupRef(pkg, eaRepository);
+            if (pkg.GetStereotypeEx().equals("provys_product_package_group")) {
+                return loadEaProductPackageGroupRef(pkg, eaRepository);
+            } else if (pkg.GetStereotypeEx().equals("provys_technical_package_group")) {
+                return loadEaTechnicalPackageGroupRef(pkg, eaRepository);
             }
             if (!pkg.GetStereotypeEx().isEmpty()) {
                 LOG.debug("Unrecognized stereotype {} in package {}", pkg::GetStereotypeEx, pkg::GetName);
@@ -372,10 +371,10 @@ class EaLoaderImpl {
         }
     }
 
-    private static List<EaPackageRef> getPackages(Supplier<Collection<Package>> packageSrc, EaRepository eaRepository) {
+    private static List<com.provys.wikiloader.earepository.EaPackageRef> getPackages(Supplier<Collection<Package>> packageSrc, EaRepository eaRepository) {
         var packages = packageSrc.get();
         try {
-            var result = new ArrayList<EaPackageRef>(packages.GetCount());
+            var result = new ArrayList<com.provys.wikiloader.earepository.EaPackageRef>(packages.GetCount());
             for (var pkg : packages) {
                 try {
                     result.add(eaRepository.getPackageRefById(pkg.GetPackageID()));
@@ -426,12 +425,14 @@ class EaLoaderImpl {
         }
     }
 
-    private static List<EaProductPackageRef> getPackageGroupElements(Package pkg, EaPackageGroupRef packageGroupRef) {
+    private static <E extends EaDefaultElementRef> List<E> getPackageGroupElements(Package pkg,
+                                                                                   EaItemGroupRef packageGroupRef,
+                                                                                   Class<E> clazz) {
         return getElements(pkg::GetElements, packageGroupRef.getRepository())
                 .stream()
                 .filter(elementRef -> (!elementRef.isIgnoredType())) // we can safely ignore boundaries and similar
                 .collect(Collectors.collectingAndThen(
-                        Collectors.partitioningBy(element -> element instanceof EaProductPackageRef),
+                        Collectors.partitioningBy(clazz::isInstance),
                         map -> {
                             if (map.get(false) != null) { // we will log elements different than product packages
                                 map.get(false).forEach(element -> LOG.warn(
@@ -440,17 +441,18 @@ class EaLoaderImpl {
                                         element::getName, packageGroupRef::getName));
                             }
                             return map.get(true).stream() // and only register product packages
-                                    .map(element -> (EaProductPackageRef) element)
+                                    .map(clazz::cast)
                                     .collect(Collectors.toList());
                         }
                 ));
     }
 
-    private static List<EaPackageGroupRef> getPackageGroupPackages(Package pkg, EaPackageGroupRef packageGroupRef) {
+    private static <G extends EaItemGroupRef> List<G> getPackageGroupPackages(Package pkg, G packageGroupRef,
+                                                                              Class<G> clazz) {
         return getPackages(pkg::GetPackages, packageGroupRef.getRepository())
                 .stream()
                 .collect(Collectors.collectingAndThen(
-                        Collectors.partitioningBy(pack -> pack instanceof EaPackageGroupRef),
+                        Collectors.partitioningBy(clazz::isInstance),
                         map -> {
                             if (map.get(false) != null) { // we will log elements different than product packages
                                 map.get(false).forEach(pack -> LOG.warn(
@@ -459,20 +461,33 @@ class EaLoaderImpl {
                                         pack::getName, packageGroupRef::getName));
                             }
                             return map.get(true).stream() // and only register product packages
-                                    .map(pack -> (EaPackageGroupRef) pack)
+                                    .map(clazz::cast)
                                     .collect(Collectors.toList());
                         }
                 ));
     }
 
     @Nonnull
-    EaPackageGroup loadPackageGroup(EaPackageGroupRef packageGroupRef) {
+    EaProductPackageGroup loadProductPackageGroup(EaProductPackageGroupRef packageGroupRef) {
         var pkg = repository.GetPackageByID(packageGroupRef.getPackageId());
         try {
-            return new EaPackageGroup(packageGroupRef, pkg.GetNotes(),
+            return new EaProductPackageGroup(packageGroupRef, pkg.GetNotes(),
                     getDiagrams(pkg::GetDiagrams, packageGroupRef.getRepository()),
-                    getPackageGroupElements(pkg, packageGroupRef),
-                    getPackageGroupPackages(pkg, packageGroupRef));
+                    getPackageGroupElements(pkg, packageGroupRef, EaProductPackageRef.class),
+                    getPackageGroupPackages(pkg, packageGroupRef, EaProductPackageGroupRef.class));
+        } finally {
+            pkg.destroy();
+        }
+    }
+
+    @Nonnull
+    EaTechnicalPackageGroup loadTechnicalPackageGroup(EaTechnicalPackageGroupRef packageGroupRef) {
+        var pkg = repository.GetPackageByID(packageGroupRef.getPackageId());
+        try {
+            return new EaTechnicalPackageGroup(packageGroupRef, pkg.GetNotes(),
+                    getDiagrams(pkg::GetDiagrams, packageGroupRef.getRepository()),
+                    getPackageGroupElements(pkg, packageGroupRef, EaTechnicalPackageRef.class),
+                    getPackageGroupPackages(pkg, packageGroupRef, EaTechnicalPackageGroupRef.class));
         } finally {
             pkg.destroy();
         }
@@ -491,7 +506,49 @@ class EaLoaderImpl {
         }
     }
 
-    private List<EaElementRef> getProductPackageFunctions(Element element, EaRepository eaRepository) {
+    private List<EaTechnicalPackageRef> getProductPackageTechnicalPackages(Element element, EaRepository eaRepository) {
+        var result = new ArrayList<EaTechnicalPackageRef>(10);
+        var connectors = element.GetConnectors();
+        try {
+            for (var connector : connectors) {
+                try {
+                    if (connector.GetStereotype().equals("ArchiMate_Aggregation")) {
+                        var elementRef = eaRepository.getElementRefById(connector.GetSupplierID());
+                        if (elementRef instanceof EaTechnicalPackageRef) {
+                            result.add((EaTechnicalPackageRef) elementRef);
+                        } else {
+                            LOG.warn("Unexpected aggregation relation from product package {} to {}",
+                                    element::GetName, elementRef::getEaDesc);
+                        }
+                    }
+                } finally {
+                    connector.destroy();
+                }
+            }
+        } finally {
+            connectors.destroy();
+        }
+        result.sort(null);
+        return result;
+    }
+
+    @Nonnull
+    EaProductPackage loadProductPackage(EaProductPackageRef elementRef) {
+        var element = repository.GetElementByID(elementRef.getElementId());
+        try {
+            var diagrams = getDiagrams(element::GetDiagrams, elementRef.getRepository());
+            if (hasElements(element::GetElements)) {
+                LOG.warn("Elements under ArchiMate_Product element {} are ignored - Product Package should be" +
+                        " leaf", element::GetName);
+            }
+            return new EaProductPackage(elementRef, element.GetNotes(), diagrams,
+                    getProductPackageTechnicalPackages(element, elementRef.getRepository()));
+        } finally {
+            element.destroy();
+        }
+    }
+
+    private java.util.Collection<EaElementRef> getTechnicalPackageFunctions(Element element, EaRepository eaRepository) {
         var result = new ArrayList<EaElementRef>(10);
         var connectors = element.GetConnectors();
         try {
@@ -514,7 +571,7 @@ class EaLoaderImpl {
     }
 
     @Nonnull
-    EaProductPackage loadProductPackage(EaProductPackageRef elementRef) {
+    EaTechnicalPackage loadTechnicalPackage(EaTechnicalPackageRef elementRef) {
         var element = repository.GetElementByID(elementRef.getElementId());
         try {
             var diagrams = getDiagrams(element::GetDiagrams, elementRef.getRepository());
@@ -522,8 +579,8 @@ class EaLoaderImpl {
                 LOG.warn("Elements under ArchiMate_Product element {} are ignored - Product Package should be" +
                         " leaf", element::GetName);
             }
-            return new EaProductPackage(elementRef, element.GetNotes(), diagrams,
-                    getProductPackageFunctions(element, elementRef.getRepository()));
+            return new EaTechnicalPackage(elementRef, element.GetNotes(), diagrams,
+                    getTechnicalPackageFunctions(element, elementRef.getRepository()));
         } finally {
             element.destroy();
         }

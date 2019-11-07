@@ -125,7 +125,7 @@ public class ProvysWikiClient extends DokuWikiClient {
      * @param text is text to be placed to this topic. It will be prefixed with empty tag
      */
     public void putPageIfEmpty(String id, String text) {
-        if (!getPage(id).isEmpty()) {
+        if (getPage(id).isEmpty()) {
             putPage(id, "{{tag>empty}}\n" + text);
         }
     }

@@ -3,6 +3,7 @@ package com.provys.wikiloader.earepository.impl;
 import com.provys.wikiloader.earepository.EaObject;
 import com.provys.wikiloader.earepository.EaRepository;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Optional;
 
@@ -17,6 +18,7 @@ class TestEaObjectRef extends EaObjectRefBase {
     }
 
     @Override
+    @Nonnull
     public EaObject getObject() {
         throw new RuntimeException("Method not implemented in mock");
     }
@@ -27,11 +29,13 @@ class TestEaObjectRef extends EaObjectRefBase {
     }
 
     @Override
+    @Nonnull
     public Optional<String> getTopicId() {
         throw new RuntimeException("Method not implemented in mock");
     }
 
     @Override
+    @Nonnull
     public Optional<String> getNamespace() {
         return getAlias().map(alias -> alias + ":");
     }

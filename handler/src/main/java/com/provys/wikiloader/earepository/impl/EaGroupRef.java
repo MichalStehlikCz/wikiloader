@@ -6,6 +6,7 @@ import com.provys.wikiloader.earepository.EaObjectRef;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Optional;
 
@@ -24,6 +25,7 @@ class EaGroupRef extends EaElementRefBase {
     }
 
     @Override
+    @Nonnull
     public EaObject getObject() {
         return new EaGroup(this);
     }
@@ -34,11 +36,13 @@ class EaGroupRef extends EaElementRefBase {
     }
 
     @Override
+    @Nonnull
     public Optional<String> getTopicId() {
         return Optional.empty(); // topic is not generated from boundary
     }
 
     @Override
+    @Nonnull
     public Optional<String> getNamespace() {
         return Optional.empty(); // namespace is not exported from boundary
     }

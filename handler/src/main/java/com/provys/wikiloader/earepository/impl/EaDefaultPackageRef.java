@@ -7,6 +7,7 @@ import com.provys.wikiloader.earepository.EaPackageRef;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
@@ -29,6 +30,7 @@ public class EaDefaultPackageRef extends EaObjectRefBase implements EaPackageRef
     }
 
     @Override
+    @Nonnull
     public EaObject getObject() {
         return getRepository().getLoader().loadDefaultPackage(this);
     }
@@ -43,12 +45,14 @@ public class EaDefaultPackageRef extends EaObjectRefBase implements EaPackageRef
     }
 
     @Override
+    @Nonnull
     public Optional<String> getTopicId() {
         return getNamespace()
                 .map(ns -> ns + ":start");
     }
 
     @Override
+    @Nonnull
     public Optional<String> getNamespace() {
         if (getAlias().isEmpty()) {
             return Optional.empty();

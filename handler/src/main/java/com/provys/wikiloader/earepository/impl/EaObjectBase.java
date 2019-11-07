@@ -72,6 +72,7 @@ abstract class EaObjectBase<T extends EaObjectRef> implements EaObject {
     }
 
     @Override
+    @Nonnull
     public EaObject getObject() {
         return this;
     }
@@ -93,6 +94,7 @@ abstract class EaObjectBase<T extends EaObjectRef> implements EaObject {
     }
 
     @Override
+    @Nonnull
     public Optional<String> getNamespace() {
         return objectRef.getNamespace();
     }

@@ -1,13 +1,15 @@
 package com.provys.wikiloader.earepository.impl;
 
 import com.provys.provyswiki.ProvysWikiClient;
+import com.provys.wikiloader.earepository.EaElementRef;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 
-class EaPackageGroupExporter extends EaParentExporter<EaPackageGroup> {
+class EaItemGroupExporter<E extends EaElementRef, R extends EaItemGroupRef<E, R, G>,
+        G extends EaItemGroup<E, R, G>> extends EaParentExporter<G> {
 
-    EaPackageGroupExporter(EaPackageGroup eaObject, ProvysWikiClient wikiClient) {
+    EaItemGroupExporter(G eaObject, ProvysWikiClient wikiClient) {
         super(eaObject, wikiClient);
     }
 
@@ -19,18 +21,19 @@ class EaPackageGroupExporter extends EaParentExporter<EaPackageGroup> {
         startBuilder.append("\n===== Packages =====\n");
     }
 
-    private static class SubPackageExporter {
+    private static class SubPackageExporter<E extends EaElementRef, R extends EaItemGroupRef<E, R, G>,
+            G extends EaItemGroup<E, R, G>> {
 
         @Nonnull
         private final StringBuilder builder = new StringBuilder();
         private int lines = 4; // empty box has height roughly corresponding to 4 lines of text
 
-        SubPackageExporter(EaPackageGroupRef pkg) {
+        SubPackageExporter(R pkg) {
             appendSubPackage(pkg);
         }
 
         @SuppressWarnings("squid:S3457")
-        private void appendElementToContent(EaProductPackageRef element, int level) {
+        private void appendElementToContent(E element, int level) {
             builder.append(String.format("%" + (level * 2 + 10) + "s", "* [["));
             element.appendLink(builder);
             builder.append("]]\n");
@@ -38,7 +41,7 @@ class EaPackageGroupExporter extends EaParentExporter<EaPackageGroup> {
         }
 
         @SuppressWarnings("squid:S3457")
-        private void appendPackageToContent(EaPackageGroupRef pkgRef, int level) {
+        private void appendPackageToContent(R pkgRef, int level) {
             builder.append(String.format("%" + (level * 2 + 10) + "s", "* [["));
             pkgRef.appendLink(builder);
             builder.append("]]\n");
@@ -52,7 +55,7 @@ class EaPackageGroupExporter extends EaParentExporter<EaPackageGroup> {
             }
         }
 
-        private void appendSubPackage(EaPackageGroupRef pkg) {
+        private void appendSubPackage(R pkg) {
             builder.append("<panel type=\"default\" title=\"")
                     .append(pkg.getName().replace("&", "And")).append("\">\n");
             appendPackageToContent(pkg, 0);
@@ -75,7 +78,7 @@ class EaPackageGroupExporter extends EaParentExporter<EaPackageGroup> {
         final var panels = new ArrayList<SubPackageExporter>(3);
         for (var subPackage : getEaObject().getPackages()) {
             if (subPackage.isTopic()) {
-                panels.add(new SubPackageExporter(subPackage));
+                panels.add(new SubPackageExporter<>(subPackage));
                 contentBuilder.add(subPackage.getParentLink().orElseThrow());
                 subPackage.appendPages(pages);
                 subObjects.add(subPackage);

@@ -5,6 +5,7 @@ import com.provys.wikiloader.earepository.EaObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
@@ -26,6 +27,7 @@ class EaUmlDiagramElementRef extends EaElementRefBase {
     }
 
     @Override
+    @Nonnull
     public EaObject getObject() {
         return new EaUmlDiagramElement(this);
     }
@@ -36,11 +38,13 @@ class EaUmlDiagramElementRef extends EaElementRefBase {
     }
 
     @Override
+    @Nonnull
     public Optional<String> getTopicId() {
         return Optional.empty(); // never exported on its own
     }
 
     @Override
+    @Nonnull
     public Optional<String> getNamespace() {
         return Optional.empty(); // not exported, and thus not exported to namespace
     }

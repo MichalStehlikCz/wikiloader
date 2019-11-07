@@ -1,25 +1,27 @@
 package com.provys.wikiloader.earepository.impl;
 
+import com.provys.wikiloader.earepository.EaElementRef;
+
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 @SuppressWarnings("squid:S2160") // packageGroup is only cached -> no need to include it in equals
-class EaPackageGroupRef extends EaDefaultPackageRef {
+abstract class EaItemGroupRef<E extends EaElementRef, R extends EaItemGroupRef<E, R, G>,
+        G extends EaItemGroup<E, R, G>> extends EaDefaultPackageRef {
 
-    private EaPackageGroup packageGroup;
+    @Nullable
+    protected G packageGroup;
 
-    EaPackageGroupRef(EaRepositoryImpl repository, @Nullable EaObjectRefBase parent, String name,
-                      @Nullable String alias, @Nullable String stereotype, int treePos, int packageId) {
+    EaItemGroupRef(EaRepositoryImpl repository, @Nullable EaObjectRefBase parent, String name,
+                   @Nullable String alias, @Nullable String stereotype, int treePos, int packageId) {
         super(repository, parent, name, alias, stereotype, treePos, packageId);
     }
 
-    private synchronized void loadObject() {
-        if (packageGroup == null) {
-            packageGroup = getRepository().getLoader().loadPackageGroup(this);
-        }
-    }
+    protected abstract void loadObject();
 
     @Override
-    public EaPackageGroup getObject() {
+    @Nonnull
+    public G getObject() {
         if (packageGroup == null) {
             loadObject();
         }

@@ -1,46 +1,39 @@
 package com.provys.wikiloader.earepository.impl;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Objects;
 
+@SuppressWarnings("squid:S2160") // packageGroup is only cached -> no need to include it in equals
 class EaProductPackageRef extends EaDefaultElementRef {
 
-    private final EaProductPackageType packageType;
+    @Nullable
+    private EaProductPackage productPackage;
 
     EaProductPackageRef(EaRepositoryImpl repository, @Nullable EaObjectRefBase parent, String name,
-                        @Nullable String alias, int treePos, int elementId, EaProductPackageType packageType) {
+                        @Nullable String alias, int treePos, int elementId) {
         super(repository, parent, name, alias, "Product", "ArchiMate_Product", treePos, elementId,
                 false);
-        this.packageType = packageType;
+    }
+
+    private synchronized void loadObject() {
+        if (productPackage == null) {
+            productPackage = getRepository().getLoader().loadProductPackage(this);
+        }
     }
 
     @Override
+    @Nonnull
     public EaProductPackage getObject() {
-        return getRepository().getLoader().loadProductPackage(this);
+        if (productPackage == null) {
+            loadObject();
+        }
+        assert (productPackage != null);
+        return productPackage;
     }
 
-    EaProductPackageType getPackageType() {
-        return packageType;
-    }
-
-    @Override
-    public boolean equals(@Nullable Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
-        EaProductPackageRef that = (EaProductPackageRef) o;
-        return packageType == that.packageType;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), packageType);
-    }
 
     @Override
     public String toString() {
-        return "EaProductPackageRef{" +
-                "packageType=" + packageType +
-                "} " + super.toString();
+        return "EaProductPackageRef{" +((productPackage == null) ? "not loaded" : "loaded") + "} " + super.toString();
     }
 }

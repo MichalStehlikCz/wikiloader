@@ -6,6 +6,7 @@ import com.provys.wikiloader.earepository.EaObjectRef;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
@@ -28,6 +29,7 @@ class EaDefaultElementRef extends EaElementRefBase {
     }
 
     @Override
+    @Nonnull
     public EaObject getObject() {
         return getRepository().getLoader().loadElement(this);
     }
@@ -43,6 +45,7 @@ class EaDefaultElementRef extends EaElementRefBase {
     }
 
     @Override
+    @Nonnull
     public Optional<String> getTopicId() {
         var alias = getAlias().orElse(null);
         if (alias == null) {
@@ -57,6 +60,7 @@ class EaDefaultElementRef extends EaElementRefBase {
     }
 
     @Override
+    @Nonnull
     public Optional<String> getNamespace() {
         if (leaf || getAlias().isEmpty()) {
             return Optional.empty();

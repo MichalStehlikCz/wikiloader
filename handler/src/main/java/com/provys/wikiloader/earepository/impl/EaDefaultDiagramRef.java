@@ -7,6 +7,7 @@ import com.provys.wikiloader.earepository.EaObjectRef;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
@@ -41,11 +42,13 @@ class EaDefaultDiagramRef extends EaObjectRefBase implements EaDiagramRef {
     }
 
     @Override
+    @Nonnull
     public EaObject getObject() {
         return getRepository().getLoader().loadDefaultDiagram(this);
     }
 
     @Override
+    @Nonnull
     public Optional<String> getTopicId() {
         if (getAlias().isEmpty()) {
             return Optional.empty();
@@ -57,6 +60,7 @@ class EaDefaultDiagramRef extends EaObjectRefBase implements EaDiagramRef {
     }
 
     @Override
+    @Nonnull
     public Optional<String> getNamespace() {
         return Optional.empty(); // diagram is never exported as namespace
     }
