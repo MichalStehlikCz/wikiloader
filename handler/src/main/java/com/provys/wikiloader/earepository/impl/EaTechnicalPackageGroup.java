@@ -11,4 +11,9 @@ class EaTechnicalPackageGroup extends EaItemGroup<EaTechnicalPackageRef, EaTechn
     EaTechnicalPackageGroup(EaTechnicalPackageGroupRef objectRef, @Nullable String notes, @Nullable List<EaDiagramRef> diagrams, @Nullable List<EaTechnicalPackageRef> elements, @Nullable List<EaTechnicalPackageGroupRef> packages) {
         super(objectRef, notes, diagrams, elements, packages);
     }
+
+    @Override
+    EaTechnicalPackageGroup self() {
+        return this;
+    }
 }

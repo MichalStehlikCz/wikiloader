@@ -71,6 +71,7 @@ class EaParentExporter<T extends EaParentBase<? extends EaObjectRef, ? extends E
         }
     }
 
+    @Override
     void appendBody() {
         // handle diagrams
         appendDiagrams();

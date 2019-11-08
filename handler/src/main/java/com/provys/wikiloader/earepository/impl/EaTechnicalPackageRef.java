@@ -4,7 +4,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 @SuppressWarnings("squid:S2160") // package is only cached -> no need to include it in equals
-class EaTechnicalPackageRef extends EaDefaultElementRef {
+class EaTechnicalPackageRef extends EaDefaultElementRef implements EaItemRef {
 
     @Nullable
     private EaTechnicalPackage technicalPackage;
@@ -31,6 +31,11 @@ class EaTechnicalPackageRef extends EaDefaultElementRef {
         return technicalPackage;
     }
 
+    @Nonnull
+    @Override
+    public String getTitleInGroup() {
+        return getName();
+    }
 
     @Override
     public String toString() {

@@ -548,7 +548,7 @@ class EaLoaderImpl {
         }
     }
 
-    private java.util.Collection<EaElementRef> getTechnicalPackageFunctions(Element element, EaRepository eaRepository) {
+    private List<EaElementRef> getTechnicalPackageFunctions(Element element, EaRepository eaRepository) {
         var result = new ArrayList<EaElementRef>(10);
         var connectors = element.GetConnectors();
         try {
@@ -567,6 +567,33 @@ class EaLoaderImpl {
         } finally {
             connectors.destroy();
         }
+        result.sort(null);
+        return result;
+    }
+
+    private List<EaProductPackageRef> getTechnicalPackageContainedIn(Element element, EaRepository eaRepository) {
+        var result = new ArrayList<EaProductPackageRef>(10);
+        var connectors = element.GetConnectors();
+        try {
+            for (var connector : connectors) {
+                try {
+                    if (connector.GetStereotype().equals("ArchiMate_Aggregation")) {
+                        var elementRef = eaRepository.getElementRefById(connector.GetClientID());
+                        if (elementRef instanceof EaProductPackageRef) {
+                            result.add((EaProductPackageRef) elementRef);
+                        } else {
+                            LOG.warn("Unexpected aggregation relation from {} to product package {}",
+                                    elementRef::getEaDesc, element::GetName);
+                        }
+                    }
+                } finally {
+                    connector.destroy();
+                }
+            }
+        } finally {
+            connectors.destroy();
+        }
+        result.sort(null);
         return result;
     }
 
@@ -580,7 +607,8 @@ class EaLoaderImpl {
                         " leaf", element::GetName);
             }
             return new EaTechnicalPackage(elementRef, element.GetNotes(), diagrams,
-                    getTechnicalPackageFunctions(element, elementRef.getRepository()));
+                    getTechnicalPackageFunctions(element, elementRef.getRepository()),
+                    getTechnicalPackageContainedIn(element, elementRef.getRepository()));
         } finally {
             element.destroy();
         }

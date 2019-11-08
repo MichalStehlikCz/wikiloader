@@ -6,7 +6,6 @@ import com.provys.wikiloader.earepository.EaElementRef;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
@@ -15,16 +14,23 @@ import java.util.Objects;
  */
 class EaTechnicalPackage extends EaLeafElementBase<EaTechnicalPackageRef> {
 
-    private final Collection<EaElementRef> functions;
+    private final List<EaElementRef> functions;
+    private final List<EaProductPackageRef> containedIn;
 
     EaTechnicalPackage(EaTechnicalPackageRef objectRef, @Nullable String notes,
-                       List<EaDiagramRef> diagrams, Collection<EaElementRef> functions) {
+                       List<EaDiagramRef> diagrams, List<EaElementRef> functions,
+                       List<EaProductPackageRef> containedIn) {
         super(objectRef, notes, diagrams);
         this.functions = List.copyOf(functions);
+        this.containedIn = List.copyOf(containedIn);
     }
 
-    Collection<EaElementRef> getFunctions() {
+    List<EaElementRef> getFunctions() {
         return functions;
+    }
+
+    List<EaProductPackageRef> getContainedIn() {
+        return containedIn;
     }
 
     @Nonnull

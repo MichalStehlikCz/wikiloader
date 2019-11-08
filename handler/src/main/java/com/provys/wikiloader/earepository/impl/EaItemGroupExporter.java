@@ -1,12 +1,11 @@
 package com.provys.wikiloader.earepository.impl;
 
 import com.provys.provyswiki.ProvysWikiClient;
-import com.provys.wikiloader.earepository.EaElementRef;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 
-class EaItemGroupExporter<E extends EaElementRef, R extends EaItemGroupRef<E, R, G>,
+class EaItemGroupExporter<E extends EaItemRef, R extends EaItemGroupRef<E, R, G>,
         G extends EaItemGroup<E, R, G>> extends EaParentExporter<G> {
 
     EaItemGroupExporter(G eaObject, ProvysWikiClient wikiClient) {
@@ -21,7 +20,7 @@ class EaItemGroupExporter<E extends EaElementRef, R extends EaItemGroupRef<E, R,
         startBuilder.append("\n===== Packages =====\n");
     }
 
-    private static class SubPackageExporter<E extends EaElementRef, R extends EaItemGroupRef<E, R, G>,
+    private static class SubPackageExporter<E extends EaItemRef, R extends EaItemGroupRef<E, R, G>,
             G extends EaItemGroup<E, R, G>> {
 
         @Nonnull
@@ -36,6 +35,7 @@ class EaItemGroupExporter<E extends EaElementRef, R extends EaItemGroupRef<E, R,
         private void appendElementToContent(E element, int level) {
             builder.append(String.format("%" + (level * 2 + 10) + "s", "* [["));
             element.appendLink(builder);
+            builder.append("|").append(element.getTitleInGroup());
             builder.append("]]\n");
             lines++;
         }

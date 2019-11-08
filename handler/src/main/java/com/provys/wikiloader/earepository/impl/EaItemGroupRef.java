@@ -6,7 +6,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 @SuppressWarnings("squid:S2160") // packageGroup is only cached -> no need to include it in equals
-abstract class EaItemGroupRef<E extends EaElementRef, R extends EaItemGroupRef<E, R, G>,
+abstract class EaItemGroupRef<E extends EaItemRef, R extends EaItemGroupRef<E, R, G>,
         G extends EaItemGroup<E, R, G>> extends EaDefaultPackageRef {
 
     @Nullable

@@ -67,7 +67,7 @@ class EaProductPackageExporter extends EaObjectRegularExporter<EaProductPackage>
                 builder.append("{{page>");
                 techPackage.appendNamespace(builder, true);
                 builder.append(EaTechnicalPackageExporter.PACKAGE_DESCRIPTION_NAME)
-                        .append("&noheader&editbutton}}\n");
+                        .append("&noheader}}\n");
             }
         }
         getWikiClient().putGeneratedPage(id, builder.toString());

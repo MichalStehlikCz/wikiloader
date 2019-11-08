@@ -11,4 +11,9 @@ class EaProductPackageGroup extends EaItemGroup<EaProductPackageRef, EaProductPa
                           @Nullable List<EaProductPackageGroupRef> packages) {
         super(objectRef, notes, diagrams, elements, packages);
     }
+
+    @Override
+    EaProductPackageGroup self() {
+        return this;
+    }
 }

@@ -63,12 +63,31 @@ class EaTechnicalPackageExporter extends EaObjectRegularExporter<EaTechnicalPack
         }
     }
 
+    private void appendProductPackageLink(EaProductPackageRef productPackage) {
+        startBuilder.append("[[");
+        productPackage.appendLink(startBuilder);
+        startBuilder.append("|").append(productPackage.getTitleInGroup()).append("]]");
+    }
+
     @Override
     void appendBody() {
         // handle diagrams
         appendDiagrams();
         // insert own content
         appendDocument();
+        var containedIn = getEaObject().getContainedIn();
+        if (containedIn.size() == 1) {
+            startBuilder.append("Contained in product package ");
+            appendProductPackageLink(containedIn.get(0));
+            startBuilder.append(".\n");
+        } else if (containedIn.size() > 1) {
+            startBuilder.append("Contained in product packages:\n");
+            for (var productPackage : containedIn) {
+                startBuilder.append("  * ");
+                appendProductPackageLink(productPackage);
+                startBuilder.append("\n");
+            }
+        }
         startBuilder.append("===== Product description =====\n")
                 .append("<btn collapse=\"Product_description\" type=\"success\" icon=\"fa fa-chevron-circle-down\">Single Page Description</btn>\n")
                 .append("\n")
