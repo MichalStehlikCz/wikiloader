@@ -46,7 +46,7 @@ class EaProductPackageExporter extends EaObjectRegularExporter<EaProductPackage>
             if (techPackage.hasLink()) {
                 startBuilder.append("  * [[");
                 techPackage.appendLink(startBuilder);
-                startBuilder.append("]]\n");
+                startBuilder.append('|').append(techPackage.getTitleInGroup()).append("]]\n");
             } else {
                 LOG.warn("Technical package {} excluded from content of product package {}", techPackage::getEaDesc,
                         () -> getEaObject().getEaDesc());
@@ -64,6 +64,9 @@ class EaProductPackageExporter extends EaObjectRegularExporter<EaProductPackage>
                 .append("====== Package ").append(getEaObject().getName()).append(" Description ======\n");
         for (var techPackage : getEaObject().getTechnicalPackages()) {
             if (techPackage.hasLink()) {
+                if (getEaObject().getTechnicalPackages().size() > 1) {
+                    builder.append("==== ").append(techPackage.getTitleInGroup()).append(" ====\n");
+                }
                 builder.append("{{page>");
                 techPackage.appendNamespace(builder, true);
                 builder.append(EaTechnicalPackageExporter.PACKAGE_DESCRIPTION_NAME)

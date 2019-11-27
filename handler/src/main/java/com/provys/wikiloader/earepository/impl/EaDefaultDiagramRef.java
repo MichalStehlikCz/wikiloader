@@ -31,7 +31,7 @@ class EaDefaultDiagramRef extends EaObjectRefBase implements EaDiagramRef {
 
     EaDefaultDiagramRef(EaRepositoryImpl repository, EaObjectRefBase parent, String name, @Nullable String stereotype,
                         int diagramId) {
-        super(repository, parent, name, getAlias(name), "Diagram", stereotype, 0);
+        super(repository, parent, name, getAlias(name), "Diagram", stereotype, -2000);
         Objects.requireNonNull(parent);
         this.diagramId = diagramId;
     }

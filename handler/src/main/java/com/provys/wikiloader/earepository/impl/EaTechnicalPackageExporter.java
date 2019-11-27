@@ -69,12 +69,7 @@ class EaTechnicalPackageExporter extends EaObjectRegularExporter<EaTechnicalPack
         startBuilder.append("|").append(productPackage.getTitleInGroup()).append("]]");
     }
 
-    @Override
-    void appendBody() {
-        // handle diagrams
-        appendDiagrams();
-        // insert own content
-        appendDocument();
+    private void appendContainedIn() {
         var containedIn = getEaObject().getContainedIn();
         if (containedIn.size() == 1) {
             startBuilder.append("Contained in product package ");
@@ -88,6 +83,38 @@ class EaTechnicalPackageExporter extends EaObjectRegularExporter<EaTechnicalPack
                 startBuilder.append("\n");
             }
         }
+    }
+
+    private void appendTechnicalPackageLink(EaTechnicalPackageRef technicalPackage) {
+        startBuilder.append("[[");
+        technicalPackage.appendLink(startBuilder);
+        startBuilder.append("|").append(technicalPackage.getTitleInGroup()).append("]]");
+    }
+
+    private void appendPrerequisities() {
+        var prerequisities = getEaObject().getPrerequisities();
+        if (prerequisities.size() == 1) {
+            startBuilder.append("Requires technical package ");
+            appendTechnicalPackageLink(prerequisities.get(0));
+            startBuilder.append(".\n");
+        } else if (prerequisities.size() > 1) {
+            startBuilder.append("Requires technical packages:\n");
+            for (var technicalPackage : prerequisities) {
+                startBuilder.append("  * ");
+                appendTechnicalPackageLink(technicalPackage);
+                startBuilder.append("\n");
+            }
+        }
+    }
+
+    @Override
+    void appendBody() {
+        // handle diagrams
+        appendDiagrams();
+        // insert own content
+        appendDocument();
+        appendPrerequisities();
+        appendContainedIn();
         startBuilder.append("===== Product description =====\n")
                 .append("<btn collapse=\"Product_description\" type=\"success\" icon=\"fa fa-chevron-circle-down\">Single Page Description</btn>\n")
                 .append("\n")

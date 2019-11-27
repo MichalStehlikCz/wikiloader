@@ -548,16 +548,29 @@ class EaLoaderImpl {
         }
     }
 
-    private List<EaElementRef> getTechnicalPackageFunctions(Element element, EaRepository eaRepository) {
-        var result = new ArrayList<EaElementRef>(10);
+    private <T> List<T> getRelElements(Element element, EaRepository eaRepository, boolean fromSupplier,
+                                       String type, String stereotype, Class<T> relType) {
+        var result = new ArrayList<T>(10);
+        var elementId = element.GetElementID();
         var connectors = element.GetConnectors();
         try {
             for (var connector : connectors) {
                 try {
-                    if (connector.GetStereotype().equals("ArchiMate_Association")) {
-                        var elementRef = eaRepository.getElementRefById(connector.GetSupplierID());
-                        if (elementRef.getStereotype().filter(s -> s.equals("ArchiMate_BusinessService")).isPresent()) {
-                            result.add(elementRef);
+                    if (((fromSupplier ? connector.GetSupplierID() : connector.GetClientID()) == elementId) &&
+                            (connector.GetType().equals(type)) &&
+                            (connector.GetStereotype().equals(stereotype))) {
+                        var elementRef = eaRepository.getElementRefById(
+                                fromSupplier ? connector.GetClientID() : connector.GetSupplierID());
+                        if (relType.isInstance(elementRef)) {
+                            result.add(relType.cast(elementRef));
+                        } else {
+                            if (fromSupplier) {
+                                LOG.warn("Unexpected {} relation from {} to {} {}", () -> stereotype,
+                                        elementRef::getEaDesc, relType::getCanonicalName, element::GetName);
+                            } else {
+                                LOG.warn("Unexpected {} relation from {} {} to {}", () -> stereotype,
+                                        relType::getCanonicalName, element::GetName, elementRef::getEaDesc);
+                            }
                         }
                     }
                 } finally {
@@ -571,30 +584,19 @@ class EaLoaderImpl {
         return result;
     }
 
+    private List<EaElementRef> getTechnicalPackageFunctions(Element element, EaRepository eaRepository) {
+        return getRelElements(element, eaRepository, false, "Association",
+                "ArchiMate_Association", EaElementRef.class);
+    }
+
     private List<EaProductPackageRef> getTechnicalPackageContainedIn(Element element, EaRepository eaRepository) {
-        var result = new ArrayList<EaProductPackageRef>(10);
-        var connectors = element.GetConnectors();
-        try {
-            for (var connector : connectors) {
-                try {
-                    if (connector.GetStereotype().equals("ArchiMate_Aggregation")) {
-                        var elementRef = eaRepository.getElementRefById(connector.GetClientID());
-                        if (elementRef instanceof EaProductPackageRef) {
-                            result.add((EaProductPackageRef) elementRef);
-                        } else {
-                            LOG.warn("Unexpected aggregation relation from {} to product package {}",
-                                    elementRef::getEaDesc, element::GetName);
-                        }
-                    }
-                } finally {
-                    connector.destroy();
-                }
-            }
-        } finally {
-            connectors.destroy();
-        }
-        result.sort(null);
-        return result;
+        return getRelElements(element, eaRepository, true, "Association",
+                "ArchiMate_Aggregation", EaProductPackageRef.class);
+    }
+
+    private List<EaTechnicalPackageRef> getTechnicalPackagePrerequisities(Element element, EaRepository eaRepository) {
+        return getRelElements(element, eaRepository, true, "Dependency", "",
+                EaTechnicalPackageRef.class);
     }
 
     @Nonnull
@@ -608,7 +610,8 @@ class EaLoaderImpl {
             }
             return new EaTechnicalPackage(elementRef, element.GetNotes(), diagrams,
                     getTechnicalPackageFunctions(element, elementRef.getRepository()),
-                    getTechnicalPackageContainedIn(element, elementRef.getRepository()));
+                    getTechnicalPackageContainedIn(element, elementRef.getRepository()),
+                    getTechnicalPackagePrerequisities(element, elementRef.getRepository()));
         } finally {
             element.destroy();
         }

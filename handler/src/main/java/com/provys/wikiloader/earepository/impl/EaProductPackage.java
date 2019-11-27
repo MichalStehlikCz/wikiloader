@@ -6,6 +6,8 @@ import com.provys.wikiloader.earepository.EaDiagramRef;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Represents product package, modelled by element with stereotype ArchiMate_Product
@@ -24,13 +26,42 @@ class EaProductPackage extends EaLeafElementBase<EaProductPackageRef> {
         return technicalPackages;
     }
 
+    List<EaTechnicalPackageRef> getTechPrerequisities() {
+        return getTechnicalPackages().stream()
+                .flatMap(techPackage -> techPackage.getObject().getPrerequisities().stream())
+                .filter(techPackage -> !technicalPackages.contains(techPackage))
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+    }
+
     @Nonnull
     Exporter getExporter(ProvysWikiClient wikiClient) {
         return new EaProductPackageExporter(this, wikiClient);
     }
 
     @Nonnull
+    @Override
     public String getTitle() {
         return getName() + " Package";
+    }
+
+    @Override
+    public boolean equals(@Nullable Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        EaProductPackage that = (EaProductPackage) o;
+        return Objects.equals(technicalPackages, that.technicalPackages);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), technicalPackages);
+    }
+
+    @Override
+    public String toString() {
+        return "EaProductPackage{} " + super.toString();
     }
 }

@@ -11,7 +11,7 @@ abstract class EaElementRefBase extends EaObjectRefBase implements EaElementRef 
 
     EaElementRefBase(EaRepositoryImpl repository, @Nullable EaObjectRefBase parent, String name, @Nullable String alias,
                      String type, @Nullable String stereotype, int treePos, int elementId) {
-        super(repository, parent, name, alias, type, stereotype, treePos);
+        super(repository, parent, name, alias, type, stereotype, treePos - 1000); // elements are moved before packages...
         Objects.requireNonNull(parent);
         this.elementId = elementId;
     }
