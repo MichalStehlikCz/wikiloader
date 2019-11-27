@@ -1,4 +1,0 @@
-@ParametersAreNonnullByDefault
-package com.provys.wikiloader.elementhandlers;
-
-import javax.annotation.ParametersAreNonnullByDefault;

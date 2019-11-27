@@ -1,7 +1,7 @@
 package com.provys.wikiloader.impl;
 
 import com.provys.provyswiki.ProvysWikiClient;
-import org.sparx.Repository;
+import com.provys.wikiloader.earepository.EaRepository;
 
 import javax.annotation.Nullable;
 import javax.enterprise.context.ApplicationScoped;
@@ -14,25 +14,15 @@ import java.util.Objects;
 @ApplicationScoped
 public class WikiLoader {
 
-    private final ElementHandlerFactory elementHandlerFactory;
+    private final EaRepository eaRepository;
 
+    @SuppressWarnings("CdiUnproxyableBeanTypesInspection")
     @Inject
-    public WikiLoader(ElementHandlerFactory elementHandlerFactory) {
-        this.elementHandlerFactory = Objects.requireNonNull(elementHandlerFactory);
+    public WikiLoader(EaRepository eaRepository) {
+        this.eaRepository = Objects.requireNonNull(eaRepository);
     }
 
-    public void run(Repository eaRepository, ProvysWikiClient wikiClient, @Nullable String path, boolean recursive) {
-        new RunHandler(eaRepository, wikiClient, elementHandlerFactory, path, recursive).run();
-/*        var diagram = eaRepository.GetDiagramByID(98);
-        var diagramHandler = new DiagramHandler(diagram);
-        diagramHandler.sync(wikiClient, linkResolver);*/
-/*
-        DocumentGenerator documentGenerator = eaRepository.CreateDocumentGenerator();
-        documentGenerator.NewDocument("");
-        if (!documentGenerator.DocumentDiagram(90, 0, "Diagram Export")) {
-            throw new RuntimeException("Error inserting diagram: " + documentGenerator.GetLastError());
-        }
-        documentGenerator.SaveDocument("c:\\temp\\document.html", 1);
-        documentGenerator.destroy();*/
+    public void run(ProvysWikiClient wikiClient, @Nullable String path, boolean recursive) {
+        eaRepository.getObjectRefByPath(path).getObject().sync(wikiClient, recursive);
     }
 }
