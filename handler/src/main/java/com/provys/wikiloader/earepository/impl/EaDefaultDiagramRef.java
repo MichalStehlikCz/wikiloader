@@ -3,7 +3,6 @@ package com.provys.wikiloader.earepository.impl;
 import com.provys.common.exception.InternalException;
 import com.provys.wikiloader.earepository.EaDiagramRef;
 import com.provys.wikiloader.earepository.EaObject;
-import com.provys.wikiloader.earepository.EaObjectRef;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -50,13 +49,19 @@ class EaDefaultDiagramRef extends EaObjectRefBase implements EaDiagramRef {
     @Override
     @Nonnull
     public Optional<String> getTopicId() {
-        if (getAlias().isEmpty()) {
+        var alias = getAlias();
+        if (alias.isEmpty()) {
             return Optional.empty();
         }
-        return getParent()
-                .map(EaObjectRef::getNamespace) // get namespace from parent
-                .orElse(Optional.of("")) // if no parent, use "" as prefix
-                .map(ns -> ns + ":" + getAlias().get()); // append this topic's alias
+        var parent = getParent().orElseThrow(); // parent is always specified for diagram
+        if (!parent.isTopic()) { /// parent not topic -> we are not topic
+            return Optional.empty();
+        }
+        var parentNs = parent.getNamespace();
+        if (parentNs.isEmpty()) {
+            return Optional.of(parent.getTopicId().orElseThrow() + '.' + alias); // append . + alias to parent topic
+        }
+        return Optional.of(parentNs.get() + ":" + alias.get()); // append this topic's alias
     }
 
     @Override
@@ -67,11 +72,18 @@ class EaDefaultDiagramRef extends EaObjectRefBase implements EaDiagramRef {
 
     @Override
     public void appendNamespace(StringBuilder builder, boolean trailingColon) {
-        throw new InternalException(LOG, "Diagram cannot is not exported as namespace " + this);
+        throw new InternalException(LOG, "Diagram cannot be exported as namespace " + this);
     }
 
     @Override
     public void appendParentLinkNoCheck(StringBuilder builder, boolean leadingDot) {
+        var parent = getParent().orElseThrow();
+        if (parent.getNamespace().isEmpty()) {
+            // diagram under element with no namespace
+            parent.appendParentLink(builder);
+            builder.append('.').append(getAlias().orElseThrow());
+            return;
+        }
         builder.append(getAlias().orElseThrow());
     }
 

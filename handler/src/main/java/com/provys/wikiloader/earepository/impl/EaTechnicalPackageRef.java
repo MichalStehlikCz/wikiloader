@@ -4,7 +4,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 @SuppressWarnings("squid:S2160") // package is only cached -> no need to include it in equals
-class EaTechnicalPackageRef extends EaDefaultElementRef implements EaItemRef {
+class EaTechnicalPackageRef extends EaNamespaceElementRef implements EaItemRef {
 
     @Nullable
     private EaTechnicalPackage technicalPackage;
@@ -12,7 +12,7 @@ class EaTechnicalPackageRef extends EaDefaultElementRef implements EaItemRef {
     EaTechnicalPackageRef(EaRepositoryImpl repository, @Nullable EaObjectRefBase parent, String name,
                         @Nullable String alias, int treePos, int elementId) {
         super(repository, parent, name, alias, "ApplicationComponent", "ArchiMate_ApplicationComponent",
-                treePos, elementId,false);
+                treePos, elementId);
     }
 
     private synchronized void loadObject() {

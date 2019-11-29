@@ -37,7 +37,7 @@ class TestEaObjectRef extends EaObjectRefBase {
     @Override
     @Nonnull
     public Optional<String> getNamespace() {
-        return getAlias().map(alias -> alias + ":");
+        return getAlias().map(alias -> alias);
     }
 
     @Override

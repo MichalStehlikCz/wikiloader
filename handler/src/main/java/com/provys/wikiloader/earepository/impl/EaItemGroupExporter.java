@@ -6,7 +6,7 @@ import javax.annotation.Nonnull;
 import java.util.ArrayList;
 
 class EaItemGroupExporter<E extends EaItemRef, R extends EaItemGroupRef<E, R, G>,
-        G extends EaItemGroup<E, R, G>> extends EaParentExporter<G> {
+        G extends EaItemGroup<E, R, G>> extends EaPackageExporter<R, G> {
 
     EaItemGroupExporter(G eaObject, ProvysWikiClient wikiClient) {
         super(eaObject, wikiClient);
