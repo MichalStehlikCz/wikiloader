@@ -1,6 +1,9 @@
 package com.provys.wikiloader.earepository.impl;
 
+import com.provys.common.exception.InternalException;
 import com.provys.wikiloader.earepository.EaObjectRef;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -13,17 +16,13 @@ import java.util.Optional;
 abstract class EaUGTopicRef<R extends EaUGTopicRef<R, T>, T extends EaUGTopic<R, T>>
         extends EaCachedLeafElementRef<R, T> implements EaItemRef {
 
+    private static final Logger LOG = LogManager.getLogger(EaUGTopicRef.class);
+
     private static final String USER_GUIDE_POSTFIX = "user_guide";
 
     EaUGTopicRef(EaRepositoryImpl repository, EaObjectRefBase parent, String name, @Nullable String alias,
                  String type, @Nullable String stereotype, int treePos, int elementId) {
         super(repository, parent, name, alias, type, stereotype, treePos, elementId);
-    }
-
-    @Nonnull
-    @Override
-    public String getTitleInGroup() {
-        return getName();
     }
 
     /**
@@ -44,11 +43,11 @@ abstract class EaUGTopicRef<R extends EaUGTopicRef<R, T>, T extends EaUGTopic<R,
     @Nonnull
     Optional<String> getUserGuideTopicId() {
         return getUserGuideTopicName()
-                .map(alias ->
+                .flatMap(topicName ->
                         getParent()
                                 .map(EaObjectRef::getNamespace) // get namespace from parent
-                                .orElse(Optional.of(""))        // if no parent, use "" as prefix)
-                                + ":" + alias);
+                                .orElseThrow(() -> new InternalException(LOG, "User guide topic should have parent")) // if no parent, use "" as prefix)
+                                .map(ns -> ns + ":" + topicName));
     }
 
     @Override

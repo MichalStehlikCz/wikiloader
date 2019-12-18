@@ -3,6 +3,7 @@ package com.provys.wikiloader.earepository.impl;
 import com.provys.provyswiki.ProvysWikiClient;
 import com.provys.wikiloader.earepository.EaDiagramRef;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 
@@ -16,6 +17,7 @@ class EaMeaning extends EaUGTopic<EaMeaningRef, EaMeaning> {
         super(objectRef, notes, diagrams, includedIn);
     }
 
+    @Nonnull
     @Override
     Exporter getExporter(ProvysWikiClient wikiClient) {
         return new EaMeaningExporter(this, wikiClient);

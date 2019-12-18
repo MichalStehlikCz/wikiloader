@@ -4,6 +4,7 @@ import com.provys.provyswiki.ProvysWikiClient;
 import com.provys.wikiloader.earepository.EaDiagramRef;
 import com.provys.wikiloader.earepository.EaElementRef;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 
@@ -13,6 +14,7 @@ class EaFunctionAbstract extends EaParentBase<EaFunctionAbstractRef, EaDiagramRe
         super(objectRef, notes, diagrams, elements);
     }
 
+    @Nonnull
     @Override
     Exporter getExporter(ProvysWikiClient wikiClient) {
         return new EaFunctionAbstractExporter(this, wikiClient);

@@ -66,7 +66,7 @@ public class WikiLoaderCliApplication implements Runnable {
     @CommandLine.Option(names = {"-l", "--logfile"}, description = "Log file")
     private File logFile;
 
-    @CommandLine.Option(names = {"--loglevel"}, description = "Log level", defaultValue = "ERROR")
+    @CommandLine.Option(names = {"--loglevel"}, description = "Log level", defaultValue = "WARN")
     private Level logLevel;
 
     /**

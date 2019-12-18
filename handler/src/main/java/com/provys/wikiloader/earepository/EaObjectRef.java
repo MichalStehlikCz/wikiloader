@@ -29,6 +29,19 @@ public interface EaObjectRef extends Comparable<EaObjectRef> {
     String getName();
 
     /**
+     * @return title of main page of given object on wiki
+     */
+    @Nonnull
+    String getTitle();
+
+    /**
+     * @return short title of topic; used on  wiki in context of given guide (e.g. title often includes information
+     * about object type, short title is usually just object name)
+     */
+    @Nonnull
+    String getShortTitle();
+
+    /**
      * @return alias of given object
      */
     @Nonnull

@@ -99,7 +99,7 @@ class EaObjectRegularExporter<T extends EaObject> implements Exporter {
      * Append notes.
      */
     void appendNotes() {
-        getEaObject().getNotes().ifPresent(startBuilder::append);
+        getEaObject().getNotes().ifPresent(notes -> startBuilder.append(notes).append("\n"));
     }
 
     /**

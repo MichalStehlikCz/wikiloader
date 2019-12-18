@@ -15,6 +15,12 @@ class EaTechnicalPackageRef extends EaNamespaceElementRef implements EaItemRef {
                 treePos, elementId);
     }
 
+    @Nonnull
+    @Override
+    public String getTitle() {
+        return getName() + " Technical Package";
+    }
+
     private synchronized void loadObject() {
         if (technicalPackage == null) {
             technicalPackage = getRepository().getLoader().loadTechnicalPackage(this);
@@ -29,12 +35,6 @@ class EaTechnicalPackageRef extends EaNamespaceElementRef implements EaItemRef {
         }
         assert (technicalPackage != null);
         return technicalPackage;
-    }
-
-    @Nonnull
-    @Override
-    public String getTitleInGroup() {
-        return getName();
     }
 
     @Override

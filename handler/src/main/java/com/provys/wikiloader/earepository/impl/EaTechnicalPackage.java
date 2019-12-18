@@ -40,14 +40,9 @@ class EaTechnicalPackage extends EaLeafElementBase<EaTechnicalPackageRef> {
     }
 
     @Nonnull
+    @Override
     Exporter getExporter(ProvysWikiClient wikiClient) {
         return new EaTechnicalPackageExporter(this, wikiClient);
-    }
-
-    @Nonnull
-    @Override
-    public String getTitle() {
-        return getName() + " Technical Package";
     }
 
     @Override

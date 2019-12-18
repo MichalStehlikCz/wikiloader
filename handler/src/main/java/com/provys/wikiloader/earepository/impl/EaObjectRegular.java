@@ -13,6 +13,7 @@ class EaObjectRegular extends EaObjectRegularBase<EaObjectRef> {
     }
 
     @Nonnull
+    @Override
     Exporter getExporter(ProvysWikiClient wikiClient) {
         return new EaObjectRegularExporter<>(this, wikiClient);
     }

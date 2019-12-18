@@ -2,6 +2,8 @@ package com.provys.wikiloader.earepository;
 
 import javax.annotation.Nonnull;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
 
 /**
  * Represents item in object set
@@ -15,24 +17,13 @@ public interface WikiSetObject {
      * @return topic name
      */
     @Nonnull
-    String getName();
+    String getTitle();
 
     /**
-     * Append text that should be inserted to wiki (only link / name, without ident and bullet)
-     *
-     * @param builder is builder text should be appended to
+     * @return ordered list of children of this set object
      */
-    void appendWikiText(StringBuilder builder);
-
+    @Nonnull
     List<WikiSetObject> getChildren();
-
-    /**
-     * Append content, produced by this set to StringBuilder
-     *
-     * @param builder is StringBuilder used to capture content
-     * @param level is ident level (0 means two spaces before *)
-     */
-    void appendContent(StringBuilder builder, int level);
 
     /**
      * Append content, produced by this set to StringBuilder; variant for top level (level = 0)
@@ -40,4 +31,12 @@ public interface WikiSetObject {
      * @param builder is StringBuilder used to capture content
      */
     void appendContent(StringBuilder builder);
+
+    /**
+     * Append content, produced by this set to StringBuilder; variant with function used to retrieve link from EA topic
+     *
+     * @param builder is StringBuilder content will be appended to
+     * @param linkFunction is function used to extract topic id from EA topic reference
+     */
+    void appendContent(StringBuilder builder, Function<EaObjectRef, Optional<String>> linkFunction);
 }

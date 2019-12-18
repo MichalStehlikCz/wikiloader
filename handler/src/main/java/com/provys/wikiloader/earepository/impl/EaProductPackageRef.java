@@ -14,6 +14,12 @@ class EaProductPackageRef extends EaNamespaceElementRef implements EaItemRef {
         super(repository, parent, name, alias, "Product", "ArchiMate_Product", treePos, elementId);
     }
 
+    @Nonnull
+    @Override
+    public String getTitle() {
+        return getName() + " Package";
+    }
+
     private synchronized void loadObject() {
         if (productPackage == null) {
             productPackage = getRepository().getLoader().loadProductPackage(this);
@@ -28,12 +34,6 @@ class EaProductPackageRef extends EaNamespaceElementRef implements EaItemRef {
         }
         assert (productPackage != null);
         return productPackage;
-    }
-
-    @Nonnull
-    @Override
-    public String getTitleInGroup() {
-        return getName();
     }
 
     @Override

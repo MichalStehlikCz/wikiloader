@@ -41,20 +41,12 @@
             <artifactId>log4j-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.oracle</groupId>
-            <artifactId>ojdbc8</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.sparx</groupId>
             <artifactId>eaapi</artifactId>
         </dependency>
         <dependency>
             <groupId>com.provys.common</groupId>
             <artifactId>common-exception</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.provys</groupId>
-            <artifactId>provysdb</artifactId>
         </dependency>
         <dependency>
             <groupId>com.provys.catalogue</groupId>
@@ -67,6 +59,10 @@
         <dependency>
             <groupId>com.provys.catalogue</groupId>
             <artifactId>catalogue-dbloader</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.provys.provysdb</groupId>
+            <artifactId>dbcontext</artifactId>
         </dependency>
         <dependency>
             <groupId>com.provys.wikiloader</groupId>
