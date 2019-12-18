@@ -6,6 +6,8 @@ import com.provys.wikiloader.earepository.EaObjectRef;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 class EaTechnicalPackageExporter extends EaObjectRegularExporter<EaTechnicalPackage> {
@@ -27,8 +29,8 @@ class EaTechnicalPackageExporter extends EaObjectRegularExporter<EaTechnicalPack
     private static final String EXPORTS = "export:package_";
     private static final String EXPORT_SETTINGS_QUESTIONNAIRE_POSTFIX = "_sq";
     private static final String EXPORT_USER_GUIDE_POSTFIX = "_ug";
-    private static final String EXPORT_TRAINING_GUIDE_POSTFIX = "_tg";
-    private static final String EXPORT_TRAINING_GUIDE_SHORT_POSTFIX = "_tgnoug";
+    private static final String EXPORT_FULL_TRAINING_GUIDE_POSTFIX = "_tg";
+    private static final String EXPORT_TRAINING_GUIDE_POSTFIX = "_tgnoug";
 
     private boolean hasMigration = false;
     private boolean hasSettingsQuestionnaire = false;
@@ -66,7 +68,7 @@ class EaTechnicalPackageExporter extends EaObjectRegularExporter<EaTechnicalPack
     private void appendProductPackageLink(EaProductPackageRef productPackage) {
         startBuilder.append("[[");
         productPackage.appendLink(startBuilder);
-        startBuilder.append("|").append(productPackage.getTitleInGroup()).append("]]");
+        startBuilder.append("|").append(productPackage.getShortTitle()).append("]]");
     }
 
     private void appendContainedIn() {
@@ -88,7 +90,7 @@ class EaTechnicalPackageExporter extends EaObjectRegularExporter<EaTechnicalPack
     private void appendTechnicalPackageLink(EaTechnicalPackageRef technicalPackage) {
         startBuilder.append("[[");
         technicalPackage.appendLink(startBuilder);
-        startBuilder.append("|").append(technicalPackage.getTitleInGroup()).append("]]");
+        startBuilder.append("|").append(technicalPackage.getShortTitle()).append("]]");
     }
 
     private void appendPrerequisities() {
@@ -136,11 +138,11 @@ class EaTechnicalPackageExporter extends EaObjectRegularExporter<EaTechnicalPack
                     .append(EXPORT_SETTINGS_QUESTIONNAIRE_POSTFIX).append("|Settings questionnaire]]\n");
         }
         startBuilder.append("  * [[").append(EXPORTS).append(getEaObject().getAlias())
-                .append(EXPORT_USER_GUIDE_POSTFIX).append("|User guide]]\n")
+                .append(EXPORT_USER_GUIDE_POSTFIX).append("|User Guide]]\n")
                 .append("  * [[").append(EXPORTS).append(getEaObject().getAlias())
-                .append(EXPORT_TRAINING_GUIDE_POSTFIX).append("|Training guide]]\n")
+                .append(EXPORT_FULL_TRAINING_GUIDE_POSTFIX).append("|Full Training Guide]]\n")
                 .append("  * [[").append(EXPORTS).append(getEaObject().getAlias())
-                .append(EXPORT_TRAINING_GUIDE_SHORT_POSTFIX).append("|Training guide without user guide]]\n")
+                .append(EXPORT_TRAINING_GUIDE_POSTFIX).append("|Short Training Guide]]\n")
                 .append("\n");
         startBuilder.append("===== Settings =====\n");
         if (hasSettingsQuestionnaire) {
@@ -266,23 +268,79 @@ class EaTechnicalPackageExporter extends EaObjectRegularExporter<EaTechnicalPack
                 "====== Settings for Package " + getEaObject().getName() + " ======\n");
     }
 
-    private void exportExports() {
+    private static Optional<String> getUserGuideTopicId(EaObjectRef objectRef) {
+        if (objectRef instanceof EaUGTopicRef) {
+            return ((EaUGTopicRef<?, ?>) objectRef).getUserGuideTopicId();
+        }
+        return Optional.empty();
+    }
+
+    private void appendOutput(StringBuilder builder, String postfix) {
+        builder.append('\n')
+                .append("====== Output ======\n")
+                .append("Exported document: {{:").append(EXPORTS).append(getEaObject().getAlias())
+                .append(postfix).append(".docx}} \\\\\n")
+                .append("Log: {{:").append(EXPORTS).append(getEaObject().getAlias())
+                .append(postfix).append(".log}} \\\n");
+        getWikiClient().putGeneratedPage(EXPORTS + getEaObject().getAlias() + postfix,
+                builder.toString());
+    }
+
+    private void exportUserGuide() {
         var builder = new StringBuilder()
                 .append("====== ").append(getEaObject().getName()).append(" - User Guide ======\n");
         var functionContent = getEaObject().getRepository().getWikiSetBuilder()
                 .setThreshold(3)
                 .addEaObjects(getEaObject().getFunctions()).build();
         for (var contentObject : functionContent) {
-            contentObject.appendContent(builder);
+            contentObject.appendContent(builder, EaTechnicalPackageExporter::getUserGuideTopicId);
         }
-        builder.append('\n')
-                .append("====== Output ======\n")
-                .append("Exported document: {{:").append(EXPORTS).append(getEaObject().getAlias())
-                .append(EXPORT_USER_GUIDE_POSTFIX).append(".docx}} \\\\\n")
-                .append("Log: {{:").append(EXPORTS).append(getEaObject().getAlias())
-                .append(EXPORT_USER_GUIDE_POSTFIX).append(".log}} \\\n");
-        getWikiClient().putGeneratedPage(EXPORTS + getEaObject().getAlias() + EXPORT_USER_GUIDE_POSTFIX,
-                builder.toString());
+        appendOutput(builder, EXPORT_USER_GUIDE_POSTFIX);
+    }
+
+    private static Optional<String> getFullTrainingGuideTopicId(EaObjectRef objectRef) {
+        if (objectRef instanceof EaFunctionTaskRef) {
+            return ((EaFunctionTaskRef) objectRef).getFullTrainingGuideTopicId();
+        } else if (objectRef instanceof EaUGTopicRef) {
+            return ((EaUGTopicRef<?, ?>) objectRef).getUserGuideTopicId();
+        }
+        return Optional.empty();
+    }
+
+    private void exportFullTrainingGuide() {
+        var builder = new StringBuilder()
+                .append("====== ").append(getEaObject().getName()).append(" - Full Training Guide ======\n");
+        var functionContent = getEaObject().getRepository().getWikiSetBuilder()
+                .setThreshold(3)
+                .addEaObjects(getEaObject().getFunctions()).build();
+        for (var contentObject : functionContent) {
+            contentObject.appendContent(builder, EaTechnicalPackageExporter::getFullTrainingGuideTopicId);
+        }
+        appendOutput(builder, EXPORT_FULL_TRAINING_GUIDE_POSTFIX);
+    }
+
+    private static Optional<String> getTrainingGuideTopicId(EaObjectRef objectRef) {
+        if (objectRef instanceof EaFunctionTaskRef) {
+            return ((EaFunctionTaskRef) objectRef).getTrainingGuideTopicId();
+        }
+        return Optional.empty();
+    }
+
+    private void exportTrainingGuide() {
+        var builder = new StringBuilder()
+                .append("====== ").append(getEaObject().getName()).append(" - Full Training Guide ======\n");
+        var functionContent = getEaObject().getRepository().getWikiSetBuilder()
+                .setThreshold(3)
+                .addEaObjects(getEaObject()
+                        .getFunctions()
+                        .stream()
+                        .filter(eaElementRef -> (eaElementRef instanceof EaFunctionTaskRef))
+                        .collect(Collectors.toList()))
+                .build();
+        for (var contentObject : functionContent) {
+            contentObject.appendContent(builder, EaTechnicalPackageExporter::getTrainingGuideTopicId);
+        }
+        appendOutput(builder, EXPORT_TRAINING_GUIDE_POSTFIX);
     }
 
     private void exportRelated() {
@@ -297,7 +355,9 @@ class EaTechnicalPackageExporter extends EaObjectRegularExporter<EaTechnicalPack
         exportMigration();
         exportSettingsQuestionnaire();
         exportSettings(namespace);
-        exportExports();
+        exportUserGuide();
+        exportFullTrainingGuide();
+        exportTrainingGuide();
         exportRelated();
         super.syncNamespace(namespace);
     }

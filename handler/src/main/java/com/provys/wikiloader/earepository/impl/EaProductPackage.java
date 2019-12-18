@@ -36,14 +36,9 @@ class EaProductPackage extends EaLeafElementBase<EaProductPackageRef> {
     }
 
     @Nonnull
+    @Override
     Exporter getExporter(ProvysWikiClient wikiClient) {
         return new EaProductPackageExporter(this, wikiClient);
-    }
-
-    @Nonnull
-    @Override
-    public String getTitle() {
-        return getName() + " Package";
     }
 
     @Override

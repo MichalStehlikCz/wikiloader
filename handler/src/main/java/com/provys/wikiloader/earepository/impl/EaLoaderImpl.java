@@ -114,21 +114,54 @@ class EaLoaderImpl {
                 element.GetAlias(), element.GetTreePos(), element.GetElementID());
     }
 
-    private EaDefaultElementRef createEaRefDefaultElement(Element element, EaRepositoryImpl eaRepository) {
+    private EaMeaningRef loadEaMeaningRef(Element element, EaRepositoryImpl eaRepository) {
+        return new EaMeaningRef(eaRepository, getElementParent(element, eaRepository), element.GetName(),
+                element.GetAlias(), element.GetTreePos(), element.GetElementID());
+    }
+
+    private EaElementRefBase loadEaFunctionRef(Element element, EaRepositoryImpl eaRepository) {
         boolean leaf = true;
         var subElements = element.GetElements();
-        if (subElements.GetCount() > 0) {
-            leaf = false;
+        try {
+            if (subElements.GetCount() > 0) {
+                leaf = false;
+            }
+        } finally {
+            subElements.destroy();
         }
-        subElements.destroy();
-        var diagrams = element.GetDiagrams();
-        if (diagrams.GetCount() > 0) {
-            leaf = false;
+        if (leaf) {
+            return new EaFunctionTaskRef(eaRepository, getElementParent(element, eaRepository), element.GetName(),
+                    element.GetAlias(), element.GetTreePos(), element.GetElementID());
+        } else {
+            return new EaFunctionAbstractRef(eaRepository, getElementParent(element, eaRepository), element.GetName(),
+                    element.GetAlias(), element.GetTreePos(), element.GetElementID());
         }
-        diagrams.destroy();
-        return new EaDefaultElementRef(eaRepository, getElementParent(element, eaRepository), element.GetName(),
-                element.GetAlias(), element.GetType(), element.GetStereotype(), element.GetTreePos(),
-                element.GetElementID(), leaf);
+    }
+
+    private EaDataObjectRef loadEaDataObjectRef(Element element, EaRepositoryImpl eaRepository) {
+        return new EaDataObjectRef(eaRepository, getElementParent(element, eaRepository), element.GetName(),
+                element.GetAlias(), element.GetTreePos(), element.GetElementID());
+    }
+
+    private EaElementRefBase loadEaDefaultElementRef(Element element, EaRepositoryImpl eaRepository) {
+        boolean leaf = true;
+        var subElements = element.GetElements();
+        try {
+            if (subElements.GetCount() > 0) {
+                leaf = false;
+            }
+        } finally {
+            subElements.destroy();
+        }
+        if (leaf) {
+            return new EaLeafElementRef(eaRepository, getElementParent(element, eaRepository), element.GetName(),
+                    element.GetAlias(), element.GetType(), element.GetStereotype(), element.GetTreePos(),
+                    element.GetElementID());
+        } else {
+            return new EaNamespaceElementRef(eaRepository, getElementParent(element, eaRepository), element.GetName(),
+                    element.GetAlias(), element.GetType(), element.GetStereotype(), element.GetTreePos(),
+                    element.GetElementID());
+        }
     }
 
     /**
@@ -152,8 +185,14 @@ class EaLoaderImpl {
                     .filter(stereotype -> stereotype.equals("provys_technical_package_group"))
                     .isPresent()) {
                 return loadEaTechnicalPackageRef(element, eaRepository);
+            } else if (element.GetStereotype().equals("ArchiMate_Meaning")) {
+                return loadEaMeaningRef(element, eaRepository);
+            } else if (element.GetStereotype().equals("ArchiMate_BusinessService")) {
+                return loadEaFunctionRef(element, eaRepository);
+            } else if (element.GetStereotype().equals("ArchiMate_DataObject")) {
+                return loadEaDataObjectRef(element, eaRepository);
             } else {
-                return createEaRefDefaultElement(element, eaRepository);
+                return loadEaDefaultElementRef(element, eaRepository);
             }
         } finally {
             element.destroy();
@@ -425,9 +464,9 @@ class EaLoaderImpl {
         }
     }
 
-    private static <E extends EaDefaultElementRef> List<E> getPackageGroupElements(Package pkg,
-                                                                                   EaItemGroupRef packageGroupRef,
-                                                                                   Class<E> clazz) {
+    private static <E extends EaNamespaceElementRef> List<E> getPackageGroupElements(Package pkg,
+                                                                                     EaItemGroupRef packageGroupRef,
+                                                                                     Class<E> clazz) {
         return getElements(pkg::GetElements, packageGroupRef.getRepository())
                 .stream()
                 .filter(elementRef -> (!elementRef.isIgnoredType())) // we can safely ignore boundaries and similar
@@ -497,7 +536,7 @@ class EaLoaderImpl {
     EaParentBase loadDefaultPackage(EaPackageRef packageRef) {
         var pkg = repository.GetPackageByID(packageRef.getPackageId());
         try {
-            return new EaParent(packageRef, pkg.GetNotes(),
+            return new EaPackage(packageRef, pkg.GetNotes(),
                     getDiagrams(pkg::GetDiagrams, packageRef.getRepository()),
                     getElements(pkg::GetElements, packageRef.getRepository()),
                     getPackages(pkg::GetPackages, packageRef.getRepository()));
@@ -617,7 +656,45 @@ class EaLoaderImpl {
         }
     }
 
-    private EaObject loadDataObject(EaElementRef elementRef) {
+    private List<EaTechnicalPackageRef> getUGTopicIncludedIn(Element element, EaRepository eaRepository) {
+        return getRelElements(element, eaRepository, true, "Association",
+                "ArchiMate_Association", EaTechnicalPackageRef.class);
+    }
+
+    @Nonnull
+    EaMeaning loadMeaning(EaMeaningRef elementRef) {
+        var element = repository.GetElementByID(elementRef.getElementId());
+        try {
+            var diagrams = getDiagrams(element::GetDiagrams, elementRef.getRepository());
+            if (hasElements(element::GetElements)) {
+                LOG.warn("Elements under ArchiMate_Meaning element {} are ignored - Meaning should be leaf",
+                        element::GetName);
+            }
+            return new EaMeaning(elementRef, element.GetNotes(), diagrams,
+                    getUGTopicIncludedIn(element, elementRef.getRepository()));
+        } finally {
+            element.destroy();
+        }
+    }
+
+    @Nonnull
+    EaFunctionTask loadFunctionTask(EaFunctionTaskRef elementRef) {
+        var element = repository.GetElementByID(elementRef.getElementId());
+        try {
+            var diagrams = getDiagrams(element::GetDiagrams, elementRef.getRepository());
+            if (hasElements(element::GetElements)) {
+                throw new InternalException(LOG, "BusinessService element " + element.GetName() +
+                        "with children should map to FunctionAbstract, not FunctionTask");
+            }
+            return new EaFunctionTask(elementRef, element.GetNotes(), diagrams,
+                    getUGTopicIncludedIn(element, elementRef.getRepository()));
+        } finally {
+            element.destroy();
+        }
+    }
+
+    @Nonnull
+    EaDataObject loadDataObject(EaElementRef elementRef) {
         var element = repository.GetElementByID(elementRef.getElementId());
         try {
             if (hasDiagrams(element::GetDiagrams)) {
@@ -638,28 +715,26 @@ class EaLoaderImpl {
         }
     }
 
-    private EaObject loadDefaultElement(EaElementRef elementRef) {
+    @Nonnull
+    EaLeafElement loadLeafElement(EaLeafElementRef elementRef) {
         var element = repository.GetElementByID(elementRef.getElementId());
         try {
             var diagrams = getDiagrams(element::GetDiagrams, elementRef.getRepository());
-            var elements = getElements(element::GetElements, elementRef.getRepository());
-            if (diagrams.isEmpty() && elements.isEmpty()) {
-                return new EaObjectRegular(elementRef, element.GetNotes());
-            } else {
-                return new EaParent(elementRef, element.GetNotes(), diagrams, elements, null);
-            }
+            return new EaLeafElement(elementRef, element.GetNotes(), diagrams);
         } finally {
             element.destroy();
         }
     }
 
     @Nonnull
-    EaObject loadElement(EaElementRef elementRef) {
-        switch (elementRef.getStereotype().orElse("")) {
-            case "ArchiMate_DataObject":
-                return loadDataObject(elementRef);
-            default:
-                return loadDefaultElement(elementRef);
+    EaObject loadNamespaceElement(EaNamespaceElementRef elementRef) {
+        var element = repository.GetElementByID(elementRef.getElementId());
+        try {
+            var diagrams = getDiagrams(element::GetDiagrams, elementRef.getRepository());
+            var elements = getElements(element::GetElements, elementRef.getRepository());
+            return new EaNamespaceElement(elementRef, element.GetNotes(), diagrams, elements);
+        } finally {
+            element.destroy();
         }
     }
 }

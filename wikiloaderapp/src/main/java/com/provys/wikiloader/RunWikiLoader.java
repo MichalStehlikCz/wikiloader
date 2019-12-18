@@ -134,11 +134,17 @@ public class RunWikiLoader implements Runnable {
         if (eaAddress == null) {
             throw new IllegalStateException("Enterprise Architect repository address is not specified");
         }
-        ConfigProviderResolver.instance().registerConfig(
-                ConfigProviderResolver.instance().getBuilder().forClassLoader(getClass().getClassLoader())
-                        .withSources(new CommandLineParamsSource(provysAddress, provysUser, provysPwd, eaAddress))
-                        .build(),
-                getClass().getClassLoader());
+        var config = ConfigProviderResolver.instance().getConfig();
+        if (config != null) {
+            ConfigProviderResolver.instance().releaseConfig(config);
+        }
+        config = ConfigProviderResolver.instance()
+                .getBuilder()
+                .addDefaultSources()
+                .withSources(new CommandLineParamsSource(provysAddress, provysUser, provysPwd, eaAddress))
+                .addDiscoveredConverters()
+                .build();
+        ConfigProviderResolver.instance().registerConfig(config, getClass().getClassLoader());
         wikiLoader.run(getWikiClient(), path, recursive);
         LOG.info("Synchronisation of Enterprise Architect models to wiki finished");
     }

@@ -56,6 +56,18 @@ abstract class EaObjectRefBase implements EaObjectRef {
         return name;
     }
 
+    @Nonnull
+    @Override
+    public String getTitle() {
+        return getName();
+    }
+
+    @Nonnull
+    @Override
+    public String getShortTitle() {
+        return getName();
+    }
+
     @Override
     @Nonnull
     public Optional<String> getAlias() {

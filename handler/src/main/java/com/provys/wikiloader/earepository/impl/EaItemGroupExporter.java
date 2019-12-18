@@ -6,7 +6,7 @@ import javax.annotation.Nonnull;
 import java.util.ArrayList;
 
 class EaItemGroupExporter<E extends EaItemRef, R extends EaItemGroupRef<E, R, G>,
-        G extends EaItemGroup<E, R, G>> extends EaParentExporter<G> {
+        G extends EaItemGroup<E, R, G>> extends EaPackageExporter<R, G> {
 
     EaItemGroupExporter(G eaObject, ProvysWikiClient wikiClient) {
         super(eaObject, wikiClient);
@@ -35,7 +35,7 @@ class EaItemGroupExporter<E extends EaItemRef, R extends EaItemGroupRef<E, R, G>
         private void appendElementToContent(E element, int level) {
             builder.append(String.format("%" + (level * 2 + 10) + "s", "* [["));
             element.appendLink(builder);
-            builder.append("|").append(element.getTitleInGroup());
+            builder.append("|").append(element.getShortTitle());
             builder.append("]]\n");
             lines++;
         }
@@ -75,7 +75,7 @@ class EaItemGroupExporter<E extends EaItemRef, R extends EaItemGroupRef<E, R, G>
     @Override
     void appendPackages() {
         // we need to find height to split panels to two columns...
-        final var panels = new ArrayList<SubPackageExporter>(3);
+        final var panels = new ArrayList<SubPackageExporter<E, R, G>>(3);
         for (var subPackage : getEaObject().getPackages()) {
             if (subPackage.isTopic()) {
                 panels.add(new SubPackageExporter<>(subPackage));

@@ -47,6 +47,18 @@ abstract class EaObjectBase<T extends EaObjectRef> implements EaObject {
         return objectRef.getName();
     }
 
+    @Nonnull
+    @Override
+    public String getTitle() {
+        return objectRef.getTitle();
+    }
+
+    @Nonnull
+    @Override
+    public String getShortTitle() {
+        return objectRef.getShortTitle();
+    }
+
     @Override
     @Nonnull
     public Optional<String> getAlias() {
@@ -139,11 +151,6 @@ abstract class EaObjectBase<T extends EaObjectRef> implements EaObject {
     @Override
     public int compareTo(EaObjectRef o) {
         return objectRef.compareTo(o);
-    }
-
-    @Nonnull
-    public String getTitle() {
-        return getName();
     }
 
     Level getLogLevel() {

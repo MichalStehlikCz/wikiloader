@@ -97,11 +97,15 @@ class WikiSetBuilderImpl implements WikiSetBuilder {
             return (!mandatory) && (children.size() < threshold);
         }
 
-        WikiSetObject getWikiSetObject() {
-            return new WikiSetObjectImpl(object,
-                    children.stream().sorted(Comparator.comparing(SetMember::getObject))
-                            .map(SetMember::getWikiSetObject)
-                            .collect(Collectors.toList()));
+        WikiSetObjectBase getWikiSetObject() {
+            var setChildren = children.stream().sorted(Comparator.comparing(SetMember::getObject))
+                    .map(SetMember::getWikiSetObject)
+                    .collect(Collectors.toList());
+            if (mandatory) {
+                return new WikiSetTopic(object, setChildren);
+            } else {
+                return new WikiSetTitle(object.getShortTitle(), setChildren);
+            }
         }
     }
 

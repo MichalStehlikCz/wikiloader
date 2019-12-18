@@ -32,9 +32,9 @@ class EaRefDefaultPackageTest {
 
     @Test
     void getNamespaceTest() {
-        assertThat(packageRef1.getNamespace()).isEqualTo(Optional.of("parent:alpkg:"));
+        assertThat(packageRef1.getNamespace()).isEqualTo(Optional.of("parent:alpkg"));
         assertThat(packageRef2.getNamespace()).isEmpty();
-        assertThat(packageRef3.getNamespace()).isEqualTo(Optional.of("alpkg:"));
+        assertThat(packageRef3.getNamespace()).isEqualTo(Optional.of("alpkg"));
         assertThat(packageRef4.getNamespace()).isEmpty();
     }
 

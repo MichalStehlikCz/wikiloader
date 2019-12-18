@@ -3,6 +3,7 @@ package com.provys.wikiloader.earepository.impl;
 import com.provys.provyswiki.ProvysWikiClient;
 import com.provys.wikiloader.earepository.EaObjectRef;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
@@ -16,6 +17,7 @@ abstract class EaObjectRegularBase<T extends EaObjectRef> extends EaObjectBase<T
         this.notes = ((notes == null) || notes.isEmpty()) ? null : notes;
     }
 
+    @Nonnull
     abstract Exporter getExporter(ProvysWikiClient wikiClient);
 
     @Override
@@ -23,6 +25,7 @@ abstract class EaObjectRegularBase<T extends EaObjectRef> extends EaObjectBase<T
         getTopicId().ifPresentOrElse(title -> getExporter(wikiClient).run(recursive), this::logNotExported);
     }
 
+    @Nonnull
     @Override
     public Optional<String> getNotes() {
         return Optional.ofNullable(notes);

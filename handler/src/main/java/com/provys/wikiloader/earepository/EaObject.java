@@ -14,14 +14,9 @@ public interface EaObject extends EaObjectRef {
     EaRepository getRepository();
 
     /**
-     * @return title of main page of given object on wiki
-     */
-    @Nonnull
-    String getTitle();
-
-    /**
      * @return notes attached to object
      */
+    @Nonnull
     Optional<String> getNotes();
 
     /**

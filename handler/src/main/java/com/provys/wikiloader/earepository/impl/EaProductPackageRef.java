@@ -4,15 +4,20 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 @SuppressWarnings("squid:S2160") // packageGroup is only cached -> no need to include it in equals
-class EaProductPackageRef extends EaDefaultElementRef implements EaItemRef {
+class EaProductPackageRef extends EaNamespaceElementRef implements EaItemRef {
 
     @Nullable
     private EaProductPackage productPackage;
 
     EaProductPackageRef(EaRepositoryImpl repository, @Nullable EaObjectRefBase parent, String name,
                         @Nullable String alias, int treePos, int elementId) {
-        super(repository, parent, name, alias, "Product", "ArchiMate_Product", treePos, elementId,
-                false);
+        super(repository, parent, name, alias, "Product", "ArchiMate_Product", treePos, elementId);
+    }
+
+    @Nonnull
+    @Override
+    public String getTitle() {
+        return getName() + " Package";
     }
 
     private synchronized void loadObject() {
@@ -29,12 +34,6 @@ class EaProductPackageRef extends EaDefaultElementRef implements EaItemRef {
         }
         assert (productPackage != null);
         return productPackage;
-    }
-
-    @Nonnull
-    @Override
-    public String getTitleInGroup() {
-        return getName();
     }
 
     @Override
