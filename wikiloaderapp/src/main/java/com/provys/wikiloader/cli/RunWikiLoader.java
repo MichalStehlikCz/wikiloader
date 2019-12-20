@@ -1,14 +1,12 @@
-package com.provys.wikiloader;
+package com.provys.wikiloader.cli;
 
 import com.provys.common.exception.RegularException;
 import com.provys.provyswiki.ProvysWikiClient;
-import com.provys.wikiloader.earepository.EaRepository;
-import com.provys.wikiloader.impl.WikiLoader;
+import com.provys.wikiloader.WikiLoader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.microprofile.config.spi.ConfigProviderResolver;
 import org.eclipse.microprofile.config.spi.ConfigSource;
-import org.sparx.Repository;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -103,23 +101,6 @@ public class RunWikiLoader implements Runnable {
         return this;
     }
 
-    @Nonnull
-    private ProvysWikiClient getWikiClient() {
-        if (wikiUrl == null) {
-            throw new RegularException(LOG, "JAVA_WIKILOADER_WIKIURLMISSING",
-                    "Cannot connect to wiki - URL not specified");
-        }
-        if (wikiUser == null) {
-            throw new RegularException(LOG, "JAVA_WIKILOADER_WIKIUSERMISSING",
-                    "Cannot connect to wiki - user not specified");
-        }
-        if (wikiPwd == null) {
-            throw new RegularException(LOG, "JAVA_WIKILOADER_WIKIPWDMISSING",
-                    "Cannot connect to wiki - password not specified");
-        }
-        return new ProvysWikiClient(wikiUrl, wikiUser, wikiPwd);
-    }
-
     @Override
     public void run() {
         if (provysAddress == null) {
@@ -134,6 +115,18 @@ public class RunWikiLoader implements Runnable {
         if (eaAddress == null) {
             throw new IllegalStateException("Enterprise Architect repository address is not specified");
         }
+        if (wikiUrl == null) {
+            throw new RegularException(LOG, "JAVA_WIKILOADER_WIKIURLMISSING",
+                    "Cannot connect to wiki - URL not specified");
+        }
+        if (wikiUser == null) {
+            throw new RegularException(LOG, "JAVA_WIKILOADER_WIKIUSERMISSING",
+                    "Cannot connect to wiki - user not specified");
+        }
+        if (wikiPwd == null) {
+            throw new RegularException(LOG, "JAVA_WIKILOADER_WIKIPWDMISSING",
+                    "Cannot connect to wiki - password not specified");
+        }
         var config = ConfigProviderResolver.instance().getConfig();
         if (config != null) {
             ConfigProviderResolver.instance().releaseConfig(config);
@@ -141,11 +134,12 @@ public class RunWikiLoader implements Runnable {
         config = ConfigProviderResolver.instance()
                 .getBuilder()
                 .addDefaultSources()
-                .withSources(new CommandLineParamsSource(provysAddress, provysUser, provysPwd, eaAddress))
+                .withSources(new CommandLineParamsSource(provysAddress, provysUser, provysPwd, eaAddress, wikiUrl,
+                        wikiUser, wikiPwd))
                 .addDiscoveredConverters()
                 .build();
         ConfigProviderResolver.instance().registerConfig(config, getClass().getClassLoader());
-        wikiLoader.run(getWikiClient(), path, recursive);
+        wikiLoader.run(path, recursive);
         LOG.info("Synchronisation of Enterprise Architect models to wiki finished");
     }
 
@@ -153,11 +147,15 @@ public class RunWikiLoader implements Runnable {
 
         private final Map<String, String> properties = new HashMap<>(3);
 
-        CommandLineParamsSource(String url, String user, String pwd, String eaAddress) {
-            properties.put("PROVYSDB_URL", url);
-            properties.put("PROVYSDB_USER", user);
-            properties.put("PROVYSDB_PWD", pwd);
+        CommandLineParamsSource(String provysUrl, String provysUser, String provysPwd, String eaAddress, String wikiUrl,
+                                String wikiUser, String wikiPwd) {
+            properties.put("PROVYSDB_URL", provysUrl);
+            properties.put("PROVYSDB_USER", provysUser);
+            properties.put("PROVYSDB_PWD", provysPwd);
             properties.put("EA_ADDRESS", eaAddress);
+            properties.put("PROVYSWIKI_URL", wikiUrl);
+            properties.put("PROVYSWIKI_USER", wikiUser);
+            properties.put("PROVYSWIKI_PWD", wikiPwd);
         }
 
         @Override

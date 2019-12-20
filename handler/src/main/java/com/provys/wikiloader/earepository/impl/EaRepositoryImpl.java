@@ -1,6 +1,8 @@
 package com.provys.wikiloader.earepository.impl;
 
-import com.provys.wikiloader.earepository.*;
+import com.provys.wikiloader.earepository.EaObjectRef;
+import com.provys.wikiloader.earepository.EaRepository;
+import com.provys.wikiloader.earepository.WikiSetBuilder;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -13,7 +15,7 @@ import java.util.Map;
 class EaRepositoryImpl implements EaRepository {
 
     @Nonnull
-    private final EaLoaderImpl loader;
+    private final EaLoader loader;
     @Nonnull
     private final Map<Integer, EaElementRefBase> elementById = new HashMap<>(50);
     @Nonnull
@@ -22,7 +24,7 @@ class EaRepositoryImpl implements EaRepository {
     private final Map<Integer, EaDefaultDiagramRef> diagramById = new HashMap<>(20);
 
     @Inject
-    public EaRepositoryImpl(EaLoaderImpl loader) {
+    public EaRepositoryImpl(EaLoader loader) {
         this.loader = loader;
         // we also need to initialise model as root package and set its mapping to wiki
         var model = loader.getModel(this);
@@ -30,7 +32,7 @@ class EaRepositoryImpl implements EaRepository {
     }
 
     @Nonnull
-    EaLoaderImpl getLoader() {
+    EaLoader getLoader() {
         return loader;
     }
 

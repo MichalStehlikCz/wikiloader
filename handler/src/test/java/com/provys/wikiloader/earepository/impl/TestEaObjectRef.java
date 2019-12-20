@@ -1,7 +1,6 @@
 package com.provys.wikiloader.earepository.impl;
 
 import com.provys.wikiloader.earepository.EaObject;
-import com.provys.wikiloader.earepository.EaRepository;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
