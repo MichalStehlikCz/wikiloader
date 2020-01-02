@@ -1,4 +1,4 @@
-package com.provys.wikiloader;
+package com.provys.wikiloader.cli;
 
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;

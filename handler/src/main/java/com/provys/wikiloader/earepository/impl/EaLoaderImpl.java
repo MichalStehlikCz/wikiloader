@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
  * class that actually interact with Enterprise Architect COM interface
  */
 @ApplicationScoped
-class EaLoaderImpl {
+class EaLoaderImpl implements EaLoader {
 
     private static final Logger LOG = LogManager.getLogger(EaLoaderImpl.class);
     /** Name of model package */
@@ -64,8 +64,9 @@ class EaLoaderImpl {
         this.catalogue = Objects.requireNonNull(catalogue);
     }
 
+    @Override
     @Nonnull
-    EaDefaultPackageRef getModel(EaRepositoryImpl eaRepository) {
+    public EaDefaultPackageRef getModel(EaRepositoryImpl eaRepository) {
         Collection<Package> models = repository.GetModels();
         try {
             var model = models.GetByName(MODEL_NAME);
@@ -170,7 +171,8 @@ class EaLoaderImpl {
      * @param elementId is Enterprise Architect repository element identifier
      * @return new element reference
      */
-    EaElementRefBase elementRefFromId(int elementId, EaRepositoryImpl eaRepository) {
+    @Override
+    public EaElementRefBase elementRefFromId(int elementId, EaRepositoryImpl eaRepository) {
         var element = repository.GetElementByID(elementId);
         try {
             if (element.GetType().equals("UMLDiagram")) {
@@ -206,7 +208,8 @@ class EaLoaderImpl {
                 pkg.GetTreePos(), pkg.GetPackageID());
     }
 
-    private EaItemGroupRef loadEaTechnicalPackageGroupRef(Package pkg, EaRepositoryImpl eaRepository) {
+    private EaItemGroupRef<EaTechnicalPackageRef, EaTechnicalPackageGroupRef, EaTechnicalPackageGroup>
+    loadEaTechnicalPackageGroupRef(Package pkg, EaRepositoryImpl eaRepository) {
         var parentId = pkg.GetParentID();
         var parent = (parentId > 0) ? eaRepository.getPackageRefById(parentId) : null;
         return new EaTechnicalPackageGroupRef(eaRepository, parent, pkg.GetName(), pkg.GetAlias(),
@@ -226,7 +229,8 @@ class EaLoaderImpl {
      * @param packageId is Enterprise Architect repository package identifier
      * @return new package reference
      */
-    EaDefaultPackageRef packageRefFromId(int packageId, EaRepositoryImpl eaRepository) {
+    @Override
+    public EaDefaultPackageRef packageRefFromId(int packageId, EaRepositoryImpl eaRepository) {
         var pkg = repository.GetPackageByID(packageId);
         try {
             if (pkg.GetStereotypeEx().equals("provys_product_package_group")) {
@@ -249,7 +253,8 @@ class EaLoaderImpl {
      * @param diagramId is Enterprise Architect repository diagram identifier
      * @return new diagram reference
      */
-    EaDefaultDiagramRef diagramRefFromId(int diagramId, EaRepositoryImpl eaRepository) {
+    @Override
+    public EaDefaultDiagramRef diagramRefFromId(int diagramId, EaRepositoryImpl eaRepository) {
         var diagram = repository.GetDiagramByID(diagramId);
         try {
             var parentElement = diagram.GetParentID();
@@ -328,14 +333,9 @@ class EaLoaderImpl {
         }
     }
 
-    /**
-     * Retrieve ref object corresponding to supplied path
-     *
-     * @param path is path, with aliases divided by :
-     * @param eaRepository is repository from which resulting object should be taken
-     * @return ref object that corresponds to supplied path, throw exception when such object is not found
-     */
-    EaObjectRef getRefObjectByPath(@Nullable String path, EaRepositoryImpl eaRepository) {
+    @Nonnull
+    @Override
+    public EaObjectRef getRefObjectByPath(@Nullable String path, EaRepositoryImpl eaRepository) {
         LOG.debug("Lookup page {}", path);
         Package rootPackage = repository.GetPackageByID(getModel(eaRepository).getPackageId());
         Element rootElement = null;
@@ -410,10 +410,10 @@ class EaLoaderImpl {
         }
     }
 
-    private static List<com.provys.wikiloader.earepository.EaPackageRef> getPackages(Supplier<Collection<Package>> packageSrc, EaRepository eaRepository) {
+    private static List<EaPackageRef> getPackages(Supplier<Collection<Package>> packageSrc, EaRepository eaRepository) {
         var packages = packageSrc.get();
         try {
-            var result = new ArrayList<com.provys.wikiloader.earepository.EaPackageRef>(packages.GetCount());
+            var result = new ArrayList<EaPackageRef>(packages.GetCount());
             for (var pkg : packages) {
                 try {
                     result.add(eaRepository.getPackageRefById(pkg.GetPackageID()));
@@ -453,7 +453,8 @@ class EaLoaderImpl {
         }
     }
 
-    EaDefaultDiagram loadDefaultDiagram(EaDiagramRef diagramRef) {
+    @Override
+    public EaDefaultDiagram loadDefaultDiagram(EaDiagramRef diagramRef) {
         var diagram = repository.GetDiagramByID(diagramRef.getDiagramId());
         try {
             var diagramLoader = new EaLoaderDiagram(diagram, diagramRef.getRepository());
@@ -465,7 +466,7 @@ class EaLoaderImpl {
     }
 
     private static <E extends EaNamespaceElementRef> List<E> getPackageGroupElements(Package pkg,
-                                                                                     EaItemGroupRef packageGroupRef,
+                                                                                     EaItemGroupRef<?, ?, ?> packageGroupRef,
                                                                                      Class<E> clazz) {
         return getElements(pkg::GetElements, packageGroupRef.getRepository())
                 .stream()
@@ -486,7 +487,7 @@ class EaLoaderImpl {
                 ));
     }
 
-    private static <G extends EaItemGroupRef> List<G> getPackageGroupPackages(Package pkg, G packageGroupRef,
+    private static <G extends EaItemGroupRef<?, ?, ?>> List<G> getPackageGroupPackages(Package pkg, G packageGroupRef,
                                                                               Class<G> clazz) {
         return getPackages(pkg::GetPackages, packageGroupRef.getRepository())
                 .stream()
@@ -506,8 +507,9 @@ class EaLoaderImpl {
                 ));
     }
 
+    @Override
     @Nonnull
-    EaProductPackageGroup loadProductPackageGroup(EaProductPackageGroupRef packageGroupRef) {
+    public EaProductPackageGroup loadProductPackageGroup(EaProductPackageGroupRef packageGroupRef) {
         var pkg = repository.GetPackageByID(packageGroupRef.getPackageId());
         try {
             return new EaProductPackageGroup(packageGroupRef, pkg.GetNotes(),
@@ -519,8 +521,9 @@ class EaLoaderImpl {
         }
     }
 
+    @Override
     @Nonnull
-    EaTechnicalPackageGroup loadTechnicalPackageGroup(EaTechnicalPackageGroupRef packageGroupRef) {
+    public EaTechnicalPackageGroup loadTechnicalPackageGroup(EaTechnicalPackageGroupRef packageGroupRef) {
         var pkg = repository.GetPackageByID(packageGroupRef.getPackageId());
         try {
             return new EaTechnicalPackageGroup(packageGroupRef, pkg.GetNotes(),
@@ -532,8 +535,9 @@ class EaLoaderImpl {
         }
     }
 
+    @Override
     @Nonnull
-    EaParentBase loadDefaultPackage(EaPackageRef packageRef) {
+    public EaPackage loadDefaultPackage(EaPackageRef packageRef) {
         var pkg = repository.GetPackageByID(packageRef.getPackageId());
         try {
             return new EaPackage(packageRef, pkg.GetNotes(),
@@ -571,8 +575,9 @@ class EaLoaderImpl {
         return result;
     }
 
+    @Override
     @Nonnull
-    EaProductPackage loadProductPackage(EaProductPackageRef elementRef) {
+    public EaProductPackage loadProductPackage(EaProductPackageRef elementRef) {
         var element = repository.GetElementByID(elementRef.getElementId());
         try {
             var diagrams = getDiagrams(element::GetDiagrams, elementRef.getRepository());
@@ -587,6 +592,7 @@ class EaLoaderImpl {
         }
     }
 
+    @Nonnull
     private <T> List<T> getRelElements(Element element, EaRepository eaRepository, boolean fromSupplier,
                                        String type, String stereotype, Class<T> relType) {
         var result = new ArrayList<T>(10);
@@ -638,8 +644,9 @@ class EaLoaderImpl {
                 EaTechnicalPackageRef.class);
     }
 
+    @Override
     @Nonnull
-    EaTechnicalPackage loadTechnicalPackage(EaTechnicalPackageRef elementRef) {
+    public EaTechnicalPackage loadTechnicalPackage(EaTechnicalPackageRef elementRef) {
         var element = repository.GetElementByID(elementRef.getElementId());
         try {
             var diagrams = getDiagrams(element::GetDiagrams, elementRef.getRepository());
@@ -661,8 +668,9 @@ class EaLoaderImpl {
                 "ArchiMate_Association", EaTechnicalPackageRef.class);
     }
 
+    @Override
     @Nonnull
-    EaMeaning loadMeaning(EaMeaningRef elementRef) {
+    public EaMeaning loadMeaning(EaMeaningRef elementRef) {
         var element = repository.GetElementByID(elementRef.getElementId());
         try {
             var diagrams = getDiagrams(element::GetDiagrams, elementRef.getRepository());
@@ -677,8 +685,9 @@ class EaLoaderImpl {
         }
     }
 
+    @Override
     @Nonnull
-    EaFunctionTask loadFunctionTask(EaFunctionTaskRef elementRef) {
+    public EaFunctionTask loadFunctionTask(EaFunctionTaskRef elementRef) {
         var element = repository.GetElementByID(elementRef.getElementId());
         try {
             var diagrams = getDiagrams(element::GetDiagrams, elementRef.getRepository());
@@ -693,8 +702,9 @@ class EaLoaderImpl {
         }
     }
 
+    @Override
     @Nonnull
-    EaDataObject loadDataObject(EaElementRef elementRef) {
+    public EaDataObject loadDataObject(EaElementRef elementRef) {
         var element = repository.GetElementByID(elementRef.getElementId());
         try {
             if (hasDiagrams(element::GetDiagrams)) {
@@ -715,8 +725,9 @@ class EaLoaderImpl {
         }
     }
 
+    @Override
     @Nonnull
-    EaLeafElement loadLeafElement(EaLeafElementRef elementRef) {
+    public EaLeafElement loadLeafElement(EaLeafElementRef elementRef) {
         var element = repository.GetElementByID(elementRef.getElementId());
         try {
             var diagrams = getDiagrams(element::GetDiagrams, elementRef.getRepository());
@@ -726,8 +737,9 @@ class EaLoaderImpl {
         }
     }
 
+    @Override
     @Nonnull
-    EaObject loadNamespaceElement(EaNamespaceElementRef elementRef) {
+    public EaObject loadNamespaceElement(EaNamespaceElementRef elementRef) {
         var element = repository.GetElementByID(elementRef.getElementId());
         try {
             var diagrams = getDiagrams(element::GetDiagrams, elementRef.getRepository());

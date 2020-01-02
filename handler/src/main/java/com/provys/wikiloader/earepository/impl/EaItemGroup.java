@@ -1,7 +1,7 @@
 package com.provys.wikiloader.earepository.impl;
 
 import com.provys.provyswiki.ProvysWikiClient;
-import com.provys.wikiloader.earepository.*;
+import com.provys.wikiloader.earepository.EaDiagramRef;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

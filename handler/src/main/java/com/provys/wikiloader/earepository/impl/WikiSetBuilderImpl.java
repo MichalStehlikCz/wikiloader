@@ -1,6 +1,9 @@
 package com.provys.wikiloader.earepository.impl;
 
-import com.provys.wikiloader.earepository.*;
+import com.provys.wikiloader.earepository.EaObjectRef;
+import com.provys.wikiloader.earepository.EaRepository;
+import com.provys.wikiloader.earepository.WikiSetBuilder;
+import com.provys.wikiloader.earepository.WikiSetObject;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

@@ -1,0 +1,33 @@
+openapi: 3.0.1
+info:
+  title: Provys Catalogue repository Api
+  description: Provides methods for accessing entities and other objects from provys
+    metadata catalogue
+  version: "1.0"
+servers:
+- url: /wikiloader/api
+  variables: {}
+paths:
+  /wikiloader/sync:
+    get:
+      summary: Synchronise Wiki
+      description: Read Enterprise Architect model and apply it on provys wiki
+      operationId: sync
+      parameters:
+      - name: path
+        in: query
+        schema:
+          type: string
+          default: ""
+      - name: recursive
+        in: query
+        schema:
+          type: boolean
+          default: true
+      responses:
+        default:
+          description: default response
+          content:
+            text/plain:
+              schema:
+                type: string

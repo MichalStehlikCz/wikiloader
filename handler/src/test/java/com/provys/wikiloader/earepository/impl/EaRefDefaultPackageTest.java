@@ -1,7 +1,6 @@
 package com.provys.wikiloader.earepository.impl;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.configuration.IMockitoConfiguration;
 
 import java.util.Optional;
 
