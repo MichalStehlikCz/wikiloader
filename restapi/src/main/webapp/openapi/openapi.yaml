@@ -8,47 +8,26 @@ servers:
 - url: /wikiloader/api
   variables: {}
 paths:
-  /wikiloader/all:
+  /wikiloader/sync:
     get:
-      summary: Synchronise Whole Wiki
-      description: Read whole Enterprise Architect model and apply it on provys wiki
-      operationId: syncAll
-      responses:
-        default:
-          description: default response
-          content:
-            text/plain: {}
-  /wikiloader/topic/{path}:
-    get:
-      summary: Synchronise Single Topic
-      description: Read Enterprise Architect package / element / diagram and synchronise
-        it to wiki
-      operationId: syncTopic
+      summary: Synchronise Wiki
+      description: Read Enterprise Architect model and apply it on provys wiki
+      operationId: sync
       parameters:
       - name: path
-        in: path
-        required: true
+        in: query
         schema:
           type: string
+          default: ""
+      - name: recursive
+        in: query
+        schema:
+          type: boolean
+          default: true
       responses:
         default:
           description: default response
           content:
-            text/plain: {}
-  /wikiloader/tree/{path}:
-    get:
-      summary: Synchronise Tree
-      description: Read Enterprise Architect section starting at given namespace and
-        synchronise sub-tree
-      operationId: syncTree
-      parameters:
-      - name: path
-        in: path
-        required: true
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            text/plain: {}
+            text/plain:
+              schema:
+                type: string
