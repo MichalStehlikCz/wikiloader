@@ -89,12 +89,17 @@ class EaLoaderImpl implements EaLoader {
     }
 
     private EaUmlDiagramElementRef createRefUmlDiagramElement(Element element, EaRepositoryImpl eaRepository) {
-        Diagram diagram = (Diagram) element.GetCompositeDiagram();
+        var diagramId = element.MiscData(0);
         EaDefaultDiagramRef diagramRef = null;
-        if (diagram == null) {
-            LOG.info("Linked diagram missing in UMLDiagram element {}", element::GetName);
+        if ((diagramId == null) || (diagramId.isEmpty())) {
+            LOG.warn("Linked diagram missing in UMLDiagram element {}", element::GetName);
         } else {
-            diagramRef = eaRepository.getDiagramRefById(diagram.GetDiagramID());
+            try {
+                diagramRef = eaRepository.getDiagramRefById(Integer.parseInt(diagramId));
+            } catch (Exception e) {
+                LOG.warn("Cannot retrieve linked diagram for UMLDiagram element {}", element::GetName);
+                diagramRef = null;
+            }
         }
         return new EaUmlDiagramElementRef(eaRepository, getElementParent(element, eaRepository), element.GetName(),
                 element.GetTreePos(), element.GetElementID(), diagramRef);
