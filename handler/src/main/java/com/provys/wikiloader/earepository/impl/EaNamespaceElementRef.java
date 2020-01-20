@@ -14,7 +14,7 @@ class EaNamespaceElementRef extends EaElementRefBase {
 
     private static final Logger LOG = LogManager.getLogger(EaNamespaceElementRef.class);
 
-    EaNamespaceElementRef(EaRepositoryImpl repository, @Nullable EaObjectRefBase parent, String name,
+    EaNamespaceElementRef(EaRepositoryImpl repository, @Nullable EaObjectRef parent, String name,
                           @Nullable String alias, String type, @Nullable String stereotype, int treePos, int elementId)
     {
         super(repository, parent, name, alias, type, stereotype, treePos, elementId);

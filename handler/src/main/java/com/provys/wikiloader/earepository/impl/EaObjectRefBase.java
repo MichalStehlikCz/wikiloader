@@ -16,7 +16,7 @@ abstract class EaObjectRefBase implements EaObjectRef {
     @Nonnull
     private final EaRepositoryImpl repository;
     @Nullable
-    private final EaObjectRefBase parent;
+    private final EaObjectRef parent;
     @Nonnull
     private final String name;
     @Nullable
@@ -27,7 +27,7 @@ abstract class EaObjectRefBase implements EaObjectRef {
     private final String stereotype;
     private final int treePos;
 
-    EaObjectRefBase(EaRepositoryImpl repository, @Nullable EaObjectRefBase parent, String name, @Nullable String alias,
+    EaObjectRefBase(EaRepositoryImpl repository, @Nullable EaObjectRef parent, String name, @Nullable String alias,
                     String type, @Nullable String stereotype, int treePos) {
         this.repository = Objects.requireNonNull(repository);
         this.parent = parent;

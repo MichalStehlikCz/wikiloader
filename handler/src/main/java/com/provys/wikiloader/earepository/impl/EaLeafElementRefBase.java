@@ -10,11 +10,11 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Optional;
 
-abstract class EaLeafElementRefBase<T extends EaLeafElementRefBase> extends EaElementRefBase {
+abstract class EaLeafElementRefBase<T extends EaLeafElementRefBase<T>> extends EaElementRefBase {
 
     private static final Logger LOG = LogManager.getLogger(EaLeafElementRefBase.class);
 
-    EaLeafElementRefBase(EaRepositoryImpl repository, EaObjectRefBase parent, String name, @Nullable String alias,
+    EaLeafElementRefBase(EaRepositoryImpl repository, EaObjectRef parent, String name, @Nullable String alias,
                          String type, @Nullable String stereotype, int treePos, int elementId) {
         super(repository, parent, name, alias, type, stereotype, treePos, elementId);
     }

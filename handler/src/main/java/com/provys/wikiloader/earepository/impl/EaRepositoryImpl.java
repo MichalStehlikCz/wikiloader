@@ -1,5 +1,6 @@
 package com.provys.wikiloader.earepository.impl;
 
+import com.provys.wikiloader.earepository.EaElementRef;
 import com.provys.wikiloader.earepository.EaObjectRef;
 import com.provys.wikiloader.earepository.EaRepository;
 import com.provys.wikiloader.earepository.WikiSetBuilder;
@@ -17,18 +18,23 @@ class EaRepositoryImpl implements EaRepository {
     @Nonnull
     private final EaLoader loader;
     @Nonnull
-    private final Map<Integer, EaElementRefBase> elementById = new HashMap<>(50);
+    private final Map<Integer, EaElementRef> elementById = new HashMap<>(50);
     @Nonnull
     private final Map<Integer, EaDefaultPackageRef> packageById = new HashMap<>(30);
     @Nonnull
     private final Map<Integer, EaDefaultDiagramRef> diagramById = new HashMap<>(20);
 
+    private void initModel() {
+        // we need to initialise model as root package and set its mapping to wiki
+        var model = loader.getModel(this);
+        packageById.put(model.getPackageId(), model);
+    }
+
     @Inject
     public EaRepositoryImpl(EaLoader loader) {
         this.loader = loader;
-        // we also need to initialise model as root package and set its mapping to wiki
-        var model = loader.getModel(this);
-        packageById.put(model.getPackageId(), model);
+        // we need to initialize model (root packages) and their mapping to wiki
+        initModel();
     }
 
     @Nonnull
@@ -38,7 +44,7 @@ class EaRepositoryImpl implements EaRepository {
 
     @Override
     @Nonnull
-    public EaElementRefBase getElementRefById(int elementId) {
+    public EaElementRef getElementRefById(int elementId) {
         var result = elementById.get(elementId);
         if (result == null) {
             result = loader.elementRefFromId(elementId, this);
@@ -82,6 +88,14 @@ class EaRepositoryImpl implements EaRepository {
     @Nonnull
     public EaObjectRef getObjectRefByPath(@Nullable String path) {
         return loader.getRefObjectByPath(path, this);
+    }
+
+    @Override
+    public void flush() {
+        elementById.clear();
+        packageById.clear();
+        diagramById.clear();
+        initModel();
     }
 
     @Override

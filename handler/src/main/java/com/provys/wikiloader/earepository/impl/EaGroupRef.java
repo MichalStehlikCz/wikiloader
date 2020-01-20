@@ -19,7 +19,7 @@ class EaGroupRef extends EaElementRefBase {
 
     private static final Logger LOG = LogManager.getLogger(EaGroupRef.class);
 
-    EaGroupRef(EaRepositoryImpl repository, @Nullable EaObjectRefBase parent, String name, @Nullable String alias,
+    EaGroupRef(EaRepositoryImpl repository, @Nullable EaObjectRef parent, String name, @Nullable String alias,
                String type, int treePos, int elementId) {
         super(repository, parent, name, alias, type, null, treePos, elementId);
     }

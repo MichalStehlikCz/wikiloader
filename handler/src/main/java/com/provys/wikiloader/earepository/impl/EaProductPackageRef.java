@@ -1,5 +1,7 @@
 package com.provys.wikiloader.earepository.impl;
 
+import com.provys.wikiloader.earepository.EaObjectRef;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -9,7 +11,7 @@ class EaProductPackageRef extends EaNamespaceElementRef implements EaItemRef {
     @Nullable
     private EaProductPackage productPackage;
 
-    EaProductPackageRef(EaRepositoryImpl repository, @Nullable EaObjectRefBase parent, String name,
+    EaProductPackageRef(EaRepositoryImpl repository, @Nullable EaObjectRef parent, String name,
                         @Nullable String alias, int treePos, int elementId) {
         super(repository, parent, name, alias, "Product", "ArchiMate_Product", treePos, elementId);
     }

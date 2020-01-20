@@ -1,5 +1,7 @@
 package com.provys.wikiloader.earepository.impl;
 
+import com.provys.wikiloader.earepository.EaObjectRef;
+
 import javax.annotation.Nonnull;
 
 /**
@@ -8,7 +10,7 @@ import javax.annotation.Nonnull;
  */
 class EaLeafElementRef extends EaLeafElementRefBase<EaLeafElementRef> {
 
-    EaLeafElementRef(EaRepositoryImpl repository, EaObjectRefBase parent, String name, String alias, String type, String stereotype, int treePos, int elementId) {
+    EaLeafElementRef(EaRepositoryImpl repository, EaObjectRef parent, String name, String alias, String type, String stereotype, int treePos, int elementId) {
         super(repository, parent, name, alias, type, stereotype, treePos, elementId);
     }
 

@@ -19,7 +19,7 @@ class EaUGTopicRefTest {
 
     private static final Logger LOG = LogManager.getLogger(EaUGTopicRefTest.class);
 
-    private static class TestUGTopicRef extends EaUGTopicRef<TestUGTopicRef, TestUGTopic> {
+    private static class TestUGTopicRef extends EaUGTopicRefBase<TestUGTopicRef, TestUGTopic> {
 
         TestUGTopicRef(EaRepositoryImpl repository, EaObjectRefBase parent, String name, @Nullable String alias,
                        String type, @Nullable String stereotype, int treePos, int elementId) {
@@ -32,7 +32,7 @@ class EaUGTopicRefTest {
         }
     }
 
-    private static class TestUGTopic extends EaUGTopic<TestUGTopicRef, TestUGTopic> {
+    private static class TestUGTopic extends EaUGTopicBase<TestUGTopicRef, TestUGTopic> {
 
         TestUGTopic(TestUGTopicRef objectRef, @Nullable String notes, List<EaDiagramRef> diagrams,
                     List<EaTechnicalPackageRef> includedIn) {

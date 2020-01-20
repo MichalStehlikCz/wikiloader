@@ -1,5 +1,7 @@
 package com.provys.wikiloader.earepository.impl;
 
+import com.provys.wikiloader.earepository.EaObjectRef;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -15,7 +17,7 @@ abstract class EaCachedLeafElementRef<R extends EaCachedLeafElementRef<R, T>, T 
     @Nullable
     protected T object;
 
-    EaCachedLeafElementRef(EaRepositoryImpl repository, EaObjectRefBase parent, String name, @Nullable String alias,
+    EaCachedLeafElementRef(EaRepositoryImpl repository, EaObjectRef parent, String name, @Nullable String alias,
                            String type, @Nullable String stereotype, int treePos, int elementId) {
         super(repository, parent, name, alias, type, stereotype, treePos, elementId);
     }

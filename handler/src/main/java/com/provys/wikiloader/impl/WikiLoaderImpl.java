@@ -26,7 +26,10 @@ public class WikiLoaderImpl implements WikiLoader {
     }
 
     @Override
-    public void run(@Nullable String path, boolean recursive) {
+    public void run(@Nullable String path, boolean recursive, boolean flush) {
+        if (flush) {
+            eaRepository.flush();
+        }
         eaRepository.getObjectRefByPath(path).getObject().sync(wikiClient, recursive);
     }
 }

@@ -9,9 +9,16 @@ import java.util.List;
 /**
  * Common ancestor for leaf elements - e.g. ones that do not include sub-elements, but might include diagram(s).
  */
-abstract class EaLeafElementBase<T extends EaElementRef> extends EaDiagramOwnerBase<T, EaDiagramRef> {
+abstract class EaLeafElementBase<T extends EaElementRef> extends EaDiagramOwnerBase<T, EaDiagramRef>
+        implements EaElementRef {
 
     EaLeafElementBase(T objectRef, @Nullable String notes, List<EaDiagramRef> diagrams) {
         super(objectRef, notes, diagrams);
     }
+
+    @Override
+    public int getElementId() {
+        return getObjectRef().getElementId();
+    }
+
 }

@@ -9,7 +9,7 @@ public interface EaLoader {
     @Nonnull
     EaDefaultPackageRef getModel(EaRepositoryImpl eaRepository);
 
-    EaElementRefBase elementRefFromId(int elementId, EaRepositoryImpl eaRepository);
+    EaElementRef elementRefFromId(int elementId, EaRepositoryImpl eaRepository);
 
     EaDefaultPackageRef packageRefFromId(int packageId, EaRepositoryImpl eaRepository);
 
@@ -42,7 +42,10 @@ public interface EaLoader {
     EaTechnicalPackage loadTechnicalPackage(EaTechnicalPackageRef elementRef);
 
     @Nonnull
-    EaMeaning loadMeaning(EaMeaningRef elementRef);
+    EaMeaningItem loadMeaningItem(EaMeaningItemRef elementRef);
+
+    @Nonnull
+    EaMeaningGroup loadMeaningGroup(EaMeaningGroupRef elementRef);
 
     @Nonnull
     EaFunctionTask loadFunctionTask(EaFunctionTaskRef elementRef);

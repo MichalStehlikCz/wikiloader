@@ -19,6 +19,7 @@ import javax.inject.Inject;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Interface for accessing Enterprise Architect repository and retrieve Ref objects from this repository - the only
@@ -82,7 +83,7 @@ class EaLoaderImpl implements EaLoader {
     }
 
     @Nonnull
-    private EaObjectRefBase getElementParent(Element element, EaRepositoryImpl eaRepository) {
+    private EaObjectRef getElementParent(Element element, EaRepositoryImpl eaRepository) {
         var parentElement = element.GetParentID();
         return (parentElement > 0) ? eaRepository.getElementRefById(parentElement) :
                 eaRepository.getPackageRefById(element.GetPackageID());
@@ -121,8 +122,23 @@ class EaLoaderImpl implements EaLoader {
     }
 
     private EaMeaningRef loadEaMeaningRef(Element element, EaRepositoryImpl eaRepository) {
-        return new EaMeaningRef(eaRepository, getElementParent(element, eaRepository), element.GetName(),
-                element.GetAlias(), element.GetTreePos(), element.GetElementID());
+        boolean leaf = true;
+        var subElements = element.GetElements();
+        try {
+            if (subElements.GetCount() > 0) {
+                leaf = false;
+            }
+        } finally {
+            subElements.destroy();
+        }
+        if (leaf) {
+            return new EaMeaningItemRef(eaRepository, getElementParent(element, eaRepository), element.GetName(),
+                    element.GetAlias(), element.GetTreePos(), element.GetElementID());
+        } else {
+            return new EaMeaningGroupRef(eaRepository, getElementParent(element, eaRepository), element.GetName(),
+                    element.GetAlias(), element.GetTreePos(), element.GetElementID());
+        }
+
     }
 
     private EaElementRefBase loadEaFunctionRef(Element element, EaRepositoryImpl eaRepository) {
@@ -177,7 +193,7 @@ class EaLoaderImpl implements EaLoader {
      * @return new element reference
      */
     @Override
-    public EaElementRefBase elementRefFromId(int elementId, EaRepositoryImpl eaRepository) {
+    public EaElementRef elementRefFromId(int elementId, EaRepositoryImpl eaRepository) {
         var element = repository.GetElementByID(elementId);
         try {
             if (element.GetType().equals("UMLDiagram")) {
@@ -634,9 +650,31 @@ class EaLoaderImpl implements EaLoader {
         return result;
     }
 
+    private static Stream<EaElementRef> getMeaningGroupContent(EaMeaningGroupRef meaningGroupRef) {
+        return Stream.concat(
+                Stream.of(meaningGroupRef),
+                meaningGroupRef.getObject().getElements().stream().flatMap(EaLoaderImpl::mapMeaningContent));
+    }
+
+    private static Stream<EaElementRef> mapMeaningContent(EaElementRef meaning) {
+        return (meaning instanceof EaMeaningGroupRef) ? (getMeaningGroupContent((EaMeaningGroupRef) meaning))
+                : Stream.of(meaning);
+    }
+
+    /**
+     * Return elements, associated with technical package via archimate association. In case associated object is
+     * meaning group, all items inside this group are included
+     *
+     * @param element is EA element representing technical package
+     * @param eaRepository is repository we are working in
+     * @return resulting list of associated elements
+     */
     private List<EaElementRef> getTechnicalPackageFunctions(Element element, EaRepository eaRepository) {
         return getRelElements(element, eaRepository, false, "Association",
-                "ArchiMate_Association", EaElementRef.class);
+                "ArchiMate_Association", EaUGTopicRef.class)
+                .stream()
+                .flatMap(EaLoaderImpl::mapMeaningContent)
+                .collect(Collectors.toList());
     }
 
     private List<EaProductPackageRef> getTechnicalPackageContainedIn(Element element, EaRepository eaRepository) {
@@ -675,7 +713,7 @@ class EaLoaderImpl implements EaLoader {
 
     @Override
     @Nonnull
-    public EaMeaning loadMeaning(EaMeaningRef elementRef) {
+    public EaMeaningItem loadMeaningItem(EaMeaningItemRef elementRef) {
         var element = repository.GetElementByID(elementRef.getElementId());
         try {
             var diagrams = getDiagrams(element::GetDiagrams, elementRef.getRepository());
@@ -683,7 +721,25 @@ class EaLoaderImpl implements EaLoader {
                 LOG.warn("Elements under ArchiMate_Meaning element {} are ignored - Meaning should be leaf",
                         element::GetName);
             }
-            return new EaMeaning(elementRef, element.GetNotes(), diagrams,
+            return new EaMeaningItem(elementRef, element.GetNotes(), diagrams,
+                    getUGTopicIncludedIn(element, elementRef.getRepository()));
+        } finally {
+            element.destroy();
+        }
+    }
+
+    @Override
+    @Nonnull
+    public EaMeaningGroup loadMeaningGroup(EaMeaningGroupRef elementRef) {
+        var element = repository.GetElementByID(elementRef.getElementId());
+        try {
+            var diagrams = getDiagrams(element::GetDiagrams, elementRef.getRepository());
+            var elements = getElements(element::GetElements, elementRef.getRepository());
+            var meaningElements = elements.stream()
+                    .filter(el -> el instanceof EaMeaningRef)
+                    .map(el -> (EaMeaningRef) el)
+                    .collect(Collectors.toList());
+            return new EaMeaningGroup(elementRef, element.GetNotes(), diagrams, meaningElements,
                     getUGTopicIncludedIn(element, elementRef.getRepository()));
         } finally {
             element.destroy();

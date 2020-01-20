@@ -2,6 +2,7 @@ package com.provys.wikiloader.earepository.impl;
 
 import com.provys.common.exception.InternalException;
 import com.provys.wikiloader.earepository.EaObject;
+import com.provys.wikiloader.earepository.EaObjectRef;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -20,7 +21,7 @@ class EaUmlDiagramElementRef extends EaElementRefBase {
     @Nullable
     private final EaDefaultDiagramRef diagram;
 
-    EaUmlDiagramElementRef(EaRepositoryImpl eaRepository, @Nullable EaObjectRefBase parent, String name, int treePos,
+    EaUmlDiagramElementRef(EaRepositoryImpl eaRepository, @Nullable EaObjectRef parent, String name, int treePos,
                            int elementId, @Nullable EaDefaultDiagramRef diagram) {
         super(eaRepository, parent, name, null, "UMLDiagram", null, treePos, elementId);
         this.diagram = diagram;

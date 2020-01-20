@@ -13,7 +13,7 @@ class EaDataObjectRef extends EaElementRefBase {
 
     private static final Logger LOG = LogManager.getLogger(EaDataObjectRef.class);
 
-    EaDataObjectRef(EaRepositoryImpl repository, @Nullable EaObjectRefBase parent, String name, @Nullable String alias,
+    EaDataObjectRef(EaRepositoryImpl repository, @Nullable EaObjectRef parent, String name, @Nullable String alias,
                     int treePos, int elementId) {
         super(repository, parent, name, alias, "DataObject", "ArchiMate_DataObject", treePos,
                 elementId);

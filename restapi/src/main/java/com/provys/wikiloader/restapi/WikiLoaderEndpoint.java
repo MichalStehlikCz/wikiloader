@@ -23,7 +23,7 @@ public class WikiLoaderEndpoint {
             description = "Read Enterprise Architect model and apply it on provys wiki")
     public String sync(@QueryParam("path") @DefaultValue("") String path,
                             @QueryParam("recursive") @DefaultValue("true") boolean recursive) {
-        wikiLoader.run(path, recursive);
-        return "Synchronisation successfull";
+        wikiLoader.run(path, recursive, true);
+        return "Synchronisation successful";
     }
 }

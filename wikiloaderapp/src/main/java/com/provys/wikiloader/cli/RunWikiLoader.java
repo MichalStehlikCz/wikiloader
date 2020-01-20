@@ -139,7 +139,7 @@ public class RunWikiLoader implements Runnable {
                 .addDiscoveredConverters()
                 .build();
         ConfigProviderResolver.instance().registerConfig(config, getClass().getClassLoader());
-        wikiLoader.run(path, recursive);
+        wikiLoader.run(path, recursive, false);
         LOG.info("Synchronisation of Enterprise Architect models to wiki finished");
     }
 

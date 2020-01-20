@@ -2,7 +2,7 @@ package com.provys.wikiloader.earepository.impl;
 
 import com.provys.provyswiki.ProvysWikiClient;
 
-class EaUGTopicExporter<R extends EaUGTopicRef<R, T>, T extends EaUGTopic<R, T>>
+class EaUGTopicExporter<R extends EaUGTopicRefBase<R, T>, T extends EaUGTopicBase<R, T>>
         extends EaDiagramOwnerExporter<R, T> {
 
     EaUGTopicExporter(T eaObject, ProvysWikiClient wikiClient) {

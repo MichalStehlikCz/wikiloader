@@ -3,6 +3,7 @@ package com.provys.wikiloader.earepository.impl;
 import com.provys.common.exception.InternalException;
 import com.provys.wikiloader.earepository.EaDiagramRef;
 import com.provys.wikiloader.earepository.EaObject;
+import com.provys.wikiloader.earepository.EaObjectRef;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -28,7 +29,7 @@ class EaDefaultDiagramRef extends EaObjectRefBase implements EaDiagramRef {
 
     private final int diagramId;
 
-    EaDefaultDiagramRef(EaRepositoryImpl repository, EaObjectRefBase parent, String name, @Nullable String stereotype,
+    EaDefaultDiagramRef(EaRepositoryImpl repository, EaObjectRef parent, String name, @Nullable String stereotype,
                         int diagramId) {
         super(repository, parent, name, getAlias(name), "Diagram", stereotype, -2000);
         Objects.requireNonNull(parent);

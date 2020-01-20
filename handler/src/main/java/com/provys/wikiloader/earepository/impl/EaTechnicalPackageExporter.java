@@ -269,7 +269,7 @@ class EaTechnicalPackageExporter extends EaObjectRegularExporter<EaTechnicalPack
 
     private static Optional<String> getUserGuideTopicId(EaObjectRef objectRef) {
         if (objectRef instanceof EaUGTopicRef) {
-            return ((EaUGTopicRef<?, ?>) objectRef).getUserGuideTopicId();
+            return ((EaUGTopicRef) objectRef).getUserGuideTopicId();
         }
         return Optional.empty();
     }
@@ -301,7 +301,7 @@ class EaTechnicalPackageExporter extends EaObjectRegularExporter<EaTechnicalPack
         if (objectRef instanceof EaFunctionTaskRef) {
             return ((EaFunctionTaskRef) objectRef).getFullTrainingGuideTopicId();
         } else if (objectRef instanceof EaUGTopicRef) {
-            return ((EaUGTopicRef<?, ?>) objectRef).getUserGuideTopicId();
+            return ((EaUGTopicRef) objectRef).getUserGuideTopicId();
         }
         return Optional.empty();
     }

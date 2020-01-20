@@ -39,6 +39,11 @@ public interface EaRepository {
     EaObjectRef getObjectRefByPath(@Nullable String path);
 
     /**
+     * Flush all content of repository to force reload
+     */
+    void flush();
+
+    /**
      * @return new Wiki set builder
      */
     WikiSetBuilder getWikiSetBuilder();

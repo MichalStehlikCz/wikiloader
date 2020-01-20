@@ -10,7 +10,7 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Optional;
 
-class EaFunctionTaskRef extends EaUGTopicRef<EaFunctionTaskRef, EaFunctionTask> implements EaFunctionRef {
+class EaFunctionTaskRef extends EaUGTopicRefBase<EaFunctionTaskRef, EaFunctionTask> implements EaFunctionRef {
 
     private static final Logger LOG = LogManager.getLogger(EaFunctionTaskRef.class);
 
@@ -19,7 +19,7 @@ class EaFunctionTaskRef extends EaUGTopicRef<EaFunctionTaskRef, EaFunctionTask> 
     static final String TRAINING_MATERIALS_POSTFIX = "training_materials";
     static final String FULL_TRAINING_GUIDE_POSTFIX = "full_training_guide";
 
-    EaFunctionTaskRef(EaRepositoryImpl repository, EaObjectRefBase parent, String name, @Nullable String alias,
+    EaFunctionTaskRef(EaRepositoryImpl repository, EaObjectRef parent, String name, @Nullable String alias,
                       int treePos, int elementId) {
         super(repository, parent, name, alias, "BusinessService", "ArchiMate_BusinessService", treePos,
                 elementId);

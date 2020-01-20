@@ -13,7 +13,7 @@ import java.util.Optional;
  * functions in system described as particular task (unlike non-leaf elements of the same type, that represent abstract
  * functions). Function can be included in technical package and should be exported to user guide.
  */
-class EaFunctionTask extends EaUGTopic<EaFunctionTaskRef, EaFunctionTask> {
+class EaFunctionTask extends EaUGTopicBase<EaFunctionTaskRef, EaFunctionTask> {
 
     EaFunctionTask(EaFunctionTaskRef objectRef, @Nullable String notes, List<EaDiagramRef> diagrams,
                    List<EaTechnicalPackageRef> includedIn) {
