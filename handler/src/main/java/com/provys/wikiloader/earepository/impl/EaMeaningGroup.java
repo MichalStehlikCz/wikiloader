@@ -24,7 +24,7 @@ public class EaMeaningGroup extends EaParentBase<EaMeaningGroupRef, EaDiagramRef
     @Nonnull
     @Override
     Exporter getExporter(ProvysWikiClient wikiClient) {
-        return null;
+        return new EaMeaningGroupExporter(this, wikiClient);
     }
 
     @Nonnull
