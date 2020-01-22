@@ -38,6 +38,8 @@ public class RunWikiLoader implements Runnable {
     @Nullable
     private String eaAddress;
     @Nullable
+    private String model;
+    @Nullable
     private String path;
     private boolean recursive = true;
 
@@ -86,6 +88,12 @@ public class RunWikiLoader implements Runnable {
     @Nonnull
     RunWikiLoader setEaAddress(String eaAddress) {
         this.eaAddress = eaAddress;
+        return this;
+    }
+
+    @Nonnull
+    RunWikiLoader setModel(@Nullable String model) {
+        this.model = model;
         return this;
     }
 
@@ -139,7 +147,7 @@ public class RunWikiLoader implements Runnable {
                 .addDiscoveredConverters()
                 .build();
         ConfigProviderResolver.instance().registerConfig(config, getClass().getClassLoader());
-        wikiLoader.run(path, recursive, false);
+        wikiLoader.run(model, path, recursive, false);
         LOG.info("Synchronisation of Enterprise Architect models to wiki finished");
     }
 

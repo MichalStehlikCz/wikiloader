@@ -6,8 +6,9 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public interface EaLoader {
+
     @Nonnull
-    EaDefaultPackageRef getModel(EaRepositoryImpl eaRepository);
+    EaDefaultPackageRef getModel(EaModel model, EaRepositoryImpl eaRepository);
 
     EaElementRef elementRefFromId(int elementId, EaRepositoryImpl eaRepository);
 
@@ -18,11 +19,12 @@ public interface EaLoader {
     /**
      * Retrieve ref object corresponding to supplied path
      *
+     * @param model is model in which path is looked up
      * @param path is path, with aliases divided by :
      * @param eaRepository is repository from which resulting object should be taken
      * @return ref object that corresponds to supplied path, throw exception when such object is not found
      */
-    EaObjectRef getRefObjectByPath(@Nullable String path, EaRepositoryImpl eaRepository);
+    EaObjectRef getRefObjectByPath(EaModel model, @Nullable String path, EaRepositoryImpl eaRepository);
 
     EaDefaultDiagram loadDefaultDiagram(EaDiagramRef diagramRef);
 

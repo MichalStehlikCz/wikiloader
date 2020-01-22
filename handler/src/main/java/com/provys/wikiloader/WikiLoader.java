@@ -15,5 +15,5 @@ public interface WikiLoader {
      * @param flush indicates that enterprise architect repository (cache) should be flushed prior to execution. Used
      *             when there is no other mechanism that would ensure that data from repository are up-to-date
      */
-    void run(@Nullable String path, boolean recursive, boolean flush);
+    void run(@Nullable String model, @Nullable String path, boolean recursive, boolean flush);
 }

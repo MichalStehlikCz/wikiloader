@@ -2,6 +2,7 @@ package com.provys.wikiloader.impl;
 
 import com.provys.provyswiki.ProvysWikiClient;
 import com.provys.wikiloader.WikiLoader;
+import com.provys.wikiloader.earepository.EaModel;
 import com.provys.wikiloader.earepository.EaRepository;
 
 import javax.annotation.Nullable;
@@ -26,10 +27,19 @@ public class WikiLoaderImpl implements WikiLoader {
     }
 
     @Override
-    public void run(@Nullable String path, boolean recursive, boolean flush) {
+    public void run(@Nullable String model, @Nullable String path, boolean recursive, boolean flush) {
         if (flush) {
             eaRepository.flush();
         }
-        eaRepository.getObjectRefByPath(path).getObject().sync(wikiClient, recursive);
+        if (model == null) {
+            if (path != null) {
+                throw new IllegalArgumentException("Model has to be specified when path is specified");
+            }
+            for (var eaModel : EaModel.values()) {
+                eaRepository.getObjectRefByPath(eaModel, null).getObject().sync(wikiClient, recursive);
+            }
+        } else {
+            eaRepository.getObjectRefByPath(EaModel.getByWikiNamespace(model), path).getObject().sync(wikiClient, recursive);
+        }
     }
 }

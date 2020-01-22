@@ -56,6 +56,9 @@ public class WikiLoaderCliApplication implements Runnable {
                     "Persist Security Info=True;User ID=ker;Data Source=enterprise_architect;LazyLoad=1;")
     private String eaAddress;
 
+    @CommandLine.Option(names = {"--model"}, description = "Model (as wiki namespace - eamodel, companymodel)")
+    private String model;
+
     @CommandLine.Option(names = {"--path"}, description = "Path (excluding root model)")
     private String path;
 
@@ -113,6 +116,7 @@ public class WikiLoaderCliApplication implements Runnable {
                 .setProvysUser(provysUser)
                 .setProvysPwd(provysPwd)
                 .setEaAddress(eaAddress)
+                .setModel(model)
                 .setPath(path)
                 .setRecursive(! notRecursive)
                 .run();

@@ -1,9 +1,6 @@
 package com.provys.wikiloader.earepository.impl;
 
-import com.provys.wikiloader.earepository.EaElementRef;
-import com.provys.wikiloader.earepository.EaObjectRef;
-import com.provys.wikiloader.earepository.EaRepository;
-import com.provys.wikiloader.earepository.WikiSetBuilder;
+import com.provys.wikiloader.earepository.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -25,9 +22,11 @@ class EaRepositoryImpl implements EaRepository {
     private final Map<Integer, EaDefaultDiagramRef> diagramById = new HashMap<>(20);
 
     private void initModel() {
-        // we need to initialise model as root package and set its mapping to wiki
-        var model = loader.getModel(this);
-        packageById.put(model.getPackageId(), model);
+        // we need to initialise models as root packages and set their mapping to wiki
+        for (var model : EaModel.values()) {
+            var modelPackage = loader.getModel(model, this);
+            packageById.put(modelPackage.getPackageId(), modelPackage);
+        }
     }
 
     @Inject
@@ -86,8 +85,8 @@ class EaRepositoryImpl implements EaRepository {
 
     @Override
     @Nonnull
-    public EaObjectRef getObjectRefByPath(@Nullable String path) {
-        return loader.getRefObjectByPath(path, this);
+    public EaObjectRef getObjectRefByPath(EaModel model, @Nullable String path) {
+        return loader.getRefObjectByPath(model, path, this);
     }
 
     @Override

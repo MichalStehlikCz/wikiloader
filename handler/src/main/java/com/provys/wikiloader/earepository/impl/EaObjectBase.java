@@ -1,5 +1,6 @@
 package com.provys.wikiloader.earepository.impl;
 
+import com.provys.wikiloader.earepository.EaModel;
 import com.provys.wikiloader.earepository.EaObject;
 import com.provys.wikiloader.earepository.EaObjectRef;
 import com.provys.wikiloader.earepository.EaRepository;
@@ -39,6 +40,12 @@ abstract class EaObjectBase<T extends EaObjectRef> implements EaObject {
     @Nonnull
     public Optional<EaObjectRef> getParent() {
         return objectRef.getParent();
+    }
+
+    @Override
+    @Nonnull
+    public EaModel getModel() {
+        return objectRef.getModel();
     }
 
     @Override

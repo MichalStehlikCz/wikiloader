@@ -33,10 +33,11 @@ public interface EaRepository {
     /**
      * Get repository object on given path.
      *
+     * @param model is model wiki path
      * @param path is path,
      */
     @Nonnull
-    EaObjectRef getObjectRefByPath(@Nullable String path);
+    EaObjectRef getObjectRefByPath(EaModel model, @Nullable String path);
 
     /**
      * Flush all content of repository to force reload
