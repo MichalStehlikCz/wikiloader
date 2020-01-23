@@ -52,7 +52,7 @@ class EaUmlDiagramElementRef extends EaElementRefBase {
 
     @Override
     public boolean hasLink() {
-        return (diagram != null) && diagram.hasLink();
+        return (diagram != null) && diagram.getParent().filter(EaObjectRef::hasLink).isPresent();
     }
 
     @Override
@@ -63,7 +63,7 @@ class EaUmlDiagramElementRef extends EaElementRefBase {
     @Override
     public void appendLinkNoCheck(StringBuilder builder) {
         assert (diagram != null);
-        diagram.appendLink(builder);
+        diagram.getParent().orElseThrow().appendLink(builder);
     }
 
     @Override
