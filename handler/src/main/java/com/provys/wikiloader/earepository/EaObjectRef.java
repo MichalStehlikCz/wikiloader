@@ -23,6 +23,12 @@ public interface EaObjectRef extends Comparable<EaObjectRef> {
     Optional<EaObjectRef> getParent();
 
     /**
+     * @return model this object is part of
+     */
+    @Nonnull
+    EaModel getModel();
+
+    /**
      * @return name of given object; note that it is Enterprise Architect name, not necessarily title of given topic
      */
     @Nonnull

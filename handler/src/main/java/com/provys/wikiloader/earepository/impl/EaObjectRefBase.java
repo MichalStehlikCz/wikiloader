@@ -1,6 +1,7 @@
 package com.provys.wikiloader.earepository.impl;
 
 import com.provys.common.exception.InternalException;
+import com.provys.wikiloader.earepository.EaModel;
 import com.provys.wikiloader.earepository.EaObjectRef;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -48,6 +49,18 @@ abstract class EaObjectRefBase implements EaObjectRef {
     @Nonnull
     public Optional<EaObjectRef> getParent() {
         return Optional.ofNullable(parent);
+    }
+
+    @Override
+    @Nonnull
+    public EaModel getModel() {
+        if (parent == null) {
+            if (alias == null) {
+                throw new InternalException(LOG, "Root object does not have alias");
+            }
+            return EaModel.getByWikiNamespace(alias);
+        }
+        return parent.getModel();
     }
 
     @Nonnull

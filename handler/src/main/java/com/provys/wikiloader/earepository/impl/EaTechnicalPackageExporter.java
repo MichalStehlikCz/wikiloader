@@ -75,13 +75,13 @@ class EaTechnicalPackageExporter extends EaObjectRegularExporter<EaTechnicalPack
         if (containedIn.size() == 1) {
             startBuilder.append("Contained in product package ");
             appendProductPackageLink(containedIn.get(0));
-            startBuilder.append(".\n");
+            startBuilder.append(".\\\\\n");
         } else if (containedIn.size() > 1) {
-            startBuilder.append("Contained in product packages:\n");
+            startBuilder.append("Contained in product packages:\\\\\n");
             for (var productPackage : containedIn) {
                 startBuilder.append("  * ");
                 appendProductPackageLink(productPackage);
-                startBuilder.append("\n");
+                startBuilder.append("\\\\\n");
             }
         }
     }
@@ -97,13 +97,13 @@ class EaTechnicalPackageExporter extends EaObjectRegularExporter<EaTechnicalPack
         if (prerequisities.size() == 1) {
             startBuilder.append("Requires technical package ");
             appendTechnicalPackageLink(prerequisities.get(0));
-            startBuilder.append(".\n");
+            startBuilder.append(".\\\\\n");
         } else if (prerequisities.size() > 1) {
-            startBuilder.append("Requires technical packages:\n");
+            startBuilder.append("Requires technical packages:\\\\\n");
             for (var technicalPackage : prerequisities) {
                 startBuilder.append("  * ");
                 appendTechnicalPackageLink(technicalPackage);
-                startBuilder.append("\n");
+                startBuilder.append("\\\\\n");
             }
         }
     }

@@ -29,10 +29,6 @@ import java.util.stream.Stream;
 class EaLoaderImpl implements EaLoader {
 
     private static final Logger LOG = LogManager.getLogger(EaLoaderImpl.class);
-    /** Name of model package */
-    private static final String MODEL_NAME = "Product Model";
-    /** Name of root namespace in wiki */
-    private static final String ROOT_NAMESPACE = "eamodel";
 
     @Nonnull
     private final Repository repository;
@@ -67,15 +63,15 @@ class EaLoaderImpl implements EaLoader {
 
     @Override
     @Nonnull
-    public EaDefaultPackageRef getModel(EaRepositoryImpl eaRepository) {
+    public EaDefaultPackageRef getModel(EaModel model, EaRepositoryImpl eaRepository) {
         Collection<Package> models = repository.GetModels();
         try {
-            var model = models.GetByName(MODEL_NAME);
+            var eaModel = models.GetByName(model.getName());
             try {
-                return new EaDefaultPackageRef(eaRepository, null, MODEL_NAME, ROOT_NAMESPACE,
-                        model.GetStereotypeEx(), model.GetTreePos(), model.GetPackageID());
+                return new EaDefaultPackageRef(eaRepository, null, model.getName(), model.getWikiNamespace(),
+                        eaModel.GetStereotypeEx(), eaModel.GetTreePos(), eaModel.GetPackageID());
             } finally {
-                model.destroy();
+                eaModel.destroy();
             }
         } finally {
             models.destroy();
@@ -210,9 +206,11 @@ class EaLoaderImpl implements EaLoader {
                 return loadEaTechnicalPackageRef(element, eaRepository);
             } else if (element.GetStereotype().equals("ArchiMate_Meaning")) {
                 return loadEaMeaningRef(element, eaRepository);
-            } else if (element.GetStereotype().equals("ArchiMate_BusinessService")) {
+            } else if (element.GetStereotype().equals("ArchiMate_BusinessService") &&
+                    (eaRepository.getPackageRefById(element.GetPackageID()).getModel() == EaModel.PRODUCT_MODEL)) {
                 return loadEaFunctionRef(element, eaRepository);
-            } else if (element.GetStereotype().equals("ArchiMate_DataObject")) {
+            } else if (element.GetStereotype().equals("ArchiMate_DataObject") &&
+                    (eaRepository.getPackageRefById(element.GetPackageID()).getModel() == EaModel.PRODUCT_MODEL)) {
                 return loadEaDataObjectRef(element, eaRepository);
             } else {
                 return loadEaDefaultElementRef(element, eaRepository);
@@ -356,9 +354,9 @@ class EaLoaderImpl implements EaLoader {
 
     @Nonnull
     @Override
-    public EaObjectRef getRefObjectByPath(@Nullable String path, EaRepositoryImpl eaRepository) {
+    public EaObjectRef getRefObjectByPath(EaModel model, @Nullable String path, EaRepositoryImpl eaRepository) {
         LOG.debug("Lookup page {}", path);
-        Package rootPackage = repository.GetPackageByID(getModel(eaRepository).getPackageId());
+        Package rootPackage = repository.GetPackageByID(getModel(model, eaRepository).getPackageId());
         Element rootElement = null;
         try {
             if (path != null) {
@@ -683,7 +681,7 @@ class EaLoaderImpl implements EaLoader {
     }
 
     private List<EaTechnicalPackageRef> getTechnicalPackagePrerequisities(Element element, EaRepository eaRepository) {
-        return getRelElements(element, eaRepository, true, "Dependency", "",
+        return getRelElements(element, eaRepository, false, "Dependency", "",
                 EaTechnicalPackageRef.class);
     }
 
