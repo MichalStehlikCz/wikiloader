@@ -6,16 +6,14 @@ import com.provys.common.exception.RegularException;
 import com.provys.wikiloader.earepository.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.eclipse.microprofile.config.Config;
-import org.eclipse.microprofile.config.ConfigProvider;
 import org.sparx.*;
 import org.sparx.Collection;
 import org.sparx.Package;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -25,7 +23,7 @@ import java.util.stream.Stream;
  * Interface for accessing Enterprise Architect repository and retrieve Ref objects from this repository - the only
  * class that actually interact with Enterprise Architect COM interface
  */
-@ApplicationScoped
+@Component
 class EaLoaderImpl implements EaLoader {
 
     private static final Logger LOG = LogManager.getLogger(EaLoaderImpl.class);
@@ -38,18 +36,15 @@ class EaLoaderImpl implements EaLoader {
     /**
      * Creates loader, using default repository opened via parameters, retrieved from configuration
      */
-    @SuppressWarnings("CdiInjectionPointsInspection")
-    @Inject
-    EaLoaderImpl(CatalogueRepository catalogue) {
+    @Autowired
+    EaLoaderImpl(EaLoaderConfiguration configuration, CatalogueRepository catalogue) {
         repository = new Repository();
-        Config config = ConfigProvider.getConfig();
-        String eaAddress = config
-                .getValue("EA_ADDRESS", String.class);
+        String eaAddress = configuration.getAddress();
         // Attempt to open the provided file
         LOG.debug("Open Enterprise Architect repository {}", eaAddress);
         if (!repository.OpenFile(eaAddress)) {
             // If the file couldn't be opened then notify the user
-            throw new RegularException(LOG, "EALOADER_CANNOTOPENREPOSITORY",
+            throw new RegularException("EALOADER_CANNOTOPENREPOSITORY",
                     "Enterprise Architect was unable to open the file '" + eaAddress + '\'');
         }
         LOG.debug("Enterprise architect repository opened");
@@ -375,14 +370,14 @@ class EaLoaderImpl implements EaLoader {
                             rootPackage = null;
                             rootElement = element
                                     .orElseThrow(
-                                            () -> new InternalException(LOG, "Package or element " + part + " not found"));
+                                            () -> new InternalException("Package or element " + part + " not found"));
                         }
                     } else {
                         assert rootElement != null;
                         var element = getChildElementByAlias(rootElement, part);
                         rootElement.destroy();
                         rootElement = element
-                                .orElseThrow(() -> new InternalException(LOG, "Element " + part + " not found"));
+                                .orElseThrow(() -> new InternalException("Element " + part + " not found"));
                     }
                 }
             }
@@ -751,7 +746,7 @@ class EaLoaderImpl implements EaLoader {
         try {
             var diagrams = getDiagrams(element::GetDiagrams, elementRef.getRepository());
             if (hasElements(element::GetElements)) {
-                throw new InternalException(LOG, "BusinessService element " + element.GetName() +
+                throw new InternalException("BusinessService element " + element.GetName() +
                         "with children should map to FunctionAbstract, not FunctionTask");
             }
             return new EaFunctionTask(elementRef, element.GetNotes(), diagrams,

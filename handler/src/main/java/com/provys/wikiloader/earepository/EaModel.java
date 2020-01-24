@@ -1,8 +1,6 @@
 package com.provys.wikiloader.earepository;
 
 import com.provys.common.exception.RegularException;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nonnull;
 
@@ -13,8 +11,6 @@ public enum EaModel {
 
     PRODUCT_MODEL("Product Model", "eamodel"),
     COMPANY_MODEL("Company Model", "companymodel");
-
-    private static final Logger LOG = LogManager.getLogger(EaModel.class);
 
     /**
      * Retrieve model with given wiki namespace
@@ -28,8 +24,7 @@ public enum EaModel {
                 return model;
             }
         }
-        throw new RegularException(LOG, "WIKILOADER_MODEL_NOT_FOUND",
-                "Model was not found by wiki name " + wikiNamespace);
+        throw new RegularException("WIKILOADER_MODEL_NOT_FOUND", "Model was not found by wiki name " + wikiNamespace);
     }
 
     @Nonnull

@@ -116,14 +116,14 @@ class EaLoaderDiagram {
                         () -> xPage, () -> yPage);
                 return null;
             }
-            throw new InternalException(LOG, "Failed to export diagram " + diagram.GetName() + " page "
+            throw new InternalException("Failed to export diagram " + diagram.GetName() + " page "
                     + xPage + ", " + yPage + " to " + filename + ": " + diagram.GetLastError());
         }
         BufferedImage page;
         try {
             page = ImageIO.read(new File(filename));
         } catch (IOException e) {
-            throw new InternalException(LOG, "Failed to read exported file " + diagram.GetName() + " page "
+            throw new InternalException("Failed to read exported file " + diagram.GetName() + " page "
                     + xPage + ", " + yPage + " from " + filename);
         }
         return page;
@@ -202,7 +202,7 @@ class EaLoaderDiagram {
             ImageIO.write(image, "png", outputStream);
             return outputStream.toByteArray();
         } catch (IOException e) {
-            throw new InternalException(LOG, "Error exporting image for diagram " + diagram.GetName(), e);
+            throw new InternalException("Error exporting image for diagram " + diagram.GetName(), e);
         }
     }
 }

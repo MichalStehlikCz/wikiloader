@@ -56,7 +56,7 @@ abstract class EaObjectRefBase implements EaObjectRef {
     public EaModel getModel() {
         if (parent == null) {
             if (alias == null) {
-                throw new InternalException(LOG, "Root object does not have alias");
+                throw new InternalException("Root object does not have alias");
             }
             return EaModel.getByWikiNamespace(alias);
         }
@@ -153,7 +153,7 @@ abstract class EaObjectRefBase implements EaObjectRef {
     @Override
     public void appendLink(StringBuilder builder) {
         if (!hasLink()) {
-            throw new InternalException(LOG, "Cannot append link - boundary not exported " + this);
+            throw new InternalException("Cannot append link - boundary not exported " + this);
         }
         appendLinkNoCheck(builder);
     }
@@ -163,7 +163,7 @@ abstract class EaObjectRefBase implements EaObjectRef {
     @Override
     public void appendParentLink(StringBuilder builder) {
         if (!hasLink()) {
-            throw new InternalException(LOG, "Cannot append link - boundary not exported " + this);
+            throw new InternalException("Cannot append link - boundary not exported " + this);
         }
         appendParentLinkNoCheck(builder, true);
     }

@@ -28,7 +28,7 @@ class EaUGTopicRefTest {
 
         @Override
         protected void loadObject() {
-            throw new InternalException(LOG, "Load object not implemented in test class");
+            throw new InternalException("Load object not implemented in test class");
         }
     }
 
@@ -42,7 +42,7 @@ class EaUGTopicRefTest {
         @Override
         @Nonnull
         Exporter getExporter(ProvysWikiClient wikiClient) {
-            throw new InternalException(LOG, "Get exporter not implemented in test class");
+            throw new InternalException("Get exporter not implemented in test class");
         }
     }
 

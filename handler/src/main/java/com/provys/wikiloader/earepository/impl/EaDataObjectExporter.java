@@ -83,15 +83,15 @@ public class EaDataObjectExporter extends EaObjectRegularExporter<EaDataObject> 
                 startBuilder.append(note);
             });
             startBuilder.append("===== Code =====\n");
-            entity.getTable().ifPresent(table -> startBuilder.append("Base table: ''").append(table).append("''\n"));
-            entity.getView().ifPresent(view -> startBuilder.append("Base view: ''").append(view).append("''\n"));
-            entity.getPgPackage().ifPresent(pgPackage -> startBuilder.append("PG Package: ''").append(pgPackage)
+            entity.getTableNm().ifPresent(table -> startBuilder.append("Base table: ''").append(table).append("''\n"));
+            entity.getViewNm().ifPresent(view -> startBuilder.append("Base view: ''").append(view).append("''\n"));
+            entity.getPgPackageNm().ifPresent(pgPackage -> startBuilder.append("PG Package: ''").append(pgPackage)
                     .append("''\n"));
-            entity.getCpPackage().ifPresent(cpPackage -> startBuilder.append("CP Package: ''").append(cpPackage)
+            entity.getCpPackageNm().ifPresent(cpPackage -> startBuilder.append("CP Package: ''").append(cpPackage)
                     .append("''\n"));
-            entity.getEpPackage().ifPresent(epPackage -> startBuilder.append("EP Package: ''").append(epPackage)
+            entity.getEpPackageNm().ifPresent(epPackage -> startBuilder.append("EP Package: ''").append(epPackage)
                     .append("''\n"));
-            entity.getFpPackage().ifPresent(fpPackage -> startBuilder.append("FP Package: ''").append(fpPackage)
+            entity.getFpPackageNm().ifPresent(fpPackage -> startBuilder.append("FP Package: ''").append(fpPackage)
                     .append("''\n"));
             startBuilder.append("===== Attributes =====\n");
             entity.getAttrGrps().stream().sorted().forEach(this::appendAttrGrp);

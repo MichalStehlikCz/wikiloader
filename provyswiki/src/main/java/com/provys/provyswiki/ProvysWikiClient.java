@@ -3,10 +3,9 @@ package com.provys.provyswiki;
 import com.provys.dokuwiki.DokuWikiClient;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.eclipse.microprofile.config.Config;
-import org.eclipse.microprofile.config.ConfigProvider;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-import javax.enterprise.context.ApplicationScoped;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -17,7 +16,7 @@ import java.util.stream.Collectors;
  * and creation of corresponding content file etc.
  */
 @SuppressWarnings("WeakerAccess")
-@ApplicationScoped
+@Component
 public class ProvysWikiClient extends DokuWikiClient {
 
     private static final Logger LOG = LogManager.getLogger(ProvysWikiClient.class);
@@ -29,32 +28,12 @@ public class ProvysWikiClient extends DokuWikiClient {
     /** Name of topic that acts as landing page for given namespace */
     public static final String START = "start";
 
-    private static String getUrl() {
-        Config config = ConfigProvider.getConfig();
-        return config
-                .getOptionalValue("PROVYSWIKI_URL", String.class)
-                .orElse("http://provys-wiki.dcit.cz/lib/exe/xmlrpc.php");
-    }
-
-    private static String getUser() {
-        Config config = ConfigProvider.getConfig();
-        return config
-                .getOptionalValue("PROVYSWIKI_USER", String.class)
-                .orElse("stehlik");
-    }
-
-    private static String getPwd() {
-        Config config = ConfigProvider.getConfig();
-        return config
-                .getOptionalValue("PROVYSWIKI_PWD", String.class)
-                .orElse("stehlik");
-    }
-
     /**
      * Create new provys-wiki client instance. Read all parameters from application configuration
      */
-    public ProvysWikiClient() {
-        super(getUrl(), getUser(), getPwd());
+    @Autowired
+    public ProvysWikiClient(ProvysWikiConfiguration configuration) {
+        super(configuration.getUrl(), configuration.getUser(), configuration.getPwd());
     }
 
     /**

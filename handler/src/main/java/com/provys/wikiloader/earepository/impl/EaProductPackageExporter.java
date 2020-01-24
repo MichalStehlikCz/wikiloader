@@ -85,7 +85,7 @@ class EaProductPackageExporter extends EaObjectRegularExporter<EaProductPackage>
     @Override
     void syncWiki() {
         if (getEaObject().getNamespace().isEmpty()) {
-            throw new InternalException(LOG, "Technical package element should be mapped to namespace");
+            throw new InternalException("Technical package element should be mapped to namespace");
         }
         super.syncWiki();
     }

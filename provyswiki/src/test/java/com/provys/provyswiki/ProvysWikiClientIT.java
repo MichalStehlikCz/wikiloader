@@ -1,16 +1,19 @@
 package com.provys.provyswiki;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
 
-class ProvysWikiClientTest {
+@SpringBootTest
+class ProvysWikiClientIT {
 
-    private static final ProvysWikiClient provysWikiClient = new ProvysWikiClient(
-            "http://provys-wiki.dcit.cz/lib/exe/xmlrpc.php", "stehlik", "stehlik");
+    @Autowired
+    ProvysWikiClient provysWikiClient;
 
     @Test
     void sidebarTest() {

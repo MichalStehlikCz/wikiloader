@@ -1,19 +1,26 @@
 package com.provys.wikiloader.restapi;
 
-import io.swagger.v3.oas.annotations.OpenAPIDefinition;
-import io.swagger.v3.oas.annotations.info.Info;
-import io.swagger.v3.oas.annotations.servers.Server;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
+import org.springframework.context.annotation.Bean;
+import springfox.documentation.swagger.web.UiConfiguration;
+import springfox.documentation.swagger.web.UiConfigurationBuilder;
+import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
-import javax.ws.rs.ApplicationPath;
-import javax.ws.rs.core.Application;
+@SpringBootApplication(scanBasePackages = "com.provys")
+@ConfigurationPropertiesScan(basePackages = "com.provys")
+@EnableSwagger2
+public class WikiLoaderApplication {
 
-@ApplicationPath("/api")
-@OpenAPIDefinition(
-        info = @Info(
-                title = "Provys Catalogue repository Api",
-                version = "1.0",
-                description = "Provides methods for accessing entities and other objects from provys metadata catalogue"
-        ),
-        servers = {@Server(url = "/wikiloader/api")}) // needed because swagger does not read path from appplication...
-public class WikiLoaderApplication extends Application {
+        public static void main(String[] args) {
+                SpringApplication.run(WikiLoaderApplication.class, args);
+        }
+
+        @Bean
+        UiConfiguration uiConfig() {
+                return UiConfigurationBuilder.builder()
+                        .validatorUrl(null)
+                        .build();
+        }
 }

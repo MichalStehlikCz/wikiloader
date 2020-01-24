@@ -57,7 +57,7 @@ class EaUmlDiagramElementRef extends EaElementRefBase {
 
     @Override
     public void appendNamespace(StringBuilder builder, boolean trailingColon) {
-        throw new InternalException(LOG, "Cannot append namespace - diagram reference not exported " + this);
+        throw new InternalException("Cannot append namespace - diagram reference not exported " + this);
     }
 
     @Override

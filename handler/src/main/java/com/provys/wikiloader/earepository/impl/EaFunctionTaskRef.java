@@ -12,8 +12,6 @@ import java.util.Optional;
 
 class EaFunctionTaskRef extends EaUGTopicRefBase<EaFunctionTaskRef, EaFunctionTask> implements EaFunctionRef {
 
-    private static final Logger LOG = LogManager.getLogger(EaFunctionTaskRef.class);
-
     static final String TRAINING_GUIDE_POSTFIX = "training_guide";
     static final String TRAINING_WALKTHROUGH_POSTFIX = "training_walkthrough";
     static final String TRAINING_MATERIALS_POSTFIX = "training_materials";
@@ -52,7 +50,7 @@ class EaFunctionTaskRef extends EaUGTopicRefBase<EaFunctionTaskRef, EaFunctionTa
                 .flatMap(topicName ->
                         getParent()
                                 .map(EaObjectRef::getNamespace) // get namespace from parent
-                                .orElseThrow(() -> new InternalException(LOG, "Function task should have parent")) // if no parent, use "" as prefix)
+                                .orElseThrow(() -> new InternalException("Function task should have parent")) // if no parent, use "" as prefix)
                                 .map(ns -> ns + ":" + topicName));
     }
 
@@ -77,7 +75,7 @@ class EaFunctionTaskRef extends EaUGTopicRefBase<EaFunctionTaskRef, EaFunctionTa
                 .flatMap(topicName ->
                         getParent()
                                 .map(EaObjectRef::getNamespace) // get namespace from parent
-                                .orElseThrow(() -> new InternalException(LOG, "Function task should have parent")) // if no parent, use "" as prefix)
+                                .orElseThrow(() -> new InternalException("Function task should have parent")) // if no parent, use "" as prefix)
                                 .map(ns -> ns + ":" + topicName));
     }
 
@@ -102,7 +100,7 @@ class EaFunctionTaskRef extends EaUGTopicRefBase<EaFunctionTaskRef, EaFunctionTa
                 .flatMap(topicName ->
                         getParent()
                                 .map(EaObjectRef::getNamespace) // get namespace from parent
-                                .orElseThrow(() -> new InternalException(LOG, "Function task should have parent")) // if no parent, use "" as prefix)
+                                .orElseThrow(() -> new InternalException("Function task should have parent")) // if no parent, use "" as prefix)
                                 .map(ns -> ns + ":" + topicName));
     }
 
@@ -127,7 +125,7 @@ class EaFunctionTaskRef extends EaUGTopicRefBase<EaFunctionTaskRef, EaFunctionTa
                 .flatMap(topicName ->
                         getParent()
                                 .map(EaObjectRef::getNamespace) // get namespace from parent
-                                .orElseThrow(() -> new InternalException(LOG, "Function task should have parent")) // if no parent, use "" as prefix)
+                                .orElseThrow(() -> new InternalException("Function task should have parent")) // if no parent, use "" as prefix)
                                 .map(ns -> ns + ":" + topicName));
     }
 
