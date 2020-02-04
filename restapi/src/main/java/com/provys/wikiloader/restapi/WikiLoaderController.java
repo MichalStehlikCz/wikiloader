@@ -4,6 +4,8 @@ import com.provys.wikiloader.WikiLoader;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.v3.oas.annotations.Operation;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,6 +19,8 @@ import javax.annotation.Nonnull;
 @RequestMapping(value = "/wikiloader", produces = MediaType.TEXT_PLAIN_VALUE)
 public class WikiLoaderController {
 
+    private static final Logger LOG = LogManager.getLogger(WikiLoaderController.class);
+
     @Nonnull
     private final WikiLoader wikiLoader;
 
@@ -28,7 +32,9 @@ public class WikiLoaderController {
     @ApiOperation(value = "Sync All", notes = "Read whole Enterprise Architect model and apply it on provys wiki")
     @GetMapping("/syncall")
     public String syncAll() {
+        LOG.info("WikiLoader SyncAll");
         wikiLoader.run(null, null, true, true);
+        LOG.info("WikiLoader SyncAll finished");
         return "Synchronisation successful";
     }
 
@@ -41,7 +47,9 @@ public class WikiLoaderController {
                                " namespace") String path,
                        @RequestParam(name = "recursive", defaultValue = "true")
                            @ApiParam("If set to false, only single topic is synchronised") boolean recursive) {
+        LOG.info("WikiLoader Sync {}, {}, {}", model, path, recursive);
         wikiLoader.run(model, path, recursive, true);
+        LOG.info("WikiLoader Sync finished");
         return "Synchronisation successful";
     }
 }
