@@ -40,12 +40,21 @@ class EaLoaderImpl implements EaLoader {
     EaLoaderImpl(EaLoaderConfiguration configuration, CatalogueRepository catalogue) {
         repository = new Repository();
         String eaAddress = configuration.getAddress();
+        String eaUser = configuration.getUser();
         // Attempt to open the provided file
         LOG.debug("Open Enterprise Architect repository {}", eaAddress);
-        if (!repository.OpenFile(eaAddress)) {
-            // If the file couldn't be opened then notify the user
-            throw new RegularException("EALOADER_CANNOTOPENREPOSITORY",
-                    "Enterprise Architect was unable to open the file '" + eaAddress + '\'');
+        if (eaUser.isEmpty()) {
+            if (!repository.OpenFile(eaAddress)) {
+                // If the file couldn't be opened then notify the user
+                throw new RegularException("EALOADER_CANNOTOPENREPOSITORY",
+                        "Enterprise Architect was unable to open the file '" + eaAddress + '\'');
+            }
+        } else {
+            if (!repository.OpenFile2(eaAddress, eaUser, configuration.getPwd())) {
+                // If the file couldn't be opened then notify the user
+                throw new RegularException("EALOADER_CANNOTOPENREPOSITORY",
+                        "Enterprise Architect was unable to open the file '" + eaAddress + "', user " + eaUser);
+            }
         }
         LOG.debug("Enterprise architect repository opened");
         this.catalogue = Objects.requireNonNull(catalogue);
