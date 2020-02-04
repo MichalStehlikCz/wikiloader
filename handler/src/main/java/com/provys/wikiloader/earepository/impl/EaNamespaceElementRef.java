@@ -3,16 +3,12 @@ package com.provys.wikiloader.earepository.impl;
 import com.provys.common.exception.InternalException;
 import com.provys.wikiloader.earepository.EaObject;
 import com.provys.wikiloader.earepository.EaObjectRef;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Optional;
 
 class EaNamespaceElementRef extends EaElementRefBase {
-
-    private static final Logger LOG = LogManager.getLogger(EaNamespaceElementRef.class);
 
     EaNamespaceElementRef(EaRepositoryImpl repository, @Nullable EaObjectRef parent, String name,
                           @Nullable String alias, String type, @Nullable String stereotype, int treePos, int elementId)
@@ -55,7 +51,7 @@ class EaNamespaceElementRef extends EaElementRefBase {
     public void appendNamespace(StringBuilder builder, boolean trailingColon) {
         var alias = getAlias();
         if (alias.isEmpty()) {
-            throw new InternalException(LOG,
+            throw new InternalException(
                     "Request to append namespace for element that does not translate to namespace " + this);
         }
         getParent().ifPresent(parent -> parent.appendNamespace(builder, true));

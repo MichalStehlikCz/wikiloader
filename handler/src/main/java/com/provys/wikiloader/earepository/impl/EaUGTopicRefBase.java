@@ -2,8 +2,6 @@ package com.provys.wikiloader.earepository.impl;
 
 import com.provys.common.exception.InternalException;
 import com.provys.wikiloader.earepository.EaObjectRef;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -15,8 +13,6 @@ import java.util.Optional;
  */
 abstract class EaUGTopicRefBase<R extends EaUGTopicRefBase<R, T>, T extends EaUGTopicBase<R, T>>
         extends EaCachedLeafElementRef<R, T> implements EaUGTopicRef {
-
-    private static final Logger LOG = LogManager.getLogger(EaUGTopicRefBase.class);
 
     private static final String USER_GUIDE_POSTFIX = "user_guide";
 
@@ -48,7 +44,7 @@ abstract class EaUGTopicRefBase<R extends EaUGTopicRefBase<R, T>, T extends EaUG
                 .flatMap(topicName ->
                         getParent()
                                 .map(EaObjectRef::getNamespace) // get namespace from parent
-                                .orElseThrow(() -> new InternalException(LOG, "User guide topic should have parent")) // if no parent, use "" as prefix)
+                                .orElseThrow(() -> new InternalException("User guide topic should have parent")) // if no parent, use "" as prefix)
                                 .map(ns -> ns + ":" + topicName));
     }
 

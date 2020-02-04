@@ -4,24 +4,23 @@ import com.provys.provyswiki.ProvysWikiClient;
 import com.provys.wikiloader.WikiLoader;
 import com.provys.wikiloader.earepository.EaModel;
 import com.provys.wikiloader.earepository.EaRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.Nullable;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 import java.util.Objects;
 
 /**
  * Stateless bean, capable of running synchronisation (creates RunHandler for actual execution)
  */
-@ApplicationScoped
-public class WikiLoaderImpl implements WikiLoader {
+@Component
+class WikiLoaderImpl implements WikiLoader {
 
     private final EaRepository eaRepository;
     private final ProvysWikiClient wikiClient;
 
-    @SuppressWarnings("CdiUnproxyableBeanTypesInspection")
-    @Inject
-    public WikiLoaderImpl(EaRepository eaRepository, ProvysWikiClient wikiClient) {
+    @Autowired
+    WikiLoaderImpl(EaRepository eaRepository, ProvysWikiClient wikiClient) {
         this.eaRepository = Objects.requireNonNull(eaRepository);
         this.wikiClient = Objects.requireNonNull(wikiClient);
     }

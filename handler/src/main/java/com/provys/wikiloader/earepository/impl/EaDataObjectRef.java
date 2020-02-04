@@ -58,7 +58,7 @@ class EaDataObjectRef extends EaElementRefBase {
 
     @Override
     public void appendNamespace(StringBuilder builder, boolean trailingColon) {
-        throw new InternalException(LOG,
+        throw new InternalException(
                 "Request to append namespace for element that does not translate to namespace " + this);
     }
 

@@ -1,15 +1,15 @@
 package com.provys.wikiloader.earepository.impl;
 
 import com.provys.wikiloader.earepository.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 import java.util.HashMap;
 import java.util.Map;
 
-@ApplicationScoped
+@Component
 class EaRepositoryImpl implements EaRepository {
 
     @Nonnull
@@ -29,8 +29,8 @@ class EaRepositoryImpl implements EaRepository {
         }
     }
 
-    @Inject
-    public EaRepositoryImpl(EaLoader loader) {
+    @Autowired
+    EaRepositoryImpl(EaLoader loader) {
         this.loader = loader;
         // we need to initialize model (root packages) and their mapping to wiki
         initModel();

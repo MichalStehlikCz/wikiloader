@@ -9,15 +9,37 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>wikiloader-restapi</artifactId>
-    <packaging>war</packaging>
+    <packaging>jar</packaging>
     <dependencies>
         <dependency>
-            <groupId>jakarta.platform</groupId>
-            <artifactId>jakarta.jakartaee-api</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-log4j2</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger2</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger-ui</artifactId>
         </dependency>
         <dependency>
             <groupId>io.swagger.core.v3</groupId>
             <artifactId>swagger-annotations</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.provys.common</groupId>
+            <artifactId>common-spring</artifactId>
         </dependency>
         <dependency>
             <groupId>com.google.code.findbugs</groupId>
@@ -45,15 +67,15 @@
         </dependency>
         <dependency>
             <groupId>com.provys.catalogue</groupId>
-            <artifactId>catalogue-impl</artifactId>
+            <artifactId>catalogue-spring</artifactId>
         </dependency>
         <dependency>
             <groupId>com.provys.catalogue</groupId>
-            <artifactId>catalogue-dbloader</artifactId>
+            <artifactId>catalogue-dbloader-spring</artifactId>
         </dependency>
         <dependency>
             <groupId>com.provys.provysdb</groupId>
-            <artifactId>dbcontext</artifactId>
+            <artifactId>dbcontext-spring</artifactId>
         </dependency>
         <dependency>
             <groupId>com.provys.wikiloader</groupId>
@@ -65,25 +87,8 @@
         <finalName>wikiloader</finalName>
         <plugins>
             <plugin>
-                <groupId>io.swagger.core.v3</groupId>
-                <artifactId>swagger-maven-plugin</artifactId>
-                <configuration>
-                    <outputFileName>openapi</outputFileName>
-                    <outputPath>${project.basedir}/src/main/webapp/openapi</outputPath>
-                    <outputFormat>JSONANDYAML</outputFormat>
-                    <resourcePackages>
-                        <package>com.provys.wikiloader.restapi</package>
-                    </resourcePackages>
-                    <prettyPrint>true</prettyPrint>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>resolve</goal>
-                        </goals>
-                    </execution>
-                </executions>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
         </plugins>
     </build>

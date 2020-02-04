@@ -14,8 +14,6 @@ import java.util.Optional;
 
 class EaDefaultDiagramRef extends EaObjectRefBase implements EaDiagramRef {
 
-    private static final Logger LOG = LogManager.getLogger(EaDefaultDiagramRef.class);
-
     /**
      * Constructs topic name for diagram
      *
@@ -60,7 +58,7 @@ class EaDefaultDiagramRef extends EaObjectRefBase implements EaDiagramRef {
         }
         var parentNs = parent.getNamespace();
         if (parentNs.isEmpty()) {
-            return Optional.of(parent.getTopicId().orElseThrow() + '.' + alias); // append . + alias to parent topic
+            return Optional.of(parent.getTopicId().orElseThrow() + '.' + alias.get()); // append . + alias to parent topic
         }
         return Optional.of(parentNs.get() + ":" + alias.get()); // append this topic's alias
     }
@@ -73,7 +71,7 @@ class EaDefaultDiagramRef extends EaObjectRefBase implements EaDiagramRef {
 
     @Override
     public void appendNamespace(StringBuilder builder, boolean trailingColon) {
-        throw new InternalException(LOG, "Diagram cannot be exported as namespace " + this);
+        throw new InternalException("Diagram cannot be exported as namespace " + this);
     }
 
     @Override

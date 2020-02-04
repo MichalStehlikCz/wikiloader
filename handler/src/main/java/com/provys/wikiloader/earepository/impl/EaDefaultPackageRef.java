@@ -67,7 +67,7 @@ public class EaDefaultPackageRef extends EaObjectRefBase implements EaPackageRef
     @SuppressWarnings("squid:S3655") // sonar does not recognise Optional.isEmpty...
     public void appendNamespace(StringBuilder builder, boolean trailingColon) {
         if (getAlias().isEmpty()) {
-            throw new InternalException(LOG,
+            throw new InternalException(
                     "Request to append namespace for element that does not translate to namespace " + this);
         }
         getParent().ifPresent(parent -> parent.appendNamespace(builder, true));

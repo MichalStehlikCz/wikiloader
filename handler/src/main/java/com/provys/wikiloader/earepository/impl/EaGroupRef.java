@@ -82,7 +82,7 @@ class EaGroupRef extends EaElementRefBase {
 
     @Override
     public void appendNamespace(StringBuilder builder, boolean trailingColon) {
-        throw new InternalException(LOG, "Cannot append namespace - boundary " + this +
+        throw new InternalException("Cannot append namespace - boundary " + this +
                 "does not correspond to namespace");
     }
 

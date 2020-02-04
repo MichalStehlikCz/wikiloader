@@ -3,15 +3,11 @@ package com.provys.wikiloader.earepository.impl;
 import com.provys.common.exception.InternalException;
 import com.provys.provyswiki.ProvysWikiClient;
 import com.provys.wikiloader.earepository.EaObjectRef;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 class EaTechnicalPackageExporter extends EaObjectRegularExporter<EaTechnicalPackage> {
-
-    private static final Logger LOG = LogManager.getLogger(EaTechnicalPackageExporter.class);
 
     static final String PACKAGE_DESCRIPTION_NAME = "package_description";
     private static final String ATTRIBUTES_USED_NAME = "attributes_used";
@@ -47,7 +43,7 @@ class EaTechnicalPackageExporter extends EaObjectRegularExporter<EaTechnicalPack
 
     private void prepareManualPages() {
         var namespace = getEaObject().getNamespace()
-                .orElseThrow(() ->  new InternalException(LOG, "Technical package element should be mapped to namespace"));
+                .orElseThrow(() ->  new InternalException("Technical package element should be mapped to namespace"));
         hasMigration = !getWikiClient().getPage(namespace + ":" + MIGRATION_NAME).isEmpty();
         hasSettingsQuestionnaire = !getWikiClient().getPage(namespace + ":" + SETTINGS_QUESTIONNAIRE_NAME).isEmpty();
     }
@@ -364,7 +360,7 @@ class EaTechnicalPackageExporter extends EaObjectRegularExporter<EaTechnicalPack
     @Override
     void syncWiki() {
         if (getEaObject().getNamespace().isEmpty()) {
-            throw new InternalException(LOG, "Technical package element should be mapped to namespace");
+            throw new InternalException("Technical package element should be mapped to namespace");
         }
         super.syncWiki();
     }
