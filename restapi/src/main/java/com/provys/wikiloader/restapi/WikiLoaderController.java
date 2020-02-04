@@ -1,9 +1,7 @@
 package com.provys.wikiloader.restapi;
 
 import com.provys.wikiloader.WikiLoader;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.annotations.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +27,7 @@ public class WikiLoaderController {
         this.wikiLoader = wikiLoader;
     }
 
-    @ApiOperation(value = "Sync All", notes = "Read whole Enterprise Architect model and apply it on provys wiki")
+    @ApiOperation(value = "Full Synchronization", notes = "Read whole Enterprise Architect model and apply it on provys wiki")
     @GetMapping("/syncall")
     public String syncAll() {
         LOG.info("WikiLoader SyncAll");
@@ -38,10 +36,11 @@ public class WikiLoaderController {
         return "Synchronisation successful";
     }
 
-    @ApiOperation(value = "Partial Sync", notes = "Synchronise defined part of tree on wiki")
+    @ApiOperation(value = "Partial Synchronization", notes = "Synchronise defined part of tree on wiki")
     @GetMapping("/sync")
     public String sync(@RequestParam(name = "model", defaultValue = "eamodel")
-                           @ApiParam(value = "Model (eamodel, company_model)", allowableValues = "eamodel, company_model") String model,
+                           @ApiParam(value = "Model (eamodel, company_model)",
+                                   allowableValues = "eamodel, company_model") String model,
                        @RequestParam(name = "path", required = false)
                        @ApiParam(value = "Path to given topic on wiki, excluding model, excluding :start in case of" +
                                " namespace") String path,
