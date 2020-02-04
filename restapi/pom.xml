@@ -77,7 +77,7 @@
         </dependency>
         <dependency>
             <groupId>com.provys.wikiloader</groupId>
-            <artifactId>handler</artifactId>
+            <artifactId>wikiloader-handler</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>
