@@ -29,13 +29,14 @@ public class EaDataObjectExporter extends EaObjectRegularExporter<EaDataObject> 
         // Alias is included in title, thus this method does nothing
     }
 
+    private void appendSubDomain(String domainNm, String subdomainNm) {
+        startBuilder.append("(").append(subdomainNm).append(")");
+    }
+
     private void appendDomain(Attr attr) {
-        var domainNm = attr.getDomain();
+        final var domainNm = attr.getDomain().getNameNm();
         startBuilder.append(domainNm);
-
-        // missing code...
-
-
+        attr.getSubdomainNm().ifPresent(subdomainNm -> appendSubDomain(domainNm, subdomainNm));
     }
 
     private void appendAttr(Attr attr) {
@@ -44,11 +45,11 @@ public class EaDataObjectExporter extends EaObjectRegularExporter<EaDataObject> 
         appendDomain(attr);
         startBuilder.append("  |\n|");
         attr.getNote().ifPresent(startBuilder::append);
-        startBuilder.append("  |||");
+        startBuilder.append("  |||\n");
     }
 
     private void appendAttrHeader() {
-        startBuilder.append("^ Name  ^ Int. Name  ^  Domain  ^");
+        startBuilder.append("^ Name  ^ Int. Name  ^  Domain  ^\n");
     }
 
     private void appendAttrs(Collection<Attr> attrs) {
@@ -58,7 +59,7 @@ public class EaDataObjectExporter extends EaObjectRegularExporter<EaDataObject> 
     }
 
     private void appendAttrGrp(AttrGrp attrGrp) {
-        startBuilder.append("===== ").append(attrGrp.getName()).append(" (").append(attrGrp.getNameNm()).append(") =====\n");
+        startBuilder.append("==== ").append(attrGrp.getName()).append(" (").append(attrGrp.getNameNm()).append(") ====\n");
         appendAttrHeader();
         attrGrp.getAttrs().stream()
                 .filter(attr -> attr.getAttrGrpId().isEmpty())
@@ -71,7 +72,7 @@ public class EaDataObjectExporter extends EaObjectRegularExporter<EaDataObject> 
         if (getEaObject().getEntity().isEmpty()) {
             appendNotes();
         } else {
-            var entity = getEaObject().getEntity().get();
+            var entity = getEaObject().getEntity().orElseThrow(); // should not throw... tested just above
             if (!entity.isObjectClass()) {
                 startBuilder.append("Abstract type\n");
             }
@@ -83,25 +84,25 @@ public class EaDataObjectExporter extends EaObjectRegularExporter<EaDataObject> 
                 startBuilder.append(note);
             });
             startBuilder.append("===== Code =====\n");
-            entity.getTableNm().ifPresent(table -> startBuilder.append("Base table: ''").append(table).append("''\n"));
-            entity.getViewNm().ifPresent(view -> startBuilder.append("Base view: ''").append(view).append("''\n"));
+            entity.getTableNm().ifPresent(table -> startBuilder.append("Base table: ''").append(table).append("''\\\\\n"));
+            entity.getViewNm().ifPresent(view -> startBuilder.append("Base view: ''").append(view).append("''\\\\\n"));
             entity.getPgPackageNm().ifPresent(pgPackage -> startBuilder.append("PG Package: ''").append(pgPackage)
-                    .append("''\n"));
+                    .append("''\\\\\n"));
             entity.getCpPackageNm().ifPresent(cpPackage -> startBuilder.append("CP Package: ''").append(cpPackage)
-                    .append("''\n"));
+                    .append("''\\\\\n"));
             entity.getEpPackageNm().ifPresent(epPackage -> startBuilder.append("EP Package: ''").append(epPackage)
-                    .append("''\n"));
+                    .append("''\\\\\n"));
             entity.getFpPackageNm().ifPresent(fpPackage -> startBuilder.append("FP Package: ''").append(fpPackage)
-                    .append("''\n"));
+                    .append("''\\\\\n"));
             startBuilder.append("===== Attributes =====\n");
             entity.getAttrGrps().stream().sorted().forEach(this::appendAttrGrp);
+            startBuilder.append("==== Others ====\n");
             // and append attributes not attached to any attribute group
             var attrs = entity.getAttrs().stream()
                     .filter(attr -> attr.getAttrGrpId().isEmpty())
                     .sorted()
                     .collect(Collectors.toList());
             if (!attrs.isEmpty()) {
-                startBuilder.append("\\\\\n");
                 appendAttrHeader();
                 appendAttrs(attrs);
             }
