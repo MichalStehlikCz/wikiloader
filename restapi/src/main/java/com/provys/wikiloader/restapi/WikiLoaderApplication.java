@@ -24,7 +24,7 @@ public class WikiLoaderApplication {
         public Docket petApi() {
                 return new Docket(DocumentationType.SWAGGER_2)
                         .select()
-                        .apis(RequestHandlerSelectors.basePackage("com.provys"))
+                        .apis(RequestHandlerSelectors.basePackage("com.provys.wikiloader"))
                         .build()
                         ;
         }

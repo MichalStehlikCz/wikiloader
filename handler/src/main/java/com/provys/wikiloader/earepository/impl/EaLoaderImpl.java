@@ -46,17 +46,17 @@ class EaLoaderImpl implements EaLoader {
         if (eaUser.isEmpty()) {
             if (!repository.OpenFile(eaAddress)) {
                 // If the file couldn't be opened then notify the user
-                throw new RegularException("EALOADER_CANNOTOPENREPOSITORY",
+                throw new RegularException("WIKILOADER_CANNOTOPENREPOSITORY",
                         "Enterprise Architect was unable to open the file '" + eaAddress + '\'');
             }
         } else {
             if (!repository.OpenFile2(eaAddress, eaUser, configuration.getPwd())) {
                 // If the file couldn't be opened then notify the user
-                throw new RegularException("EALOADER_CANNOTOPENREPOSITORY",
+                throw new RegularException("WIKILOADER_CANNOTOPENREPOSITORY",
                         "Enterprise Architect was unable to open the file '" + eaAddress + "', user " + eaUser);
             }
         }
-        LOG.debug("Enterprise architect repository opened");
+        LOG.info("Enterprise architect repository {} opened", eaAddress);
         this.catalogue = Objects.requireNonNull(catalogue);
     }
 
