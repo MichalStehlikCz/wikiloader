@@ -11,8 +11,8 @@ import static org.mockito.Mockito.mock;
 class EaLeafElementRefTest {
 
     private final EaRepositoryImpl eaRepository = mock(EaRepositoryImpl.class);
-    private final EaObjectRefBase parent = new TestEaObjectRef(eaRepository,"parent");
-    private final EaObjectRefBase parent2 = new TestEaObjectRef(eaRepository,null);
+    private final EaObjectRefBase parent = new TestEaObjectRef(eaRepository,"Mock parent", "parent");
+    private final EaObjectRefBase parent2 = new TestEaObjectRef(eaRepository,"Mock parent", null);
     private final EaLeafElementRef elementRef1 = new EaLeafElementRef(eaRepository, parent, "Element",
             "alelement","Type", "", 1,1);
     private final EaLeafElementRef elementRef2 = new EaLeafElementRef(eaRepository, parent, "Element",

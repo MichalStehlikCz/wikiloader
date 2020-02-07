@@ -20,7 +20,7 @@ class EaTechnicalPackageRef extends EaNamespaceElementRef implements EaItemRef {
     @Nonnull
     @Override
     public String getTitle() {
-        return getName() + " Technical Package";
+        return getPlainName() + " Technical Package";
     }
 
     private synchronized void loadObject() {

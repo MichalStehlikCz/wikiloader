@@ -10,8 +10,8 @@ import static org.mockito.Mockito.mock;
 class EaRefDefaultPackageTest {
 
     private final EaRepositoryImpl eaRepository = mock(EaRepositoryImpl.class);
-    private final EaObjectRefBase parent = new TestEaObjectRef(eaRepository, "parent");
-    private final EaObjectRefBase parent2 = new TestEaObjectRef(eaRepository, null);
+    private final EaObjectRefBase parent = new TestEaObjectRef(eaRepository, "Mock parent", "parent");
+    private final EaObjectRefBase parent2 = new TestEaObjectRef(eaRepository, "Mock parent", null);
     private final EaDefaultPackageRef packageRef1 = new EaDefaultPackageRef(eaRepository, parent, "Package",
             "alpkg","", 1,1);
     private final EaDefaultPackageRef packageRef2 = new EaDefaultPackageRef(eaRepository, parent, "Package",

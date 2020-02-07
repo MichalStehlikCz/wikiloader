@@ -35,6 +35,13 @@ public interface EaObjectRef extends Comparable<EaObjectRef> {
     String getName();
 
     /**
+     * @return name of given object, but with sections enclosed in [] removed. This simple name is used to construct
+     * title
+     */
+    @Nonnull
+    String getPlainName();
+
+    /**
      * @return title of main page of given object on wiki
      */
     @Nonnull
