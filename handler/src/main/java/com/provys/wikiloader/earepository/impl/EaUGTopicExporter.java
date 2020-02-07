@@ -17,7 +17,7 @@ class EaUGTopicExporter<R extends EaUGTopicRefBase<R, T>, T extends EaUGTopicBas
                 .append('\n');
         pages.add(userGuideTopicName);
         getWikiClient().putPageIfEmpty(getEaObject().getUserGuideTopicId().orElseThrow(),
-                "====== " + getEaObject().getName() + " ======\n");
+                "====== " + getEaObject().getPlainName() + " ======\n");
     }
 
     private void appendTechnicalPackageLink(EaTechnicalPackageRef technicalPackage) {

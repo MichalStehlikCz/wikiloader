@@ -53,6 +53,12 @@ public interface EaLoader {
     EaFunctionTask loadFunctionTask(EaFunctionTaskRef elementRef);
 
     @Nonnull
+    EaReportAbstract loadReportAbstract(EaReportAbstractRef elementRef);
+
+    @Nonnull
+    EaReportImpl loadReportImpl(EaReportImplRef elementRef);
+
+    @Nonnull
     EaDataObject loadDataObject(EaElementRef elementRef);
 
     @Nonnull

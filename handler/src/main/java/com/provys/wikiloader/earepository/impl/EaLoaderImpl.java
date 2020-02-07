@@ -141,6 +141,26 @@ class EaLoaderImpl implements EaLoader {
 
     }
 
+    private EaReportRef loadEaReportRef(Element element, EaRepositoryImpl eaRepository) {
+        boolean leaf = true;
+        var subElements = element.GetElements();
+        try {
+            if (subElements.GetCount() > 0) {
+                leaf = false;
+            }
+        } finally {
+            subElements.destroy();
+        }
+        if (leaf) {
+            return new EaReportImplRef(eaRepository, getElementParent(element, eaRepository), element.GetName(),
+                    element.GetAlias(), element.GetTreePos(), element.GetElementID());
+        } else {
+            return new EaReportAbstractRef(eaRepository, getElementParent(element, eaRepository), element.GetName(),
+                    element.GetAlias(), element.GetTreePos(), element.GetElementID());
+        }
+
+    }
+
     private EaElementRefBase loadEaFunctionRef(Element element, EaRepositoryImpl eaRepository) {
         boolean leaf = true;
         var subElements = element.GetElements();
@@ -213,6 +233,9 @@ class EaLoaderImpl implements EaLoader {
             } else if (element.GetStereotype().equals("ArchiMate_BusinessService") &&
                     (eaRepository.getPackageRefById(element.GetPackageID()).getModel() == EaModel.PRODUCT_MODEL)) {
                 return loadEaFunctionRef(element, eaRepository);
+            } else if (element.GetStereotype().equals("ArchiMate_Representation") &&
+                    (eaRepository.getPackageRefById(element.GetPackageID()).getModel() == EaModel.PRODUCT_MODEL)) {
+                return loadEaReportRef(element, eaRepository);
             } else if (element.GetStereotype().equals("ArchiMate_DataObject") &&
                     (eaRepository.getPackageRefById(element.GetPackageID()).getModel() == EaModel.PRODUCT_MODEL)) {
                 return loadEaDataObjectRef(element, eaRepository);
@@ -719,10 +742,6 @@ class EaLoaderImpl implements EaLoader {
         var element = repository.GetElementByID(elementRef.getElementId());
         try {
             var diagrams = getDiagrams(element::GetDiagrams, elementRef.getRepository());
-            if (hasElements(element::GetElements)) {
-                LOG.warn("Elements under ArchiMate_Meaning element {} are ignored - Meaning should be leaf",
-                        element::GetName);
-            }
             return new EaMeaningItem(elementRef, element.GetNotes(), diagrams,
                     getUGTopicIncludedIn(element, elementRef.getRepository()));
         } finally {
@@ -760,6 +779,41 @@ class EaLoaderImpl implements EaLoader {
             }
             return new EaFunctionTask(elementRef, element.GetNotes(), diagrams,
                     getUGTopicIncludedIn(element, elementRef.getRepository()));
+        } finally {
+            element.destroy();
+        }
+    }
+
+    private List<EaUGTopicRef> getReportUsedIn(Element element, EaRepository eaRepository) {
+        return getRelElements(element, eaRepository, true, "Usage",
+                "", EaUGTopicRef.class);
+    }
+
+    @Nonnull
+    @Override
+    public EaReportAbstract loadReportAbstract(EaReportAbstractRef elementRef) {
+        var element = repository.GetElementByID(elementRef.getElementId());
+        try {
+            var diagrams = getDiagrams(element::GetDiagrams, elementRef.getRepository());
+            var elements = getElements(element::GetElements, elementRef.getRepository());
+            var reportElements = elements.stream()
+                    .filter(el -> el instanceof EaReportRef)
+                    .map(el -> (EaReportRef) el)
+                    .collect(Collectors.toList());
+            return new EaReportAbstract(elementRef, element.GetNotes(), diagrams, reportElements);
+        } finally {
+            element.destroy();
+        }
+    }
+
+    @Nonnull
+    @Override
+    public EaReportImpl loadReportImpl(EaReportImplRef elementRef) {
+        var element = repository.GetElementByID(elementRef.getElementId());
+        try {
+            var diagrams = getDiagrams(element::GetDiagrams, elementRef.getRepository());
+            return new EaReportImpl(elementRef, element.GetNotes(), diagrams,
+                    getReportUsedIn(element, elementRef.getRepository()));
         } finally {
             element.destroy();
         }

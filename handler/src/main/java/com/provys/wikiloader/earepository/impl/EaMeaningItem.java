@@ -20,6 +20,6 @@ class EaMeaningItem extends EaUGTopicBase<EaMeaningItemRef, EaMeaningItem> {
     @Nonnull
     @Override
     Exporter getExporter(ProvysWikiClient wikiClient) {
-        return new EaMeaningExporter(this, wikiClient);
+        return new EaMeaningItemExporter(this, wikiClient);
     }
 }
