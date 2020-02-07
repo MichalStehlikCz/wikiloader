@@ -323,7 +323,7 @@ class EaTechnicalPackageExporter extends EaObjectRegularExporter<EaTechnicalPack
 
     private void exportTrainingGuide() {
         var builder = new StringBuilder()
-                .append("====== ").append(getEaObject().getName()).append(" - Full Training Guide ======\n");
+                .append("====== ").append(getEaObject().getName()).append(" - Short Training Guide ======\n");
         var functionContent = getEaObject().getRepository().getWikiSetBuilder()
                 .setThreshold(3)
                 .addEaObjects(getEaObject()
