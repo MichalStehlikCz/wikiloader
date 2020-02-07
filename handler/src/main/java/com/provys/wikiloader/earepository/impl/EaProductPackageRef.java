@@ -19,7 +19,7 @@ class EaProductPackageRef extends EaNamespaceElementRef implements EaItemRef {
     @Nonnull
     @Override
     public String getTitle() {
-        return getName() + " Package";
+        return getPlainName() + " Package";
     }
 
     private synchronized void loadObject() {

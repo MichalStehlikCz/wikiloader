@@ -54,6 +54,12 @@ abstract class EaObjectBase<T extends EaObjectRef> implements EaObject {
         return objectRef.getName();
     }
 
+    @Override
+    @Nonnull
+    public String getPlainName() {
+        return objectRef.getPlainName();
+    }
+
     @Nonnull
     @Override
     public String getTitle() {

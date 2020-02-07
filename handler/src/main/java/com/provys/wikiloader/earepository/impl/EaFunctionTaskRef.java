@@ -2,8 +2,6 @@ package com.provys.wikiloader.earepository.impl;
 
 import com.provys.common.exception.InternalException;
 import com.provys.wikiloader.earepository.EaObjectRef;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -26,7 +24,7 @@ class EaFunctionTaskRef extends EaUGTopicRefBase<EaFunctionTaskRef, EaFunctionTa
     @Nonnull
     @Override
     public String getTitle() {
-        return "Function " + getName();
+        return "Function " + getPlainName();
     }
 
     /**

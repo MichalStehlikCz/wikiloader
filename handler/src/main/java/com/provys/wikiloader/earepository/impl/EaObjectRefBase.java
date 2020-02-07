@@ -9,6 +9,7 @@ import org.apache.logging.log4j.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.regex.Pattern;
 
 abstract class EaObjectRefBase implements EaObjectRef {
 
@@ -69,10 +70,20 @@ abstract class EaObjectRefBase implements EaObjectRef {
         return name;
     }
 
+    private static final Pattern COMMENT_WITH_SPACE = Pattern.compile(" \\[.*]");
+    private static final Pattern COMMENT_NO_SPACE = Pattern.compile("\\[.*]");
+
+    @Nonnull
+    @Override
+    public String getPlainName() {
+        var plainName = COMMENT_WITH_SPACE.matcher(getName()).replaceAll("");
+        return COMMENT_NO_SPACE.matcher(plainName).replaceAll("");
+    }
+
     @Nonnull
     @Override
     public String getTitle() {
-        return getName();
+        return getPlainName();
     }
 
     @Nonnull

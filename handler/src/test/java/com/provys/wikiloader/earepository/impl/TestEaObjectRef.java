@@ -12,8 +12,8 @@ import java.util.Optional;
  */
 class TestEaObjectRef extends EaObjectRefBase {
 
-    TestEaObjectRef(EaRepositoryImpl repository, @Nullable String alias) {
-        super(repository, null, "Mock Parent", alias, "Type", null, 1);
+    TestEaObjectRef(EaRepositoryImpl repository, String name, @Nullable String alias) {
+        super(repository, null, name, alias, "Type", null, 1);
     }
 
     @Override
