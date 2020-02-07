@@ -129,14 +129,14 @@ class EaTechnicalPackageExporter extends EaObjectRegularExporter<EaTechnicalPack
         startBuilder.append("\n");
         startBuilder.append("===== Document Export Pages =====\n");
         if (hasSettingsQuestionnaire) {
-            startBuilder.append("  * [[").append(EXPORTS).append(getEaObject().getAlias())
+            startBuilder.append("  * [[").append(EXPORTS).append(getEaObject().getAlias().orElseThrow())
                     .append(EXPORT_SETTINGS_QUESTIONNAIRE_POSTFIX).append("|Settings questionnaire]]\n");
         }
-        startBuilder.append("  * [[").append(EXPORTS).append(getEaObject().getAlias())
+        startBuilder.append("  * [[").append(EXPORTS).append(getEaObject().getAlias().orElseThrow())
                 .append(EXPORT_USER_GUIDE_POSTFIX).append("|User Guide]]\n")
-                .append("  * [[").append(EXPORTS).append(getEaObject().getAlias())
+                .append("  * [[").append(EXPORTS).append(getEaObject().getAlias().orElseThrow())
                 .append(EXPORT_FULL_TRAINING_GUIDE_POSTFIX).append("|Full Training Guide]]\n")
-                .append("  * [[").append(EXPORTS).append(getEaObject().getAlias())
+                .append("  * [[").append(EXPORTS).append(getEaObject().getAlias().orElseThrow())
                 .append(EXPORT_TRAINING_GUIDE_POSTFIX).append("|Short Training Guide]]\n")
                 .append("\n");
         startBuilder.append("===== Settings =====\n");
@@ -273,11 +273,11 @@ class EaTechnicalPackageExporter extends EaObjectRegularExporter<EaTechnicalPack
     private void appendOutput(StringBuilder builder, String postfix) {
         builder.append('\n')
                 .append("====== Output ======\n")
-                .append("Exported document: {{:").append(EXPORTS).append(getEaObject().getAlias())
+                .append("Exported document: {{:").append(EXPORTS).append(getEaObject().getAlias().orElseThrow())
                 .append(postfix).append(".docx}} \\\\\n")
-                .append("Log: {{:").append(EXPORTS).append(getEaObject().getAlias())
+                .append("Log: {{:").append(EXPORTS).append(getEaObject().getAlias().orElseThrow())
                 .append(postfix).append(".log}} \\\n");
-        getWikiClient().putGeneratedPage(EXPORTS + getEaObject().getAlias() + postfix,
+        getWikiClient().putGeneratedPage(EXPORTS + getEaObject().getAlias().orElseThrow() + postfix,
                 builder.toString());
     }
 
