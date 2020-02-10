@@ -94,6 +94,25 @@ abstract class EaObjectRefBase implements EaObjectRef {
 
     @Override
     @Nonnull
+    public String getWikiLink() {
+        StringBuilder builder = new StringBuilder();
+        appendWikiLink(builder);
+        return builder.toString();
+    }
+
+    @Override
+    public void appendWikiLink(StringBuilder builder) {
+        if (hasLink()) {
+            builder.append("[[");
+            appendLinkNoCheck(builder);
+            builder.append("|").append(getShortTitle()).append("]]");
+        } else {
+            builder.append(getShortTitle());
+        }
+    }
+
+    @Override
+    @Nonnull
     public Optional<String> getAlias() {
         return Optional.ofNullable(alias);
     }
@@ -164,7 +183,7 @@ abstract class EaObjectRefBase implements EaObjectRef {
     @Override
     public void appendLink(StringBuilder builder) {
         if (!hasLink()) {
-            throw new InternalException("Cannot append link - boundary not exported " + this);
+            throw new InternalException("Cannot append link - object not exported " + this);
         }
         appendLinkNoCheck(builder);
     }
@@ -174,7 +193,7 @@ abstract class EaObjectRefBase implements EaObjectRef {
     @Override
     public void appendParentLink(StringBuilder builder) {
         if (!hasLink()) {
-            throw new InternalException("Cannot append link - boundary not exported " + this);
+            throw new InternalException("Cannot append link - object not exported " + this);
         }
         appendParentLinkNoCheck(builder, true);
     }
@@ -221,7 +240,7 @@ abstract class EaObjectRefBase implements EaObjectRef {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(@Nullable Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         EaObjectRefBase eaObject = (EaObjectRefBase) o;
@@ -240,10 +259,10 @@ abstract class EaObjectRefBase implements EaObjectRef {
 
     @Override
     public String toString() {
-        return "EaObjectImpl{" +
+        return "EaObjectRefBase{" +
                 "name='" + name + '\'' +
-                "alias='" + alias + '\'' +
-                ", parent=" + parent +
+                ", alias='" + alias + '\'' +
+                ", parent=" + (parent == null ? "" : parent.getEaDesc()) +
                 '}';
     }
 }

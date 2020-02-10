@@ -60,48 +60,14 @@ class EaTechnicalPackageExporter extends EaObjectRegularExporter<EaTechnicalPack
         }
     }
 
-    private void appendProductPackageLink(EaProductPackageRef productPackage) {
-        startBuilder.append("[[");
-        productPackage.appendLink(startBuilder);
-        startBuilder.append("|").append(productPackage.getShortTitle()).append("]]");
-    }
-
     private void appendContainedIn() {
-        var containedIn = getEaObject().getContainedIn();
-        if (containedIn.size() == 1) {
-            startBuilder.append("Contained in product package ");
-            appendProductPackageLink(containedIn.get(0));
-            startBuilder.append(".\\\\\n");
-        } else if (containedIn.size() > 1) {
-            startBuilder.append("Contained in product packages:\\\\\n");
-            for (var productPackage : containedIn) {
-                startBuilder.append("  * ");
-                appendProductPackageLink(productPackage);
-                startBuilder.append("\\\\\n");
-            }
-        }
-    }
-
-    private void appendTechnicalPackageLink(EaTechnicalPackageRef technicalPackage) {
-        startBuilder.append("[[");
-        technicalPackage.appendLink(startBuilder);
-        startBuilder.append("|").append(technicalPackage.getShortTitle()).append("]]");
+        appendList(null, "Contained in product package", "Contained in product packages",
+                getEaObject().getContainedIn());
     }
 
     private void appendPrerequisities() {
-        var prerequisities = getEaObject().getPrerequisities();
-        if (prerequisities.size() == 1) {
-            startBuilder.append("Requires technical package ");
-            appendTechnicalPackageLink(prerequisities.get(0));
-            startBuilder.append(".\\\\\n");
-        } else if (prerequisities.size() > 1) {
-            startBuilder.append("Requires technical packages:\\\\\n");
-            for (var technicalPackage : prerequisities) {
-                startBuilder.append("  * ");
-                appendTechnicalPackageLink(technicalPackage);
-                startBuilder.append("\\\\\n");
-            }
-        }
+        appendList(null, "Requires technical package", "Requires technical packages",
+                getEaObject().getPrerequisities());
     }
 
     @Override

@@ -20,28 +20,9 @@ class EaUGTopicExporter<R extends EaUGTopicRefBase<R, T>, T extends EaUGTopicBas
                 "====== " + getEaObject().getPlainName() + " ======\n");
     }
 
-    private void appendTechnicalPackageLink(EaTechnicalPackageRef technicalPackage) {
-        startBuilder.append("[[");
-        technicalPackage.appendLink(startBuilder);
-        startBuilder.append("|").append(technicalPackage.getShortTitle()).append("]]");
-    }
-
     void appendIncludedIn() {
-        var includedIn = getEaObject().getIncludedIn();
-        if (includedIn.size() == 1) {
-            startBuilder.append("Included in technical package ");
-            appendTechnicalPackageLink(includedIn.get(0));
-            startBuilder.append(".\n")
-                    .append('\n');
-        } else if (includedIn.size() > 1) {
-            startBuilder.append("Included in technical packages:\n");
-            for (var technicalPackage : includedIn) {
-                startBuilder.append("  * ");
-                appendTechnicalPackageLink(technicalPackage);
-                startBuilder.append("\n");
-            }
-            startBuilder.append('\n');
-        }
+        appendList(null, "Included in technical package",
+                "Included in technical packages:", getEaObject().getIncludedIn());
     }
 
     @Override
