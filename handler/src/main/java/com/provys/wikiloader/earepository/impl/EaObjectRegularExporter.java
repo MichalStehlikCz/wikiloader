@@ -7,6 +7,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.*;
 
 /**
@@ -44,6 +45,35 @@ class EaObjectRegularExporter<T extends EaObject> implements Exporter {
     @Nonnull
     ProvysWikiClient getWikiClient() {
         return wikiClient;
+    }
+
+    /**
+     * Create section for linked objects and append it to startBuilder.
+     * General rule is that if there is no linked objects, noEntry string is used. If there is one linked object,
+     * singleEntry string + link to this object is appended. If there are multiple entries, last string is used and
+     * entries are then exported to bullet list
+     *
+     * @param noEntry is string used when no entries are in list
+     * @param singleEntry is string used when single entry is in list; should not contain trailing space
+     * @param multiEntries is string used with multiple entries; should not contain trailing colon
+     * @param entries is list of entries to be exported
+     */
+    void appendList(@Nullable String noEntry, String singleEntry, String multiEntries,
+                    List<? extends EaObjectRef> entries) {
+        if (entries.isEmpty()) {
+            startBuilder.append(noEntry);
+        } else if (entries.size() == 1) {
+            startBuilder.append(singleEntry).append(" ");
+            entries.get(0).appendWikiLink(startBuilder);
+            startBuilder.append(".\\\\\n");
+        } else {
+            startBuilder.append(multiEntries).append(":\\\\\n");
+            for (var entry : entries) {
+                startBuilder.append("  * ");
+                entry.appendWikiLink(startBuilder);
+                startBuilder.append("\\\\\n");
+            }
+        }
     }
 
     /**
