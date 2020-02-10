@@ -55,6 +55,18 @@ public interface EaObjectRef extends Comparable<EaObjectRef> {
     String getShortTitle();
 
     /**
+     * @return link in wiki format if given topic is exported to wiki, with short title used as text of link and short
+     * title in case topic is not exported
+     */
+    @Nonnull
+    String getWikiLink();
+
+    /**
+     * Append wiki link to given builder
+     */
+    void appendWikiLink(StringBuilder builder);
+
+    /**
      * @return alias of given object
      */
     @Nonnull

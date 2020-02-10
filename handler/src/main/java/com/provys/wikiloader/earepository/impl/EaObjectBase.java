@@ -72,6 +72,17 @@ abstract class EaObjectBase<T extends EaObjectRef> implements EaObject {
         return objectRef.getShortTitle();
     }
 
+    @Nonnull
+    @Override
+    public String getWikiLink() {
+        return objectRef.getWikiLink();
+    }
+
+    @Override
+    public void appendWikiLink(StringBuilder builder) {
+        objectRef.appendWikiLink(builder);
+    }
+
     @Override
     @Nonnull
     public Optional<String> getAlias() {
