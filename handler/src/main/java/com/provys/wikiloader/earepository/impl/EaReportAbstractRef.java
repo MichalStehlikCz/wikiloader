@@ -6,15 +6,21 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Optional;
 
-public class EaReportAbstractRef extends EaNamespaceElementRef
+class EaReportAbstractRef extends EaNamespaceElementRef
         implements EaReportRef {
 
-    public static final String DESCRIPTION_NAME = "description";
+    static final String DESCRIPTION_NAME = "description";
 
     EaReportAbstractRef(EaRepositoryImpl repository, @Nullable EaObjectRef parent, String name,
                       @Nullable String alias, int treePos, int elementId) {
         super(repository, parent, name, alias, "Representation", "ArchiMate_Representation", treePos,
                 elementId);
+    }
+
+    @Nonnull
+    @Override
+    public String getTitle() {
+        return "Report " + getPlainName();
     }
 
     @Nonnull

@@ -9,7 +9,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 
-public class EaReportAbstract extends EaParentBase<EaReportAbstractRef, EaDiagramRef, EaReportRef>
+class EaReportAbstract extends EaParentBase<EaReportAbstractRef, EaDiagramRef, EaReportRef>
         implements EaElementRef {
 
     EaReportAbstract(EaReportAbstractRef objectRef, @Nullable String notes, @Nullable List<EaDiagramRef> diagrams,

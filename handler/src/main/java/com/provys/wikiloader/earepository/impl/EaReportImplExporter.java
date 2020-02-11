@@ -19,28 +19,8 @@ public class EaReportImplExporter extends EaDiagramOwnerExporter<EaReportImplRef
                 "====== " + getEaObject().getPlainName() + " ======\n");
     }
 
-    private void appendUgTopicLink(EaUGTopicRef ugTopicTask) {
-        startBuilder.append("[[");
-        ugTopicTask.appendLink(startBuilder);
-        startBuilder.append("|").append(ugTopicTask.getTitle()).append("]]");
-    }
-
     void appendUsedIn() {
-        var usedIn = getEaObject().getUsedIn();
-        if (usedIn.size() == 1) {
-            startBuilder.append("Used by ");
-            appendUgTopicLink(usedIn.get(0));
-            startBuilder.append(".\n")
-                    .append('\n');
-        } else if (usedIn.size() > 1) {
-            startBuilder.append("Used by:\n");
-            for (var functionTask : usedIn) {
-                startBuilder.append("  * ");
-                appendUgTopicLink(functionTask);
-                startBuilder.append("\n");
-            }
-            startBuilder.append('\n');
-        }
+        appendList(null, "Used by", "Used by", getEaObject().getUsedIn());
     }
 
     @Override

@@ -89,7 +89,7 @@ abstract class EaObjectRefBase implements EaObjectRef {
     @Nonnull
     @Override
     public String getShortTitle() {
-        return getName();
+        return getPlainName();
     }
 
     @Override

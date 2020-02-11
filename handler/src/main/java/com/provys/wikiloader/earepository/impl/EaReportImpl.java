@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-public class EaReportImpl extends EaLeafElementBase<EaReportImplRef> {
+class EaReportImpl extends EaLeafElementBase<EaReportImplRef> {
 
     @Nonnull
     private final List<EaUGTopicRef> usedIn;
@@ -21,17 +21,17 @@ public class EaReportImpl extends EaLeafElementBase<EaReportImplRef> {
     }
 
     @Nonnull
-    public List<EaUGTopicRef> getUsedIn() {
+    List<EaUGTopicRef> getUsedIn() {
         return usedIn;
     }
 
     @Nonnull
-    public Optional<String> getDescriptionTopicName() {
+    Optional<String> getDescriptionTopicName() {
         return getObjectRef().getDescriptionTopicName();
     }
 
     @Nonnull
-    public Optional<String> getDescriptionTopicId() {
+    Optional<String> getDescriptionTopicId() {
         return getObjectRef().getDescriptionTopicId();
     }
 
