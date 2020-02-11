@@ -11,8 +11,6 @@ import java.util.Optional;
 
 class EaDataObjectRef extends EaElementRefBase {
 
-    private static final Logger LOG = LogManager.getLogger(EaDataObjectRef.class);
-
     EaDataObjectRef(EaRepositoryImpl repository, @Nullable EaObjectRef parent, String name, @Nullable String alias,
                     int treePos, int elementId) {
         super(repository, parent, name, alias, "DataObject", "ArchiMate_DataObject", treePos,
@@ -23,18 +21,6 @@ class EaDataObjectRef extends EaElementRefBase {
     @Nonnull
     public EaDataObject getObject() {
         return getRepository().getLoader().loadDataObject(this);
-    }
-
-    @Override
-    public boolean isTopic() {
-        if (getAlias().isEmpty()
-                && getStereotype().filter(stereotype -> stereotype.equals("ArchiMate_BusinessEvent")).isPresent()
-                && (getName().equals("START") || getName().equals("END"))) {
-            // only debug for start / end of process
-            LOG.debug("Skip element {} with empty alias", this::getEaDesc);
-            return false;
-        }
-        return super.isTopic();
     }
 
     @Override
