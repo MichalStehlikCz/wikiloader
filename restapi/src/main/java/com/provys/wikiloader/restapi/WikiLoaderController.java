@@ -39,8 +39,8 @@ public class WikiLoaderController {
     @ApiOperation(value = "Partial Synchronization", notes = "Synchronise defined part of tree on wiki")
     @GetMapping("/sync")
     public String sync(@RequestParam(name = "model", defaultValue = "eamodel")
-                           @ApiParam(value = "Model (eamodel, company_model)",
-                                   allowableValues = "eamodel, company_model") String model,
+                           @ApiParam(value = "Model (eamodel, companymodel)",
+                                   allowableValues = "eamodel, companymodel") String model,
                        @RequestParam(name = "path", required = false)
                        @ApiParam(value = "Path to given topic on wiki, excluding model, excluding :start in case of" +
                                " namespace") String path,

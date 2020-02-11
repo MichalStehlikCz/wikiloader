@@ -38,7 +38,7 @@ public class EaDefaultPackageRef extends EaObjectRefBase implements EaPackageRef
     @Override
     public boolean isTopic() {
         if (getAlias().isEmpty()) {
-            LOG.info("Package {} is not exported - alias is empty", this::getName);
+            LOG.warn("Package {} is not exported - alias is empty", this::getName);
             return false;
         }
         return getParent().map(EaObjectRef::hasLink).orElse(true);

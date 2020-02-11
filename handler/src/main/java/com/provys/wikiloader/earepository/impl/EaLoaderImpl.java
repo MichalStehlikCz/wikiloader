@@ -185,6 +185,20 @@ class EaLoaderImpl implements EaLoader {
                 element.GetAlias(), element.GetTreePos(), element.GetElementID());
     }
 
+    private EaJunctionRef loadEaJunctionRef(Element element, EaRepositoryImpl eaRepository) {
+        var subElements = element.GetElements();
+        try {
+            if (subElements.GetCount() > 0) {
+                LOG.warn("Elements under Junction are ignored {}", element::GetName);
+            }
+        } finally {
+            subElements.destroy();
+        }
+        return new EaJunctionRef(eaRepository, getElementParent(element, eaRepository), element.GetName(),
+                element.GetAlias(), element.GetTreePos(),
+                element.GetElementID());
+    }
+
     private EaElementRefBase loadEaDefaultElementRef(Element element, EaRepositoryImpl eaRepository) {
         boolean leaf = true;
         var subElements = element.GetElements();
@@ -239,6 +253,8 @@ class EaLoaderImpl implements EaLoader {
             } else if (element.GetStereotype().equals("ArchiMate_DataObject") &&
                     (eaRepository.getPackageRefById(element.GetPackageID()).getModel() == EaModel.PRODUCT_MODEL)) {
                 return loadEaDataObjectRef(element, eaRepository);
+            } else if (element.GetStereotype().equals("ArchiMate_Junction")) {
+                return loadEaJunctionRef(element, eaRepository);
             } else {
                 return loadEaDefaultElementRef(element, eaRepository);
             }
