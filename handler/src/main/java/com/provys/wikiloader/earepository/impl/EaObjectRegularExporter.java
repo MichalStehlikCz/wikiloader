@@ -61,7 +61,9 @@ class EaObjectRegularExporter<T extends EaObject> implements Exporter {
     void appendList(@Nullable String noEntry, String singleEntry, String multiEntries,
                     List<? extends EaObjectRef> entries) {
         if (entries.isEmpty()) {
-            startBuilder.append(noEntry);
+            if (noEntry != null) {
+                startBuilder.append(noEntry).append("\\\\\n");
+            }
         } else if (entries.size() == 1) {
             startBuilder.append(singleEntry).append(" ");
             entries.get(0).appendWikiLink(startBuilder);
