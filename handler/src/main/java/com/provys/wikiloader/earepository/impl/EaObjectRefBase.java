@@ -146,11 +146,11 @@ abstract class EaObjectRefBase implements EaObjectRef {
             return false;
         }
         if ((parent != null) && (!parent.isTopic())) {
-            LOG.debug("{} not exported - parent not exported", this::getEaDesc);
+            LOG.warn("{} not exported - parent not exported", this::getEaDesc);
             return false;
         }
         if (alias == null) {
-            LOG.info("{} not exported - alias missing", this::getEaDesc);
+            LOG.warn("{} not exported - alias missing", this::getEaDesc);
             return false;
         }
         return true;
