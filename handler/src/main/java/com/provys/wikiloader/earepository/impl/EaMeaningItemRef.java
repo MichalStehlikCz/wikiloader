@@ -17,4 +17,9 @@ class EaMeaningItemRef extends EaUGTopicRefBase<EaMeaningItemRef, EaMeaningItem>
             object = getRepository().getLoader().loadMeaningItem(this);
         }
     }
+
+    @Override
+    public String toString() {
+        return "EaMeaningItemRef{} " + super.toString();
+    }
 }

@@ -33,4 +33,9 @@ abstract class EaCachedLeafElementRef<R extends EaCachedLeafElementRef<R, T>, T 
         assert (object != null);
         return object;
     }
+
+    @Override
+    public String toString() {
+        return "EaCachedLeafElementRef{" + (object == null ? "not loaded" : "loaded") + "} " + super.toString();
+    }
 }

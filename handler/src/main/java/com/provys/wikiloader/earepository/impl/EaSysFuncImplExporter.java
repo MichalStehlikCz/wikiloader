@@ -2,9 +2,9 @@ package com.provys.wikiloader.earepository.impl;
 
 import com.provys.provyswiki.ProvysWikiClient;
 
-public class EaReportImplExporter extends EaDiagramOwnerExporter<EaReportImplRef, EaReportImpl> {
+public class EaSysFuncImplExporter extends EaDiagramOwnerExporter<EaSysFuncImplRef, EaSysFuncImpl> {
 
-    EaReportImplExporter(EaReportImpl eaObject, ProvysWikiClient wikiClient) {
+    EaSysFuncImplExporter(EaSysFuncImpl eaObject, ProvysWikiClient wikiClient) {
         super(eaObject, wikiClient);
     }
 
@@ -25,10 +25,7 @@ public class EaReportImplExporter extends EaDiagramOwnerExporter<EaReportImplRef
 
     @Override
     void appendBody() {
-        // handle diagrams
-        appendDiagrams();
-        // insert own content
-        appendDocument();
+        super.appendBody();
         // insert included information
         appendUsedIn();
         // insert user guide topic

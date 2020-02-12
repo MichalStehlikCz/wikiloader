@@ -7,21 +7,22 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 
-class EaReportAbstract extends EaSysFuncAbstract {
+class EaInterfaceAbstract extends EaSysFuncAbstract<EaInterfaceAbstractRef, EaInterfaceRef> {
 
-    EaReportAbstract(EaReportAbstractRef objectRef, @Nullable String notes, @Nullable List<EaDiagramRef> diagrams,
-                   @Nullable List<EaReportRef> elements) {
+    EaInterfaceAbstract(EaInterfaceAbstractRef objectRef, @Nullable String notes, @Nullable List<EaDiagramRef> diagrams,
+                     @Nullable List<EaInterfaceRef> elements) {
         super(objectRef, notes, diagrams, elements);
     }
 
     @Nonnull
     @Override
     Exporter getExporter(ProvysWikiClient wikiClient) {
-        return new EaReportAbstractExporter(this, wikiClient);
+        return new EaInterfaceAbstractExporter(this, wikiClient);
     }
 
     @Override
     public String toString() {
-        return "EaReportAbstract{} " + super.toString();
+        return "EaInterfaceAbstract{} " + super.toString();
     }
 }
+

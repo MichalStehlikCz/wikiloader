@@ -37,9 +37,17 @@ class EaObjectRegularExporter<T extends EaObject> implements Exporter {
         this.wikiClient = Objects.requireNonNull(wikiClient);
     }
 
+    @Override
     @Nonnull
-    T getEaObject() {
+    public T getEaObject() {
         return eaObject;
+    }
+
+    @Override
+    @Nonnull
+    public Exporter addPage(String page) {
+        pages.add(page);
+        return this;
     }
 
     @Nonnull
@@ -176,5 +184,12 @@ class EaObjectRegularExporter<T extends EaObject> implements Exporter {
                 subObject.getObject().sync(wikiClient, true);
             }
         }
+    }
+
+    @Override
+    public String toString() {
+        return "EaObjectRegularExporter{" +
+                "eaObject=" + eaObject +
+                '}';
     }
 }

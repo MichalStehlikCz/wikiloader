@@ -56,7 +56,10 @@ public interface EaLoader {
     EaReportAbstract loadReportAbstract(EaReportAbstractRef elementRef);
 
     @Nonnull
-    EaReportImpl loadReportImpl(EaReportImplRef elementRef);
+    EaInterfaceAbstract loadInterfaceAbstract(EaInterfaceAbstractRef elementRef);
+
+    @Nonnull
+    EaSysFuncImpl loadSysFunc(EaSysFuncImplRef elementRef);
 
     @Nonnull
     EaDataObject loadDataObject(EaElementRef elementRef);

@@ -2,9 +2,9 @@ package com.provys.wikiloader.earepository.impl;
 
 import com.provys.provyswiki.ProvysWikiClient;
 
-class EaReportAbstractExporter extends EaSysFuncAbstractExporter {
+class EaInterfaceAbstractExporter extends EaSysFuncAbstractExporter {
 
-    EaReportAbstractExporter(EaReportAbstract eaObject, ProvysWikiClient wikiClient) {
+    EaInterfaceAbstractExporter(EaInterfaceAbstract eaObject, ProvysWikiClient wikiClient) {
         super(eaObject, wikiClient);
     }
 
@@ -13,7 +13,7 @@ class EaReportAbstractExporter extends EaSysFuncAbstractExporter {
      */
     @Override
     void appendElementsHeader() {
-        startBuilder.append("\n===== Reports =====\n");
+        startBuilder.append("\n===== Interfaces =====\n");
     }
 
 }
