@@ -17,8 +17,6 @@ import static org.mockito.Mockito.*;
 
 class EaUGTopicRefTest {
 
-    private static final Logger LOG = LogManager.getLogger(EaUGTopicRefTest.class);
-
     private static class TestUGTopicRef extends EaUGTopicRefBase<TestUGTopicRef, TestUGTopic> {
 
         TestUGTopicRef(EaRepositoryImpl repository, EaObjectRefBase parent, String name, @Nullable String alias,
