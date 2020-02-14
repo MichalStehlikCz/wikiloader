@@ -8,6 +8,9 @@ import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.swing.*;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.Optional;
 
 /**
@@ -64,17 +67,39 @@ class EaGroupRef extends EaElementRefBase {
     @Override
     public void appendLinkNoCheck(StringBuilder builder) {
         var alias = getAlias().orElseThrow();
-        if (alias.charAt(0) != ':') {
-            super.appendLinkNoCheck(builder);
-        } else {
-            builder.append(alias).append(":");
+        switch (alias.charAt(0)) {
+            case ':':
+                builder.append(alias).append(":");
+                break;
+            case '.':
+                // we will have to normalize generated link...
+                var tempBuilder = new StringBuilder();
+                super.appendLinkNoCheck(tempBuilder);
+                var segments = tempBuilder.toString().split(":");
+                Deque<String> deque = new ArrayDeque<>();
+                for (var segment : segments) {
+                    if (segment.equals("..")) {
+                        if (deque.pollLast() == null) {
+                            LOG.warn("Invalid link {} - .. points before start of path in {}", tempBuilder, this);
+                        }
+                    } else if (!segment.equals(".")) {
+                        deque.addLast(segment);
+                    }
+                }
+                for (var segment : deque) {
+                    // just note that first segment is empty String - thus : will be on the front
+                    builder.append(segment).append(':');
+                }
+                break;
+            default:
+                super.appendLinkNoCheck(builder);
         }
     }
 
     @Override
     void appendParentLinkNoCheck(StringBuilder builder, boolean leadingDot) {
         var alias = getAlias().orElseThrow();
-        if (leadingDot && (alias.charAt(0) != ':')) {
+        if (leadingDot && (alias.charAt(0) != ':') && (alias.charAt(0) != '.')) {
             builder.append(".");
         }
         builder.append(alias).append(":");
