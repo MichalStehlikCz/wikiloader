@@ -141,6 +141,44 @@ class EaLoaderImpl implements EaLoader {
 
     }
 
+    private EaReportRef loadEaReportRef(Element element, EaRepositoryImpl eaRepository) {
+        boolean leaf = true;
+        var subElements = element.GetElements();
+        try {
+            if (subElements.GetCount() > 0) {
+                leaf = false;
+            }
+        } finally {
+            subElements.destroy();
+        }
+        if (leaf) {
+            return new EaReportImplRef(eaRepository, getElementParent(element, eaRepository), element.GetName(),
+                    element.GetAlias(), element.GetTreePos(), element.GetElementID());
+        } else {
+            return new EaReportAbstractRef(eaRepository, getElementParent(element, eaRepository), element.GetName(),
+                    element.GetAlias(), element.GetTreePos(), element.GetElementID());
+        }
+
+    }
+
+    private EaInterfaceAbstractRef loadEaInterfaceAbstractRef(Element element, EaRepositoryImpl eaRepository) {
+        return new EaInterfaceAbstractRef(eaRepository, getElementParent(element, eaRepository), element.GetName(),
+                element.GetAlias(), element.GetTreePos(), element.GetElementID());
+    }
+
+    private EaInterfaceImplRef loadEaInterfaceImplRef(Element element, EaRepositoryImpl eaRepository) {
+        var subElements = element.GetElements();
+        try {
+            if (subElements.GetCount() > 0) {
+                LOG.warn("Subelements of interface implementation {} are ignored", element::GetName);
+            }
+        } finally {
+            subElements.destroy();
+        }
+        return new EaInterfaceImplRef(eaRepository, getElementParent(element, eaRepository), element.GetName(),
+                element.GetAlias(), element.GetTreePos(), element.GetElementID());
+    }
+
     private EaElementRefBase loadEaFunctionRef(Element element, EaRepositoryImpl eaRepository) {
         boolean leaf = true;
         var subElements = element.GetElements();
@@ -207,6 +245,7 @@ class EaLoaderImpl implements EaLoader {
      * @return new element reference
      */
     @Override
+    @SuppressWarnings("squid:S3776") // we cannot reasonably simplify this method
     public EaElementRef elementRefFromId(int elementId, EaRepositoryImpl eaRepository) {
         var element = repository.GetElementByID(elementId);
         try {
@@ -227,6 +266,15 @@ class EaLoaderImpl implements EaLoader {
             } else if (element.GetStereotype().equals("ArchiMate_BusinessService") &&
                     (eaRepository.getPackageRefById(element.GetPackageID()).getModel() == EaModel.PRODUCT_MODEL)) {
                 return loadEaFunctionRef(element, eaRepository);
+            } else if (element.GetStereotype().equals("ArchiMate_Representation") &&
+                    (eaRepository.getPackageRefById(element.GetPackageID()).getModel() == EaModel.PRODUCT_MODEL)) {
+                return loadEaReportRef(element, eaRepository);
+            } else if (element.GetStereotype().equals(EaInterfaceAbstractRef.EA_STEREOTYPE) &&
+                    (eaRepository.getPackageRefById(element.GetPackageID()).getModel() == EaModel.PRODUCT_MODEL)) {
+                return loadEaInterfaceAbstractRef(element, eaRepository);
+            } else if (element.GetStereotype().equals(EaInterfaceImplRef.EA_STEREOTYPE) &&
+                    (eaRepository.getPackageRefById(element.GetPackageID()).getModel() == EaModel.PRODUCT_MODEL)) {
+                return loadEaInterfaceImplRef(element, eaRepository);
             } else if (element.GetStereotype().equals("ArchiMate_DataObject") &&
                     (eaRepository.getPackageRefById(element.GetPackageID()).getModel() == EaModel.PRODUCT_MODEL)) {
                 return loadEaDataObjectRef(element, eaRepository);
@@ -483,6 +531,22 @@ class EaLoaderImpl implements EaLoader {
         }
     }
 
+    private static boolean verifyChildElementType(EaElementRef element, Class<?> clazz) {
+        var keep = element instanceof EaInterfaceRef;
+        if (!keep) {
+            LOG.warn("Child element of interface must be interface; element {} ignored", element::getEaDesc);
+        }
+        return keep;
+    }
+
+    private static <T extends EaElementRef> List<T> getElements(Supplier<Collection<Element>> elementSrc,
+                                                                EaRepository eaRepository, Class<T> clazz) {
+        return getElements(elementSrc, eaRepository).stream()
+                .filter(el -> verifyChildElementType(el, clazz))
+                .map(clazz::cast)
+                .collect(Collectors.toList());
+    }
+
     private static boolean hasElements(Supplier<Collection<Element>> elementSrc) {
         var elements = elementSrc.get();
         try {
@@ -633,7 +697,7 @@ class EaLoaderImpl implements EaLoader {
 
     @Nonnull
     private <T> List<T> getRelElements(Element element, EaRepository eaRepository, boolean fromSupplier,
-                                       String type, String stereotype, Class<T> relType) {
+                                       String type, String stereotype, Class<T> relType, boolean warn) {
         var result = new ArrayList<T>(10);
         var elementId = element.GetElementID();
         var connectors = element.GetConnectors();
@@ -647,7 +711,7 @@ class EaLoaderImpl implements EaLoader {
                                 fromSupplier ? connector.GetClientID() : connector.GetSupplierID());
                         if (relType.isInstance(elementRef)) {
                             result.add(relType.cast(elementRef));
-                        } else {
+                        } else if (warn) {
                             if (fromSupplier) {
                                 LOG.warn("Unexpected {} relation from {} to {} {}", () -> stereotype,
                                         elementRef::getEaDesc, relType::getCanonicalName, element::GetName);
@@ -689,7 +753,7 @@ class EaLoaderImpl implements EaLoader {
      */
     private List<EaElementRef> getTechnicalPackageFunctions(Element element, EaRepository eaRepository) {
         return getRelElements(element, eaRepository, false, "Association",
-                "ArchiMate_Association", EaUGTopicRef.class)
+                "ArchiMate_Association", EaUGTopicRef.class, true)
                 .stream()
                 .flatMap(EaLoaderImpl::mapMeaningContent)
                 .collect(Collectors.toList());
@@ -697,12 +761,12 @@ class EaLoaderImpl implements EaLoader {
 
     private List<EaProductPackageRef> getTechnicalPackageContainedIn(Element element, EaRepository eaRepository) {
         return getRelElements(element, eaRepository, true, "Association",
-                "ArchiMate_Aggregation", EaProductPackageRef.class);
+                "ArchiMate_Aggregation", EaProductPackageRef.class, true);
     }
 
     private List<EaTechnicalPackageRef> getTechnicalPackagePrerequisities(Element element, EaRepository eaRepository) {
         return getRelElements(element, eaRepository, false, "Dependency", "",
-                EaTechnicalPackageRef.class);
+                EaTechnicalPackageRef.class, true);
     }
 
     @Override
@@ -726,7 +790,17 @@ class EaLoaderImpl implements EaLoader {
 
     private List<EaTechnicalPackageRef> getUGTopicIncludedIn(Element element, EaRepository eaRepository) {
         return getRelElements(element, eaRepository, true, "Association",
-                "ArchiMate_Association", EaTechnicalPackageRef.class);
+                "ArchiMate_Association", EaTechnicalPackageRef.class, true);
+    }
+
+    private List<EaReportRef> getUGTopicReports(Element element, EaRepository eaRepository) {
+        return getRelElements(element, eaRepository, false, "Usage", "", EaReportRef.class,
+                false);
+    }
+
+    private List<EaInterfaceRef> getUGTopicInterfaces(Element element, EaRepository eaRepository) {
+        return getRelElements(element, eaRepository, false, "Usage", "",
+                EaInterfaceRef.class, false);
     }
 
     @Override
@@ -735,12 +809,10 @@ class EaLoaderImpl implements EaLoader {
         var element = repository.GetElementByID(elementRef.getElementId());
         try {
             var diagrams = getDiagrams(element::GetDiagrams, elementRef.getRepository());
-            if (hasElements(element::GetElements)) {
-                LOG.warn("Elements under ArchiMate_Meaning element {} are ignored - Meaning should be leaf",
-                        element::GetName);
-            }
             return new EaMeaningItem(elementRef, element.GetNotes(), diagrams,
-                    getUGTopicIncludedIn(element, elementRef.getRepository()));
+                    getUGTopicIncludedIn(element, elementRef.getRepository()),
+                    getUGTopicReports(element, elementRef.getRepository()),
+                    getUGTopicInterfaces(element, elementRef.getRepository()));
         } finally {
             element.destroy();
         }
@@ -757,8 +829,7 @@ class EaLoaderImpl implements EaLoader {
                     .filter(el -> el instanceof EaMeaningRef)
                     .map(el -> (EaMeaningRef) el)
                     .collect(Collectors.toList());
-            return new EaMeaningGroup(elementRef, element.GetNotes(), diagrams, meaningElements,
-                    getUGTopicIncludedIn(element, elementRef.getRepository()));
+            return new EaMeaningGroup(elementRef, element.GetNotes(), diagrams, meaningElements);
         } finally {
             element.destroy();
         }
@@ -775,7 +846,53 @@ class EaLoaderImpl implements EaLoader {
                         "with children should map to FunctionAbstract, not FunctionTask");
             }
             return new EaFunctionTask(elementRef, element.GetNotes(), diagrams,
-                    getUGTopicIncludedIn(element, elementRef.getRepository()));
+                    getUGTopicIncludedIn(element, elementRef.getRepository()),
+                    getUGTopicReports(element, elementRef.getRepository()),
+                    getUGTopicInterfaces(element, elementRef.getRepository()));
+        } finally {
+            element.destroy();
+        }
+    }
+
+    private List<EaUGTopicRef> getReportUsedIn(Element element, EaRepository eaRepository) {
+        return getRelElements(element, eaRepository, true, "Usage",
+                "", EaUGTopicRef.class, true);
+    }
+
+    @Nonnull
+    @Override
+    public EaReportAbstract loadReportAbstract(EaReportAbstractRef elementRef) {
+        var element = repository.GetElementByID(elementRef.getElementId());
+        try {
+            var diagrams = getDiagrams(element::GetDiagrams, elementRef.getRepository());
+            var elements = getElements(element::GetElements, elementRef.getRepository(), EaReportRef.class);
+            return new EaReportAbstract(elementRef, element.GetNotes(), diagrams, elements);
+        } finally {
+            element.destroy();
+        }
+    }
+
+    @Nonnull
+    @Override
+    public EaInterfaceAbstract loadInterfaceAbstract(EaInterfaceAbstractRef elementRef) {
+        var element = repository.GetElementByID(elementRef.getElementId());
+        try {
+            var diagrams = getDiagrams(element::GetDiagrams, elementRef.getRepository());
+            var elements = getElements(element::GetElements, elementRef.getRepository(), EaInterfaceRef.class);
+            return new EaInterfaceAbstract(elementRef, element.GetNotes(), diagrams, elements);
+        } finally {
+            element.destroy();
+        }
+    }
+
+    @Nonnull
+    @Override
+    public EaSysFuncImpl loadSysFunc(EaSysFuncImplRef elementRef) {
+        var element = repository.GetElementByID(elementRef.getElementId());
+        try {
+            var diagrams = getDiagrams(element::GetDiagrams, elementRef.getRepository());
+            return new EaSysFuncImpl(elementRef, element.GetNotes(), diagrams,
+                    getReportUsedIn(element, elementRef.getRepository()));
         } finally {
             element.destroy();
         }

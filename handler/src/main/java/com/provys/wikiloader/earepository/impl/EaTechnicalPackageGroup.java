@@ -16,4 +16,9 @@ class EaTechnicalPackageGroup extends EaItemGroup<EaTechnicalPackageRef, EaTechn
     EaTechnicalPackageGroup self() {
         return this;
     }
+
+    @Override
+    public String toString() {
+        return "EaTechnicalPackageGroup{} " + super.toString();
+    }
 }

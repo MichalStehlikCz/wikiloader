@@ -60,6 +60,10 @@ class EaFunctionTaskExporter extends EaUGTopicExporter<EaFunctionTaskRef, EaFunc
         appendDocument();
         // insert included information
         appendIncludedIn();
+        // insert used reports
+        appendReports();
+        // insert used interfaces
+        appendInterfaces();
         // insert user guide topic
         appendUserGuide();
         // insert training guide topic

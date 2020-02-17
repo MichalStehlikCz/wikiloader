@@ -8,6 +8,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Represents technical package, modelled by element with stereotype ArchiMate_ApplicationComponent
@@ -27,8 +28,29 @@ class EaTechnicalPackage extends EaLeafElementBase<EaTechnicalPackageRef> {
         this.prerequisities = List.copyOf(prerequisities);
     }
 
+    @Nonnull
     List<EaElementRef> getFunctions() {
         return functions;
+    }
+
+    @Nonnull
+    List<EaReportRef> getReports() {
+        return functions.stream().filter(function -> function instanceof EaUGTopicRef)
+                .map(function -> (EaUGTopicRef) function)
+                .flatMap(function -> function.getObject().getReports().stream())
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+    }
+
+    @Nonnull
+    List<EaInterfaceRef> getInterfaces() {
+        return functions.stream().filter(function -> function instanceof EaUGTopicRef)
+                .map(function -> (EaUGTopicRef) function)
+                .flatMap(function -> function.getObject().getInterfaces().stream())
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
     }
 
     List<EaProductPackageRef> getContainedIn() {

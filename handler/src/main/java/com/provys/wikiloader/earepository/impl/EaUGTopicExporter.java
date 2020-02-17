@@ -17,12 +17,22 @@ class EaUGTopicExporter<R extends EaUGTopicRefBase<R, T>, T extends EaUGTopicBas
                 .append('\n');
         pages.add(userGuideTopicName);
         getWikiClient().putPageIfEmpty(getEaObject().getUserGuideTopicId().orElseThrow(),
-                "====== " + getEaObject().getName() + " ======\n");
+                "====== " + getEaObject().getPlainName() + " ======\n");
     }
 
     void appendIncludedIn() {
         appendList(null, "Included in technical package",
-                "Included in technical packages:", getEaObject().getIncludedIn());
+                "Included in technical packages", getEaObject().getIncludedIn());
+    }
+
+    void appendReports() {
+        appendList(null, "Uses report",
+                "Uses reports", getEaObject().getReports());
+    }
+
+    void appendInterfaces() {
+        appendList(null, "Uses interface",
+                "Uses interfaces", getEaObject().getInterfaces());
     }
 
     @Override
@@ -33,6 +43,10 @@ class EaUGTopicExporter<R extends EaUGTopicRefBase<R, T>, T extends EaUGTopicBas
         appendDocument();
         // insert included information
         appendIncludedIn();
+        // insert used reports
+        appendReports();
+        // insert used interfaces
+        appendInterfaces();
         // insert user guide topic
         appendUserGuide();
     }

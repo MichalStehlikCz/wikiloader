@@ -16,8 +16,8 @@ import java.util.Optional;
 class EaFunctionTask extends EaUGTopicBase<EaFunctionTaskRef, EaFunctionTask> {
 
     EaFunctionTask(EaFunctionTaskRef objectRef, @Nullable String notes, List<EaDiagramRef> diagrams,
-                   List<EaTechnicalPackageRef> includedIn) {
-        super(objectRef, notes, diagrams, includedIn);
+                   List<EaTechnicalPackageRef> includedIn, List<EaReportRef> reports, List<EaInterfaceRef> interfaces) {
+        super(objectRef, notes, diagrams, includedIn, reports, interfaces);
     }
 
     @Nonnull
