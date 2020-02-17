@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,9 +33,9 @@ class EaUGTopicRefTest {
 
     private static class TestUGTopic extends EaUGTopicBase<TestUGTopicRef, TestUGTopic> {
 
-        TestUGTopic(TestUGTopicRef objectRef, @Nullable String notes, List<EaDiagramRef> diagrams,
-                    List<EaTechnicalPackageRef> includedIn) {
-            super(objectRef, notes, diagrams, includedIn);
+        TestUGTopic(TestUGTopicRef objectRef, @Nullable String notes, List<EaDiagramRef> diagrams) {
+            super(objectRef, notes, diagrams, Collections.emptyList(), Collections.emptyList(),
+                    Collections.emptyList());
         }
 
         @Override

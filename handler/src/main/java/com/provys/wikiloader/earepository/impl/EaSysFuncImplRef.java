@@ -29,6 +29,7 @@ class EaSysFuncImplRef extends EaCachedLeafElementRef<EaSysFuncImplRef, EaSysFun
         }
     }
 
+    @Override
     @Nonnull
     public Optional<String> getDescriptionTopicName() {
         var alias = getAlias();
@@ -38,6 +39,7 @@ class EaSysFuncImplRef extends EaCachedLeafElementRef<EaSysFuncImplRef, EaSysFun
         return Optional.of(alias.get() + "." + DESCRIPTION_NAME);
     }
 
+    @Override
     @Nonnull
     public Optional<String> getDescriptionTopicId() {
         return getDescriptionTopicName()

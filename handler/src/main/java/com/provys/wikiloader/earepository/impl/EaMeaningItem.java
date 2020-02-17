@@ -13,8 +13,8 @@ import java.util.List;
  */
 class EaMeaningItem extends EaUGTopicBase<EaMeaningItemRef, EaMeaningItem> {
     EaMeaningItem(EaMeaningItemRef objectRef, @Nullable String notes, List<EaDiagramRef> diagrams,
-                  List<EaTechnicalPackageRef> includedIn) {
-        super(objectRef, notes, diagrams, includedIn);
+                  List<EaTechnicalPackageRef> includedIn, List<EaReportRef> reports, List<EaInterfaceRef> interfaces) {
+        super(objectRef, notes, diagrams, includedIn, reports, interfaces);
     }
 
     @Nonnull

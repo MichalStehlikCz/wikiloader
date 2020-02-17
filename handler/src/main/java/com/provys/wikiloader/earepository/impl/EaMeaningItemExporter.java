@@ -6,4 +6,9 @@ class EaMeaningItemExporter extends EaUGTopicExporter<EaMeaningItemRef, EaMeanin
     EaMeaningItemExporter(EaMeaningItem eaObject, ProvysWikiClient wikiClient) {
         super(eaObject, wikiClient);
     }
+
+    @Override
+    public String toString() {
+        return "EaMeaningItemExporter{} " + super.toString();
+    }
 }

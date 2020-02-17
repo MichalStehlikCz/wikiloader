@@ -2,7 +2,7 @@ package com.provys.wikiloader.earepository.impl;
 
 import com.provys.provyswiki.ProvysWikiClient;
 
-class EaInterfaceAbstractExporter extends EaSysFuncAbstractExporter {
+class EaInterfaceAbstractExporter extends EaSysFuncAbstractExporter<EaInterfaceAbstractRef, EaInterfaceAbstract> {
 
     EaInterfaceAbstractExporter(EaInterfaceAbstract eaObject, ProvysWikiClient wikiClient) {
         super(eaObject, wikiClient);

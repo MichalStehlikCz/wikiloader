@@ -1,4 +1,6 @@
 package com.provys.wikiloader.earepository.impl;
 
-public interface EaMeaningRef extends EaUGTopicRef {
+import com.provys.wikiloader.earepository.EaElementRef;
+
+public interface EaMeaningRef extends EaElementRef {
 }

@@ -118,20 +118,29 @@ class EaTechnicalPackageExporter extends EaObjectRegularExporter<EaTechnicalPack
     private void exportOverview(String namespace) {
         pages.add(OVERVIEW_NAME);
         getWikiClient().putPageIfEmpty(namespace + ":" + OVERVIEW_NAME,
-                "===== Technical Package " + getEaObject().getName() + " Overview =====\n");
+                "===== Technical Package " + getEaObject().getPlainName() + " Overview =====\n");
     }
 
     private void exportCoveredFunctions(String namespace) {
         pages.add(COVERED_FUNCTIONS_NAME);
         getWikiClient().putPageIfEmpty(namespace + ":" + COVERED_FUNCTIONS_NAME,
-                "===== Covered Functions - Package " + getEaObject().getName() + " =====\n");
+                "===== Covered Functions - Package " + getEaObject().getPlainName() + " =====\n");
     }
 
     /**
      * Generate reports page to reports property
      */
     private void prepareReports() {
-        reports = null;
+        var reportList = getEaObject().getReports();
+        if (!reportList.isEmpty()) {
+            var builder = new StringBuilder();
+            builder.append("===== Reports - Package ").append(getEaObject().getPlainName()).append(" =====\n");
+            for (var report : reportList) {
+                builder.append("==== ").append(report.getPlainName()).append(" ====\n");
+                builder.append("{{page>").append(report.getDescriptionTopicId()).append("&noheader}}\n");
+            }
+            reports = builder.toString();
+        }
     }
 
     private void exportReports(String namespace) {
@@ -145,11 +154,20 @@ class EaTechnicalPackageExporter extends EaObjectRegularExporter<EaTechnicalPack
      * Generate interfaces page to interfaces property
      */
     private void prepareInterfaces() {
-        interfaces = null;
+        var interfaceList = getEaObject().getInterfaces();
+        if (!interfaceList.isEmpty()) {
+            var builder = new StringBuilder();
+            builder.append("===== Interfaces - Package ").append(getEaObject().getPlainName()).append(" =====\n");
+            for (var iface : interfaceList) {
+                builder.append("==== ").append(iface.getPlainName()).append(" ====\n");
+                builder.append("{{page>").append(iface.getDescriptionTopicId()).append("&noheader}}\n");
+            }
+            interfaces = builder.toString();
+        }
     }
 
     private void exportInterfaces(String namespace) {
-        if (reports != null) {
+        if (interfaces != null) {
             pages.add(INTERFACES_NAME);
             getWikiClient().putGeneratedPage(namespace + ":" + INTERFACES_NAME, interfaces);
         }
@@ -169,11 +187,11 @@ class EaTechnicalPackageExporter extends EaObjectRegularExporter<EaTechnicalPack
                 .append("====== Package ").append(getEaObject().getName()).append(" Description ======\n")
                 .append("===== Description =====\n")
                 .append("{{page>").append(OVERVIEW_NAME).append("&noheader&editbutton}}\n")
-                .append("\n");
+                .append("\\\\\n");
         exportOverview(namespace);
         builder.append("===== Covered Functions =====\n")
                 .append("{{page>").append(COVERED_FUNCTIONS_NAME).append("&noheader&editbutton}}\n")
-                .append("\n");
+                .append("\\\\\n");
         exportCoveredFunctions(namespace);
         // insert package content based on linked sub-packages and functions...
         prepareReports();
@@ -181,18 +199,18 @@ class EaTechnicalPackageExporter extends EaObjectRegularExporter<EaTechnicalPack
             exportReports(namespace);
             builder.append("===== Reports =====\n")
                     .append("{{page>").append(REPORTS_NAME).append("&noheader}}\n")
-                    .append("\n");
+                    .append("\\\\\n");
         }
         prepareInterfaces();
         if (interfaces != null) {
             exportInterfaces(namespace);
             builder.append("===== Interfaces =====\n")
                     .append("{{page>").append(INTERFACES_NAME).append("&noheader}}\n")
-                    .append("\n");
+                    .append("\\\\\n");
         }
         builder.append("===== Recommended Services to Purchase =====\n")
                 .append("{{page>").append(ADDITIONAL_SERVICES_NAME).append("&noheader&editbutton}}\n")
-                .append("\n");
+                .append("\\\\\n");
         exportAdditionalServices(namespace);
         getWikiClient().putGeneratedPage(id, builder.toString());
     }

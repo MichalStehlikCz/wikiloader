@@ -22,14 +22,12 @@ class EaMeaningGroupRef extends EaNamespaceElementRef
     }
 
     @Nonnull
-    @Override
-    public Optional<String> getUserGuideTopicName() {
+    public Optional<String> getOverviewTopicName() {
         return Optional.of(OVERVIEW_NAME);
     }
 
     @Nonnull
-    @Override
-    public Optional<String> getUserGuideTopicId() {
+    public Optional<String> getOverviewTopicId() {
         return getNamespace().map(ns -> ns + ":" + OVERVIEW_NAME);
     }
 

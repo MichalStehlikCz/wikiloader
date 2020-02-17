@@ -9,4 +9,8 @@ public interface EaUGTopicRef extends EaItemRef {
 
     @Nonnull
     Optional<String> getUserGuideTopicId();
+
+    @Nonnull
+    @Override
+    EaUGTopic getObject();
 }

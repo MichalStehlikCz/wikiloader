@@ -13,23 +13,24 @@ public class EaMeaningGroupExporter extends EaParentExporter<EaMeaningGroupRef, 
      */
     @Override
     void appendElementsHeader() {
-        startBuilder.append("\n===== Chapters =====\n");
+        startBuilder.append("\n===== Specializations =====\n");
     }
 
-    void appendUserGuide() {
-        var userGuideTopicName = getEaObject().getUserGuideTopicName().orElseThrow();
-        startBuilder.append("===== User Guide =====\n")
-                .append("{{page>").append(userGuideTopicName)
+    void appendOverview() {
+        var overviewTopicName = getEaObject().getOverviewTopicName().orElseThrow();
+        startBuilder.append("===== Overview =====\n")
+                .append("{{page>").append(overviewTopicName)
                 .append("&noheader&editbutton}}\n")
                 .append('\n');
-        pages.add(userGuideTopicName);
-        getWikiClient().putPageIfEmpty(getEaObject().getUserGuideTopicId().orElseThrow(),
-                "====== " + getEaObject().getName() + " ======\n");
+        pages.add(overviewTopicName);
+        getWikiClient().putPageIfEmpty(getEaObject().getOverviewTopicId().orElseThrow(),
+                "====== " + getEaObject().getPlainName() + " Overview ======\n");
     }
 
     @Override
     void appendDocument() {
         super.appendDocument();
-        appendUserGuide();
+        // insert user guide topic
+        appendOverview();
     }
 }

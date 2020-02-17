@@ -5,7 +5,7 @@ import com.provys.wikiloader.earepository.EaObjectRef;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-class EaInterfaceAbstractRef extends EaSysFuncAbstractRef implements EaReportRef {
+class EaInterfaceAbstractRef extends EaSysFuncAbstractRef implements EaInterfaceRef {
 
     static final String EA_TYPE = "ApplicationInterface";
     static final String EA_STEREOTYPE = "ArchiMate_ApplicationInterface";

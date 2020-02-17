@@ -18,20 +18,41 @@ abstract class EaUGTopicBase<R extends EaUGTopicRefBase<R, T>, T extends EaUGTop
 
     @Nonnull
     private final List<EaTechnicalPackageRef> includedIn;
+    @Nonnull
+    private final List<EaReportRef> reports;
+    @Nonnull
+    private final List<EaInterfaceRef> interfaces;
 
     EaUGTopicBase(R objectRef, @Nullable String notes, List<EaDiagramRef> diagrams,
-                  List<EaTechnicalPackageRef> includedIn) {
+                  List<EaTechnicalPackageRef> includedIn, List<EaReportRef> reports, List<EaInterfaceRef> interfaces) {
         super(objectRef, notes, diagrams);
-        this.includedIn = Objects.requireNonNull(includedIn);
+        this.includedIn = List.copyOf(includedIn);
+        this.reports = List.copyOf(reports);
+        this.interfaces = List.copyOf(interfaces);
     }
 
-    /**
-     * @return list of technical packages this topic is included in
-     */
+    @Nonnull
+    @Override
+    public EaUGTopic getObject() {
+        return this;
+    }
+
     @Override
     @Nonnull
     public List<EaTechnicalPackageRef> getIncludedIn() {
         return includedIn;
+    }
+
+    @Override
+    @Nonnull
+    public List<EaReportRef> getReports() {
+        return reports;
+    }
+
+    @Override
+    @Nonnull
+    public List<EaInterfaceRef> getInterfaces() {
+        return interfaces;
     }
 
     @Override

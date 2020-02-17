@@ -697,7 +697,7 @@ class EaLoaderImpl implements EaLoader {
 
     @Nonnull
     private <T> List<T> getRelElements(Element element, EaRepository eaRepository, boolean fromSupplier,
-                                       String type, String stereotype, Class<T> relType) {
+                                       String type, String stereotype, Class<T> relType, boolean warn) {
         var result = new ArrayList<T>(10);
         var elementId = element.GetElementID();
         var connectors = element.GetConnectors();
@@ -711,7 +711,7 @@ class EaLoaderImpl implements EaLoader {
                                 fromSupplier ? connector.GetClientID() : connector.GetSupplierID());
                         if (relType.isInstance(elementRef)) {
                             result.add(relType.cast(elementRef));
-                        } else {
+                        } else if (warn) {
                             if (fromSupplier) {
                                 LOG.warn("Unexpected {} relation from {} to {} {}", () -> stereotype,
                                         elementRef::getEaDesc, relType::getCanonicalName, element::GetName);
@@ -753,7 +753,7 @@ class EaLoaderImpl implements EaLoader {
      */
     private List<EaElementRef> getTechnicalPackageFunctions(Element element, EaRepository eaRepository) {
         return getRelElements(element, eaRepository, false, "Association",
-                "ArchiMate_Association", EaUGTopicRef.class)
+                "ArchiMate_Association", EaUGTopicRef.class, true)
                 .stream()
                 .flatMap(EaLoaderImpl::mapMeaningContent)
                 .collect(Collectors.toList());
@@ -761,12 +761,12 @@ class EaLoaderImpl implements EaLoader {
 
     private List<EaProductPackageRef> getTechnicalPackageContainedIn(Element element, EaRepository eaRepository) {
         return getRelElements(element, eaRepository, true, "Association",
-                "ArchiMate_Aggregation", EaProductPackageRef.class);
+                "ArchiMate_Aggregation", EaProductPackageRef.class, true);
     }
 
     private List<EaTechnicalPackageRef> getTechnicalPackagePrerequisities(Element element, EaRepository eaRepository) {
         return getRelElements(element, eaRepository, false, "Dependency", "",
-                EaTechnicalPackageRef.class);
+                EaTechnicalPackageRef.class, true);
     }
 
     @Override
@@ -790,7 +790,17 @@ class EaLoaderImpl implements EaLoader {
 
     private List<EaTechnicalPackageRef> getUGTopicIncludedIn(Element element, EaRepository eaRepository) {
         return getRelElements(element, eaRepository, true, "Association",
-                "ArchiMate_Association", EaTechnicalPackageRef.class);
+                "ArchiMate_Association", EaTechnicalPackageRef.class, true);
+    }
+
+    private List<EaReportRef> getUGTopicReports(Element element, EaRepository eaRepository) {
+        return getRelElements(element, eaRepository, false, "Usage", "", EaReportRef.class,
+                false);
+    }
+
+    private List<EaInterfaceRef> getUGTopicInterfaces(Element element, EaRepository eaRepository) {
+        return getRelElements(element, eaRepository, false, "Usage", "",
+                EaInterfaceRef.class, false);
     }
 
     @Override
@@ -800,7 +810,9 @@ class EaLoaderImpl implements EaLoader {
         try {
             var diagrams = getDiagrams(element::GetDiagrams, elementRef.getRepository());
             return new EaMeaningItem(elementRef, element.GetNotes(), diagrams,
-                    getUGTopicIncludedIn(element, elementRef.getRepository()));
+                    getUGTopicIncludedIn(element, elementRef.getRepository()),
+                    getUGTopicReports(element, elementRef.getRepository()),
+                    getUGTopicInterfaces(element, elementRef.getRepository()));
         } finally {
             element.destroy();
         }
@@ -817,8 +829,7 @@ class EaLoaderImpl implements EaLoader {
                     .filter(el -> el instanceof EaMeaningRef)
                     .map(el -> (EaMeaningRef) el)
                     .collect(Collectors.toList());
-            return new EaMeaningGroup(elementRef, element.GetNotes(), diagrams, meaningElements,
-                    getUGTopicIncludedIn(element, elementRef.getRepository()));
+            return new EaMeaningGroup(elementRef, element.GetNotes(), diagrams, meaningElements);
         } finally {
             element.destroy();
         }
@@ -835,7 +846,9 @@ class EaLoaderImpl implements EaLoader {
                         "with children should map to FunctionAbstract, not FunctionTask");
             }
             return new EaFunctionTask(elementRef, element.GetNotes(), diagrams,
-                    getUGTopicIncludedIn(element, elementRef.getRepository()));
+                    getUGTopicIncludedIn(element, elementRef.getRepository()),
+                    getUGTopicReports(element, elementRef.getRepository()),
+                    getUGTopicInterfaces(element, elementRef.getRepository()));
         } finally {
             element.destroy();
         }
@@ -843,7 +856,7 @@ class EaLoaderImpl implements EaLoader {
 
     private List<EaUGTopicRef> getReportUsedIn(Element element, EaRepository eaRepository) {
         return getRelElements(element, eaRepository, true, "Usage",
-                "", EaUGTopicRef.class);
+                "", EaUGTopicRef.class, true);
     }
 
     @Nonnull

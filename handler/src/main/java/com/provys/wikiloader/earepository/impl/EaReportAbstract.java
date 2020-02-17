@@ -7,7 +7,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 
-class EaReportAbstract extends EaSysFuncAbstract {
+class EaReportAbstract extends EaSysFuncAbstract<EaReportAbstractRef, EaReportRef> {
 
     EaReportAbstract(EaReportAbstractRef objectRef, @Nullable String notes, @Nullable List<EaDiagramRef> diagrams,
                    @Nullable List<EaReportRef> elements) {
