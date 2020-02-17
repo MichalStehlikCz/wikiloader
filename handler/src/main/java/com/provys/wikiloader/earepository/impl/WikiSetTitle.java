@@ -3,7 +3,6 @@ package com.provys.wikiloader.earepository.impl;
 import com.provys.wikiloader.earepository.EaObjectRef;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -32,7 +31,7 @@ public class WikiSetTitle extends WikiSetObjectBase {
     }
 
     @Override
-    public boolean equals(@Nullable Object o) {
+    public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof WikiSetTitle)) return false;
         if (!super.equals(o)) return false;
@@ -47,8 +46,8 @@ public class WikiSetTitle extends WikiSetObjectBase {
 
     @Override
     public String toString() {
-        return "WikiSetName{" +
-                "name='" + title + '\'' +
+        return "WikiSetTitle{" +
+                "title='" + title + '\'' +
                 "} " + super.toString();
     }
 }
