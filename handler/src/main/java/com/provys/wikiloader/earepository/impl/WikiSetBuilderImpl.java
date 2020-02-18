@@ -14,6 +14,8 @@ import java.util.stream.Collectors;
 
 class WikiSetBuilderImpl implements WikiSetBuilder {
 
+    private static final String OVERVIEW_PREFIX = "overview";
+
     @Nonnull
     private final EaRepository eaRepository;
     private int threshold = 5;
@@ -69,6 +71,9 @@ class WikiSetBuilderImpl implements WikiSetBuilder {
      * given EaObject
      */
     private static class SetMember {
+
+        private static final Logger LOG = LogManager.getLogger(SetMember.class);
+
         @Nonnull
         private final EaObjectRef object;
         private boolean mandatory;
@@ -111,10 +116,15 @@ class WikiSetBuilderImpl implements WikiSetBuilder {
          */
         boolean reduce(int threshold) {
             if ((overview != null) && (mandatory || !overview.children.isEmpty())) {
+                if (!overview.children.isEmpty()) {
+                    LOG.warn("Overview {} not included in topic - overview has children", overview);
+                } else {
+                    LOG.debug("Overview {} not included in topic - topic body is included", overview);
+                }
                 children.add(overview);
                 overview = null;
             }
-            for (var child : new ArrayList<SetMember>(children)) { // we will manipulate with content and HashSet iterator doesn't like it
+            for (var child : new ArrayList<>(children)) { // we will manipulate with content and HashSet iterator doesn't like it
                 if (child.reduce(threshold)) {
                     children.remove(child);
                     children.addAll(child.children);
@@ -183,7 +193,7 @@ class WikiSetBuilderImpl implements WikiSetBuilder {
                 member.mandatory = true;
             }
             if (child != null) {
-                if (child.getObject().getAlias().filter(alias -> alias.startsWith("overview_")).isPresent()
+                if (child.getObject().getAlias().filter(alias -> alias.startsWith(OVERVIEW_PREFIX)).isPresent()
                         && child.children.isEmpty()) {
                     var oldOverview = member.getOverview();
                     if (oldOverview == null) {
