@@ -62,7 +62,7 @@ public class EaDataObjectExporter extends EaObjectRegularExporter<EaDataObject> 
         startBuilder.append("==== ").append(attrGrp.getName()).append(" (").append(attrGrp.getNameNm()).append(") ====\n");
         appendAttrHeader();
         attrGrp.getAttrs().stream()
-                .filter(attr -> attr.getAttrGrpId().isEmpty())
+                .filter(attr -> !attr.isIsCustom())
                 .sorted()
                 .forEach(this::appendAttr);
     }
@@ -99,6 +99,7 @@ public class EaDataObjectExporter extends EaObjectRegularExporter<EaDataObject> 
             startBuilder.append("==== Others ====\n");
             // and append attributes not attached to any attribute group
             var attrs = entity.getAttrs().stream()
+                    .filter(attr -> !attr.isIsCustom())
                     .filter(attr -> attr.getAttrGrpId().isEmpty())
                     .sorted()
                     .collect(Collectors.toList());
