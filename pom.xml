@@ -4,7 +4,7 @@
     <groupId>com.provys.wikiloader</groupId>
     <artifactId>wikiloader</artifactId>
     <packaging>pom</packaging>
-    <version>1.0.5</version>
+    <version>1.0.6-SNAPSHOT</version>
     <modules>
         <module>provyswiki</module>
         <module>handler</module>
@@ -15,7 +15,7 @@
     </properties>
     <scm>
         <developerConnection>scm:git:https://github.com/MichalStehlikCz/wikiloader.git</developerConnection>
-        <tag>v1.0.5</tag>
+        <tag>HEAD</tag>
     </scm>
     <repositories>
         <repository>
