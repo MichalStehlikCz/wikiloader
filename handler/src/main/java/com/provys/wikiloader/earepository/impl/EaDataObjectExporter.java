@@ -6,6 +6,7 @@ import com.provys.catalogue.api.Entity;
 import com.provys.provyswiki.ProvysWikiClient;
 
 import java.util.Collection;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 public class EaDataObjectExporter extends EaObjectRegularExporter<EaDataObject> {
@@ -17,10 +18,12 @@ public class EaDataObjectExporter extends EaObjectRegularExporter<EaDataObject> 
     @Override
     void appendTitle() {
         startBuilder.append("====== ")
-                .append(getEaObject().getEntity().map(Entity::getName).orElse(getEaObject().getName()))
+                .append(getEaObject().getEntity().map(Entity::getName).orElseGet(
+                    () -> getEaObject().getName()))
                 .append(" (")
                 .append(getEaObject().getEntity().map(Entity::getNameNm)
-                        .orElse(getEaObject().getAlias().orElseThrow().toUpperCase()))
+                        .orElseGet(() -> getEaObject().getAlias().orElseThrow()
+                            .toUpperCase(Locale.ENGLISH)))
                 .append(") ======\n");
     }
 
