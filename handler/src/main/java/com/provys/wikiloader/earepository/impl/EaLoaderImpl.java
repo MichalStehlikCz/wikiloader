@@ -560,7 +560,7 @@ class EaLoaderImpl implements EaLoader {
     public EaDefaultDiagram loadDefaultDiagram(EaDiagramRef diagramRef) {
         var diagram = repository.GetDiagramByID(diagramRef.getDiagramId());
         try {
-            var diagramLoader = new EaLoaderDiagram(diagram, diagramRef.getRepository());
+            var diagramLoader = new EaLoaderDiagram(diagram, repository, diagramRef.getRepository());
             return new EaDefaultDiagram(diagramRef, diagram.GetNotes(), diagramLoader.getDiagram(),
                     diagramLoader.getDiagramObjects());
         } finally {
