@@ -585,7 +585,7 @@ class EaLoaderImpl implements EaLoader {
                         () -> filename, project::GetLastError);
                     return null;
                 }
-            } catch (RuntimeException e) {
+            } catch (Exception e) {
                 LOG.error("Failed to export diagram {} to {}: {}", diagram::GetName,
                     () -> filename, () -> e);
                 return null;
