@@ -26,7 +26,10 @@ public interface EaLoader {
      */
     EaObjectRef getRefObjectByPath(EaModel model, @Nullable String path, EaRepositoryImpl eaRepository);
 
-    EaDefaultDiagram loadDefaultDiagram(EaDiagramRef diagramRef);
+    EaDefaultDiagram loadDefaultDiagram(EaDefaultDiagramRef diagramRef);
+
+    @Nullable
+    byte[] getDiagramPicture(EaDiagramRef diagramRef);
 
     @Nonnull
     EaProductPackageGroup loadProductPackageGroup(EaProductPackageGroupRef packageGroupRef);

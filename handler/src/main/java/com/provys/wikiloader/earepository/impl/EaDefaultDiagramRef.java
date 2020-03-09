@@ -45,6 +45,11 @@ class EaDefaultDiagramRef extends EaObjectRefBase implements EaDiagramRef {
         return getRepository().getLoader().loadDefaultDiagram(this);
     }
 
+    @Nullable
+    byte[] getPicture() {
+        return getRepository().getLoader().getDiagramPicture(this);
+    }
+
     @Override
     @Nonnull
     public Optional<String> getTopicId() {

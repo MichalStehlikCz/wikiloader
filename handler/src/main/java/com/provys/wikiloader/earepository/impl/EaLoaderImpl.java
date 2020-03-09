@@ -4,6 +4,9 @@ import com.provys.catalogue.api.CatalogueRepository;
 import com.provys.common.exception.InternalException;
 import com.provys.common.exception.RegularException;
 import com.provys.wikiloader.earepository.*;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.sparx.*;
@@ -557,13 +560,50 @@ class EaLoaderImpl implements EaLoader {
     }
 
     @Override
-    public EaDefaultDiagram loadDefaultDiagram(EaDiagramRef diagramRef) {
+    public EaDefaultDiagram loadDefaultDiagram(EaDefaultDiagramRef diagramRef) {
         var diagram = repository.GetDiagramByID(diagramRef.getDiagramId());
         try {
-            var diagramLoader = new EaLoaderDiagram(diagram, repository, diagramRef.getRepository());
-            return new EaDefaultDiagram(diagramRef, diagram.GetNotes(), diagramLoader.getDiagram(),
-                    diagramLoader.getDiagramObjects());
+            var diagramLoader = new EaLoaderDiagram(diagram, diagramRef.getRepository());
+            return new EaDefaultDiagram(diagramRef, diagram.GetNotes(),
+                diagramLoader.getDiagramObjects());
         } finally {
+            diagram.destroy();
+        }
+    }
+
+    @Override
+    @Nullable
+    public byte[] getDiagramPicture(EaDiagramRef diagramRef) {
+        var filename = Paths.get("c:\\temp\\export_diagram.png");
+        var diagram = repository.GetDiagramByID(diagramRef.getDiagramId());
+        var project = repository.GetProjectInterface();
+        try {
+            try {
+                if (!project.PutDiagramImageToFile(project.GUIDtoXML(diagram.GetDiagramGUID()),
+                    filename.toString(), 1)) {
+                    LOG.error("Failed to export diagram {} to {}: {}", diagram::GetName,
+                        () -> filename, project::GetLastError);
+                    return null;
+                }
+            } catch (RuntimeException e) {
+                LOG.error("Failed to export diagram {} to {}: {}", diagram::GetName,
+                    () -> filename, () -> e);
+                return null;
+            }
+            try {
+                return Files.readAllBytes(filename);
+            } catch (IOException e) {
+                throw new InternalException(
+                    "Failed to read generated file " + filename + "for diagram "
+                        + diagram.GetName(), e);
+            }
+        } finally {
+            try {
+                Files.deleteIfExists(filename);
+            } catch (IOException e) {
+                LOG.warn("Failed to delete exported diagram {}", filename);
+            }
+            project.destroy();
             diagram.destroy();
         }
     }

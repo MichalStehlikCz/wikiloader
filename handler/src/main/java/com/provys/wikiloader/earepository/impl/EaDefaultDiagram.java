@@ -1,10 +1,7 @@
 package com.provys.wikiloader.earepository.impl;
 
 import com.provys.provyswiki.ProvysWikiClient;
-import com.provys.wikiloader.earepository.EaDiagramRef;
 import com.provys.wikiloader.earepository.EaElementRef;
-import com.provys.wikiloader.earepository.EaRepository;
-import org.sparx.DiagramObject;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -13,22 +10,19 @@ import java.util.*;
 /**
  * Class represents diagram; it holds rendered image and coordinates of objects on that diagram.
  */
-class EaDefaultDiagram extends EaObjectRegularBase<EaDiagramRef> {
+class EaDefaultDiagram extends EaObjectRegularBase<EaDefaultDiagramRef> {
 
-  private static final double PIXEL_RATIO = 1.363;
-
-  private final byte[] diagram;
   private final List<DiagramObjectRef> diagramObjects;
 
-  EaDefaultDiagram(EaDiagramRef objectRef, @Nullable String notes, byte[] diagram,
+  EaDefaultDiagram(EaDefaultDiagramRef objectRef, @Nullable String notes,
       Collection<DiagramObjectRef> diagramObjects) {
     super(objectRef, notes);
-    this.diagram = Objects.requireNonNull(diagram);
     this.diagramObjects = List.copyOf(diagramObjects);
   }
 
-  byte[] getDiagram() {
-    return diagram;
+  @Nullable
+  byte[] getPicture() {
+    return getObjectRef().getPicture();
   }
 
   List<DiagramObjectRef> getDiagramObjects() {
@@ -42,11 +36,6 @@ class EaDefaultDiagram extends EaObjectRegularBase<EaDiagramRef> {
   }
 
   static final class ImgPos implements Comparable<ImgPos> {
-
-    static ImgPos ofEaPos(int left, int right, int top, int bottom) {
-      return new ImgPos((int) Math.round(PIXEL_RATIO * left), (int) Math.round(PIXEL_RATIO * right),
-          (int) -Math.round(PIXEL_RATIO * top), (int) -Math.round(PIXEL_RATIO * bottom));
-    }
 
     static ImgPos ofImgPos(int left, int right, int top, int bottom) {
       return new ImgPos(left, right, top, bottom);
@@ -265,14 +254,12 @@ class EaDefaultDiagram extends EaObjectRegularBase<EaDiagramRef> {
       return false;
     }
     EaDefaultDiagram that = (EaDefaultDiagram) o;
-    return Arrays.equals(diagram, that.diagram)
-        && Objects.equals(diagramObjects, that.diagramObjects);
+    return Objects.equals(diagramObjects, that.diagramObjects);
   }
 
   @Override
   public int hashCode() {
     int result = super.hashCode();
-    result = 31 * result + Arrays.hashCode(diagram);
     result = 31 * result + (diagramObjects != null ? diagramObjects.hashCode() : 0);
     return result;
   }
