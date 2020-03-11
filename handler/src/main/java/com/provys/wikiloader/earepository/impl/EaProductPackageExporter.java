@@ -14,8 +14,15 @@ class EaProductPackageExporter extends EaObjectRegularExporter<EaProductPackage>
 
     private static final String PACKAGE_DESCRIPTION_NAME = "package_description";
 
+    private final PackageDocumentExporter documentExporter;
+
     EaProductPackageExporter(EaProductPackage eaObject, ProvysWikiClient wikiClient) {
         super(eaObject, wikiClient);
+        this.documentExporter = new PackageDocumentExporter(
+            "pp_" + eaObject.getAlias().orElseThrow(), eaObject.getName(),
+            eaObject.getNamespace().orElseThrow(), eaObject.getTechnicalPackages().stream()
+                .map(EaTechnicalPackageRef::getObject)
+                .collect(Collectors.toList()), eaObject.getRepository(), wikiClient);
     }
 
     @Override
@@ -30,7 +37,7 @@ class EaProductPackageExporter extends EaObjectRegularExporter<EaProductPackage>
     private void appendDiagrams() {
         var diagrams = getEaObject().getDiagrams().stream().filter(EaObjectRef::isTopic).collect(Collectors.toList());
         for (var diagram : diagrams) {
-            inlineObject(diagram, (diagrams.size() > 1));
+            inlineObject(diagram, diagrams.size() > 1);
             subObjects.add(diagram);
         }
     }
@@ -54,6 +61,7 @@ class EaProductPackageExporter extends EaObjectRegularExporter<EaProductPackage>
         }
         startBuilder.append("===== Package Description =====\n");
         startBuilder.append("{{page>").append(PACKAGE_DESCRIPTION_NAME).append("&noheader&editbutton}}\n");
+        documentExporter.appendDocumentsSection(startBuilder);
     }
 
     private void exportPackageDescription(String namespace) {
@@ -79,6 +87,7 @@ class EaProductPackageExporter extends EaObjectRegularExporter<EaProductPackage>
     @Override
     void syncNamespace(String namespace) {
         exportPackageDescription(namespace);
+        documentExporter.export();
         super.syncNamespace(namespace);
     }
 
@@ -88,5 +97,10 @@ class EaProductPackageExporter extends EaObjectRegularExporter<EaProductPackage>
             throw new InternalException("Technical package element should be mapped to namespace");
         }
         super.syncWiki();
+    }
+
+    @Override
+    public String toString() {
+        return "EaProductPackageExporter{" + super.toString() + '}';
     }
 }
