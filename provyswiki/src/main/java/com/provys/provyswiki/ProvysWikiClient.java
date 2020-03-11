@@ -128,6 +128,17 @@ public class ProvysWikiClient extends DokuWikiClient {
     }
 
     /**
+     * Check if page doesn't exist or it contains empty tag.
+     *
+     * @param id is wiki topic id
+     * @return true if page doesn't exist or is marked as empty, false otherwise
+     */
+    public boolean isPageEmpty(String id) {
+        var origText = getPage(id);
+        return origText.isEmpty() || origText.startsWith("{{tag>empty}}");
+    }
+
+    /**
      * Insert specified page to wiki if page doesn't exist yet; prefix page with empty tag. If page already exists, does
      * nothing
      *
@@ -135,8 +146,7 @@ public class ProvysWikiClient extends DokuWikiClient {
      * @param text is text to be placed to this topic. It will be prefixed with empty tag
      */
     public void putPageIfEmpty(String id, String text) {
-        var origText = getPage(id);
-        if (origText.isEmpty() || origText.startsWith("{{tag>empty}}")) {
+        if (isPageEmpty(id)) {
             putPage(id, "{{tag>empty}}\n" + text);
         }
     }
