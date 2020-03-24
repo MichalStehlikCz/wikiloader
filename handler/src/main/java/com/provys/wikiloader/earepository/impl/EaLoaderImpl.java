@@ -21,12 +21,14 @@ import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.springframework.web.context.annotation.RequestScope;
 
 /**
  * Interface for accessing Enterprise Architect repository and retrieve Ref objects from this repository - the only
  * class that actually interact with Enterprise Architect COM interface
  */
 @Component
+@RequestScope
 class EaLoaderImpl implements EaLoader {
 
     private static final Logger LOG = LogManager.getLogger(EaLoaderImpl.class);
