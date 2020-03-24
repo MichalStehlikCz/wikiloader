@@ -162,7 +162,7 @@ abstract class EaObjectBase<T extends EaObjectRef> implements EaObject {
     }
 
     @Override
-    public void appendPages(Collection<String> pages) {
+    public void appendPages(Collection<? super String> pages) {
         objectRef.appendPages(pages);
     }
 

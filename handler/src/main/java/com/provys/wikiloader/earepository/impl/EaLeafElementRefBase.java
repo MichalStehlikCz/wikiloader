@@ -66,7 +66,7 @@ abstract class EaLeafElementRefBase<T extends EaLeafElementRefBase<T>> extends E
     }
 
     @Override
-    public void appendPages(Collection<String> pages) {
+    public void appendPages(Collection<? super String> pages) {
         super.appendPages(pages);
         /* Diagrams are placed in the same namespace as this element... */
         for (var diagram : getObject().getDiagrams()) {

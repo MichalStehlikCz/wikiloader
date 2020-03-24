@@ -29,12 +29,54 @@ abstract class EaObjectRefBase implements EaObjectRef {
     private final String stereotype;
     private final int treePos;
 
+    private static String validateName(String name) {
+        String result = name;
+        if (result.indexOf(0x1f) != -1) {
+            LOG.warn("Invalid character 0x1f in name ({})", name);
+            result = result.replace((char) 0x1f, '\t');
+        }
+        if (result.indexOf('\n') != -1) {
+            LOG.warn("Newline in name ({})", name);
+            result = result.replace('\n', ' ');
+        }
+        return result;
+    }
+
+    @Nullable
+    private static String validateAlias(@Nullable String alias) {
+        if ((alias == null) || alias.isBlank()) {
+            return null;
+        }
+        var result = alias.toLowerCase(Locale.ENGLISH);
+        if (result.indexOf(0x1f) != -1) {
+            LOG.warn("Invalid character 0x1f in alias ({})", result);
+            result = result.replace((char) 0x1f, '\t');
+        }
+        if (result.indexOf('\n') != -1) {
+            LOG.warn("Newline in alias ({})", result);
+            result = result.replace('\n', '_');
+        }
+        if (result.indexOf('(') != -1) {
+            LOG.warn("Invalid character ( in alias ({})", result);
+            result = result.replace('(', '_');
+        }
+        if (result.indexOf(')') != -1) {
+            LOG.warn("Invalid character ) in alias ({})", result);
+            result = result.replace(')', '_');
+        }
+        if (result.indexOf(' ') != -1) {
+            LOG.warn("Invalid character ' ' in alias ({})", result);
+            result = result.replace(' ', '_');
+        }
+        return result;
+    }
+
     EaObjectRefBase(EaRepositoryImpl repository, @Nullable EaObjectRef parent, String name, @Nullable String alias,
                     String type, @Nullable String stereotype, int treePos) {
         this.repository = Objects.requireNonNull(repository);
         this.parent = parent;
-        this.name = Objects.requireNonNull(name);
-        this.alias = ((alias == null) || alias.isEmpty()) ? null : alias.toLowerCase();
+        this.name = validateName(name);
+        this.alias = validateAlias(alias);
         this.type = Objects.requireNonNull(type);
         this.stereotype = ((stereotype == null) || stereotype.isEmpty()) ? null : stereotype;
         this.treePos = treePos;
@@ -105,7 +147,7 @@ abstract class EaObjectRefBase implements EaObjectRef {
         if (hasLink()) {
             builder.append("[[");
             appendLinkNoCheck(builder);
-            builder.append("|").append(getShortTitle()).append("]]");
+            builder.append('|').append(getShortTitle()).append("]]");
         } else {
             builder.append(getShortTitle());
         }
@@ -129,9 +171,10 @@ abstract class EaObjectRefBase implements EaObjectRef {
         return Optional.ofNullable(stereotype);
     }
 
+    @Override
     @Nonnull
     public String getEaDesc() {
-        return type + ((stereotype == null) ? "" : " " + stereotype) + " " + name;
+        return type + ((stereotype == null) ? "" : ' ' + stereotype) + ' ' + name;
     }
 
     @Override
@@ -145,7 +188,7 @@ abstract class EaObjectRefBase implements EaObjectRef {
             LOG.debug("{} is not exportable type", this::getEaDesc);
             return false;
         }
-        if ((parent != null) && (!parent.isTopic())) {
+        if ((parent != null) && !parent.isTopic()) {
             LOG.warn("{} not exported - parent not exported", this::getEaDesc);
             return false;
         }
@@ -173,7 +216,7 @@ abstract class EaObjectRefBase implements EaObjectRef {
     }
 
     void appendLinkNoCheck(StringBuilder builder) {
-        builder.append(":");
+        builder.append(':');
         if (parent != null) {
             parent.appendNamespace(builder, true);
         }
@@ -198,7 +241,8 @@ abstract class EaObjectRefBase implements EaObjectRef {
         appendParentLinkNoCheck(builder, true);
     }
 
-    public void appendPages(Collection<String> pages) {
+    @Override
+    public void appendPages(Collection<? super String> pages) {
         getParentLink().ifPresent(pages::add);
     }
 
@@ -232,7 +276,8 @@ abstract class EaObjectRefBase implements EaObjectRef {
         for (var i = 0; (i < pos.size()) && (i<otherPos.size()); i++) {
             if (pos.get(i) < otherPos.get(i)) {
                 return -1;
-            } else if (pos.get(i) > otherPos.get(i)) {
+            }
+            if (pos.get(i) > otherPos.get(i)) {
                 return 1;
             }
         }

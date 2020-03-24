@@ -128,7 +128,7 @@ class EaFunctionTaskRef extends EaUGTopicRefBase<EaFunctionTaskRef, EaFunctionTa
     }
 
     @Override
-    public void appendPages(Collection<String> pages) {
+    public void appendPages(Collection<? super String> pages) {
         super.appendPages(pages);
         getTrainingGuideTopicName().ifPresent(pages::add);
         getTrainingWalkThroughTopicName().ifPresent(pages::add);

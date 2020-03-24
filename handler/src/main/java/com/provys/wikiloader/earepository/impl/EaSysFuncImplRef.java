@@ -51,7 +51,7 @@ class EaSysFuncImplRef extends EaCachedLeafElementRef<EaSysFuncImplRef, EaSysFun
     }
 
     @Override
-    public void appendPages(Collection<String> pages) {
+    public void appendPages(Collection<? super String> pages) {
         super.appendPages(pages);
         getDescriptionTopicName().ifPresent(pages::add);
     }

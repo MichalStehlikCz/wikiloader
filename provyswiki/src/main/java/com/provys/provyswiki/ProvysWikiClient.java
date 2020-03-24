@@ -1,6 +1,7 @@
 package com.provys.provyswiki;
 
 import com.provys.dokuwiki.DokuWikiClient;
+import java.util.Collection;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,8 +84,8 @@ public class ProvysWikiClient extends DokuWikiClient {
      * does no validation of topics, just constructs content based on them... If supplied string is empty, empty line is
      * added to content. If supplied string is ---, adds separator to content
      */
-    public void syncContent(String namespace, List<String> topics) {
-        String contentId = namespace + ":" + CONTENT;
+    public void syncContent(String namespace, Collection<String> topics) {
+        String contentId = namespace + ':' + CONTENT;
         if (topics.isEmpty()) {
             // if content is empty, it has to be deleted, put might fail if no previous content exists...
             if (!getPage(contentId).isEmpty()) {
@@ -94,7 +95,7 @@ public class ProvysWikiClient extends DokuWikiClient {
         }
         StringBuilder builder = new StringBuilder();
         for (var topic : topics) {
-            if ((topic == null) || (topic.isEmpty())) {
+            if ((topic == null) || topic.isEmpty()) {
                 builder.append('\n');
             } else if (topic.equals("\\\\")) {
                 builder.append("\\\\\n");
@@ -112,7 +113,7 @@ public class ProvysWikiClient extends DokuWikiClient {
      * @param namespace is namespace in which content should be deleted
      */
     public void deleteContentIfExists(String namespace) {
-        deletePageIfExists(namespace + ":" + CONTENT);
+        deletePageIfExists(namespace + ':' + CONTENT);
     }
 
     /**

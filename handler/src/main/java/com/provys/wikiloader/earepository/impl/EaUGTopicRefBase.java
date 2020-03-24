@@ -49,7 +49,7 @@ abstract class EaUGTopicRefBase<R extends EaUGTopicRefBase<R, T>, T extends EaUG
     }
 
     @Override
-    public void appendPages(Collection<String> pages) {
+    public void appendPages(Collection<? super String> pages) {
         super.appendPages(pages);
         getUserGuideTopicName().ifPresent(pages::add);
     }

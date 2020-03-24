@@ -170,7 +170,7 @@ public interface EaObjectRef extends Comparable<EaObjectRef> {
      *
      * @param pages is collection of pages, where this handler's generated topics and namespaces should be added to
      */
-    void appendPages(Collection<String> pages);
+    void appendPages(Collection<? super String> pages);
 
     /**
      * Retrieve position of given items, defined as list of tree positions, starting from root package (model). Used to
