@@ -7,6 +7,7 @@ import com.provys.wikiloader.earepository.*;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import javax.annotation.PreDestroy;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.sparx.*;
@@ -68,6 +69,12 @@ class EaLoaderImpl implements EaLoader {
     EaLoaderImpl(Repository repository, CatalogueRepository catalogue) {
         this.repository = Objects.requireNonNull(repository);
         this.catalogue = Objects.requireNonNull(catalogue);
+    }
+
+    @PreDestroy
+    void closeRepository() {
+        repository.CloseFile();
+        repository.Exit();
     }
 
     @Override
