@@ -10,7 +10,8 @@ import javax.annotation.Nonnull;
 public enum EaModel {
 
     PRODUCT_MODEL("Product Model", "eamodel"),
-    COMPANY_MODEL("Company Model", "companymodel");
+    COMPANY_MODEL("Company Model", "companymodel"),
+    MYPROVYS_MODEL("myProvys Model", "myprovysmodel");
 
     /**
      * Retrieve model with given wiki namespace
